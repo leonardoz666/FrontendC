@@ -2,6 +2,7 @@ export type Produto = {
   id: number
   nome: string
   preco: number
+  foto?: string | null
   categoriaId: number
   tipo?: 'COMUM' | 'POR_TAMANHO'
   valorPromo?: number | string | null

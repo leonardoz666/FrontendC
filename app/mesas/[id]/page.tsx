@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Rocket, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Loader2, Ban } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
@@ -18,6 +19,30 @@ const CANCELLATION_REASONS = [
   'Desistência',
   'Falta do produto'
 ] as const
+
+function OrderProductImage({ produto }: { produto: Produto }) {
+  const [imageError, setImageError] = useState(false)
+
+  if (!produto.foto || imageError) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-300">
+        <Ban className="h-12 w-12" strokeWidth={1.5} aria-hidden="true" />
+      </div>
+    )
+  }
+
+  return (
+    <Image
+      src={produto.foto}
+      alt=""
+      fill
+      sizes="(max-width: 639px) 46vw, (max-width: 767px) 30vw, 23vw"
+      className="object-cover"
+      unoptimized={produto.foto.startsWith('/uploads') || produto.foto.startsWith('data:')}
+      onError={() => setImageError(true)}
+    />
+  )
+}
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -714,7 +739,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
               {/* Product Grid */}
               <div className="flex-1 overflow-y-auto">
-                <div className="grid grid-cols-3 gap-2 pb-4 sm:grid-cols-[repeat(auto-fill,minmax(132px,1fr))] sm:gap-3">
+                <div className="grid grid-cols-2 gap-2 pb-4 sm:grid-cols-3 md:grid-cols-4">
                   {filteredProducts.map(produto => {
                     const isInactive = produto.ativo === false
                     const isDisabled = isInactive || lancamentoBloqueado
@@ -723,7 +748,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                     return (
                       <article
                         key={produto.id}
-                        className={`relative flex aspect-[4/5] min-w-0 flex-col border bg-white p-3 text-left transition-colors ${isDisabled
+                        className={`relative flex min-w-0 flex-col overflow-hidden rounded-xl border bg-white p-2 text-left transition-colors ${isDisabled
                           ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60'
                           : quantity > 0 ? 'border-orange-500' : 'border-gray-200 hover:border-orange-500'
                           }`}
@@ -736,21 +761,33 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                           title={produto.nome}
                           className="absolute inset-0 z-0 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
                         />
-                        <div className="pointer-events-none relative z-[1] flex min-h-0 w-full min-w-0 flex-1 flex-col">
-                          <h3 className="line-clamp-3 text-sm font-semibold leading-snug text-gray-900 sm:text-base">{produto.nome}</h3>
-                          <span className="mt-auto whitespace-nowrap text-sm font-bold text-gray-900">
-                            R$ {preco.toFixed(2).replace('.', ',')}
-                          </span>
+                        <div className="pointer-events-none relative z-[1] aspect-[2.55/1] w-full overflow-hidden rounded-lg bg-gray-100">
+                          <OrderProductImage produto={produto} />
+                          {quantity > 0 && (
+                            <span className="absolute right-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-orange-600 px-1 text-xs font-bold text-white shadow" aria-hidden="true">
+                              {quantity}
+                            </span>
+                          )}
                         </div>
-
-                        {!isDisabled && quantity > 0 && (
-                          <div role="group" aria-label={`Quantidade de ${produto.nome}`} className="pointer-events-none relative z-10 mt-2 flex h-8 w-full shrink-0 items-center bg-neutral-950 text-white">
-                              <button type="button" onClick={() => decreaseCartQuantity(produto.id)} title="Diminuir quantidade" aria-label={`Diminuir quantidade de ${produto.nome}`} className="pointer-events-auto relative z-10 flex h-8 w-8 items-center justify-center hover:bg-neutral-800">
-                                <Minus size={16} />
-                              </button>
-                              <output className="absolute inset-0 flex items-center justify-center text-sm font-semibold" aria-live="polite">{quantity}</output>
+                        <div className="pointer-events-none relative z-[1] mt-1.5 grid min-h-[3.1rem] grid-cols-[minmax(0,1fr)_auto] items-end gap-2 px-1 pb-0.5">
+                          <div className="min-w-0 self-stretch">
+                            <h3 className="line-clamp-2 text-sm font-bold leading-tight text-gray-900 sm:text-base">{produto.nome}</h3>
+                            <span className="mt-1 block whitespace-nowrap text-sm font-bold text-orange-600 sm:text-base">
+                              R$ {preco.toFixed(2).replace('.', ',')}
+                            </span>
                           </div>
-                        )}
+                          {!isDisabled && quantity > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => decreaseCartQuantity(produto.id)}
+                              title="Diminuir quantidade"
+                              aria-label={`Diminuir quantidade de ${produto.nome}`}
+                              className="pointer-events-auto relative z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 sm:h-10 sm:w-10"
+                            >
+                              <Minus size={20} strokeWidth={2.5} />
+                            </button>
+                          )}
+                        </div>
                       </article>
                     )
                   })}
