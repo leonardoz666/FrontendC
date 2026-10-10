@@ -1103,35 +1103,35 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
       {/* Conferência obrigatória antes do lançamento */}
       {showReviewModal && (
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-3 sm:p-4">
-            <div ref={reviewDialog} role="dialog" aria-modal="true" aria-labelledby="review-order-title" className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-md bg-white shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <ListOrdered className="text-orange-600" size={20} />
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-2 sm:p-4">
+            <div ref={reviewDialog} role="dialog" aria-modal="true" aria-labelledby="review-order-title" className="flex h-[96dvh] w-full max-w-6xl flex-col overflow-hidden rounded-md bg-white shadow-2xl sm:h-[94dvh]">
+              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4">
+                <div className="flex items-center gap-3">
+                  <ListOrdered className="text-orange-600" size={24} />
                   <div>
-                    <h2 id="review-order-title" className="text-lg font-semibold text-gray-900">Conferir pedido</h2>
-                    <p className="text-xs text-gray-500">Mesa {mesaNumero} · {cartItemCount} {cartItemCount === 1 ? 'item' : 'itens'}</p>
+                    <h2 id="review-order-title" className="text-xl font-semibold text-gray-900 sm:text-2xl">Conferir pedido</h2>
+                    <p className="text-sm text-gray-500">Mesa {mesaNumero} · {cartItemCount} {cartItemCount === 1 ? 'item' : 'itens'}</p>
                   </div>
                 </div>
-                <button ref={reviewCloseButton} type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} aria-label="Fechar conferência" className="rounded-md p-2 text-gray-500 hover:bg-gray-100 disabled:opacity-50">
-                  <X size={20} />
+                <button ref={reviewCloseButton} type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} aria-label="Fechar conferência" className="rounded-md p-3 text-gray-500 hover:bg-gray-100 disabled:opacity-50">
+                  <X size={24} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 py-2">
+              <div className="grid flex-1 content-start overflow-y-auto px-4 py-2 sm:px-6 sm:py-4 md:grid-cols-2 md:gap-x-8">
                 {cart.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-gray-500">Nenhum item para lançar.</p>
+                  <p className="col-span-full py-12 text-center text-base text-gray-500">Nenhum item para lançar.</p>
                 ) : (
                   cart.map((item, index) => (
-                    <div key={index} className="flex items-start gap-3 border-b border-gray-100 py-3 last:border-0">
+                    <div key={index} className="flex items-start gap-4 border-b border-gray-100 py-4">
                       <div className="flex min-w-0 flex-1 gap-3">
-                        <span className="shrink-0 text-sm font-bold text-orange-600">
+                        <span className="shrink-0 text-base font-bold text-orange-600">
                           {item.quantidade}x
                         </span>
                         <div className="min-w-0">
-                          <p className="break-words text-sm font-semibold text-gray-900">{item.nome}</p>
-                          {item.observacao && <p className="mt-0.5 break-words text-xs text-gray-600">{item.observacao}</p>}
-                          <p className="mt-1 text-sm font-semibold text-gray-800">
+                          <p className="break-words text-base font-semibold text-gray-900">{item.nome}</p>
+                          {item.observacao && <p className="mt-1 break-words text-sm text-gray-600">{item.observacao}</p>}
+                          <p className="mt-1.5 text-base font-semibold text-gray-800">
                             R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}
                           </p>
                         </div>
@@ -1151,15 +1151,15 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                 )}
               </div>
 
-              <div className="border-t border-gray-200 bg-gray-50 p-4">
+              <div className="border-t border-gray-200 bg-gray-50 p-4 sm:px-6 sm:py-5">
                 {(reviewError || tableStatus === 'FECHAMENTO') && (
                   <p role="alert" className="mb-3 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">
                     {reviewError || 'A conta está em fechamento. Reabra a mesa antes de lançar itens.'}
                   </p>
                 )}
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className="text-sm font-medium text-gray-600">Total do pedido</span>
-                  <span className="text-lg font-bold text-gray-900">R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
+                  <span className="text-base font-medium text-gray-600">Total do pedido</span>
+                  <span className="text-xl font-bold text-gray-900 sm:text-2xl">R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
                 </div>
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   <button type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} className="rounded-md border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50">
