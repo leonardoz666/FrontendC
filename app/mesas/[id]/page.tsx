@@ -763,11 +763,6 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                         />
                         <div className="pointer-events-none relative z-[1] aspect-[2.55/1] w-full overflow-hidden rounded-lg bg-gray-100">
                           <OrderProductImage produto={produto} />
-                          {quantity > 0 && (
-                            <span className="absolute right-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-orange-600 px-1 text-xs font-bold text-white shadow" aria-hidden="true">
-                              {quantity}
-                            </span>
-                          )}
                         </div>
                         <div className="pointer-events-none relative z-[1] mt-1.5 grid min-h-[3.1rem] grid-cols-[minmax(0,1fr)_auto] items-end gap-2 px-1 pb-0.5">
                           <div className="min-w-0 self-stretch">
@@ -776,17 +771,26 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                               R$ {preco.toFixed(2).replace('.', ',')}
                             </span>
                           </div>
-                          {!isDisabled && quantity > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => decreaseCartQuantity(produto.id)}
-                              title="Diminuir quantidade"
-                              aria-label={`Diminuir quantidade de ${produto.nome}`}
-                              className="pointer-events-auto relative z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 sm:h-10 sm:w-10"
+                          <div className="flex items-center gap-1">
+                            {!isDisabled && quantity > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => decreaseCartQuantity(produto.id)}
+                                title="Diminuir quantidade"
+                                aria-label={`Diminuir quantidade de ${produto.nome}`}
+                                className="pointer-events-auto relative z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 sm:h-10 sm:w-10"
+                              >
+                                <Minus size={20} strokeWidth={2.5} />
+                              </button>
+                            )}
+                            <output
+                              className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-orange-50 px-2 text-base font-bold text-orange-600 sm:h-10 sm:min-w-10"
+                              aria-label={`${quantity} ${quantity === 1 ? 'item' : 'itens'} de ${produto.nome} no pedido`}
+                              aria-live="polite"
                             >
-                              <Minus size={20} strokeWidth={2.5} />
-                            </button>
-                          )}
+                              {quantity}
+                            </output>
+                          </div>
                         </div>
                       </article>
                     )
