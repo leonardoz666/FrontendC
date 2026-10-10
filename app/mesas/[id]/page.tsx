@@ -36,7 +36,7 @@ function OrderProductImage({ produto }: { produto: Produto }) {
       src={produto.foto}
       alt=""
       fill
-      sizes="(max-width: 639px) 46vw, (max-width: 767px) 30vw, 23vw"
+      sizes="(max-width: 639px) 46vw, (max-width: 767px) 23vw, (max-width: 1023px) 19vw, 14vw"
       className="object-cover"
       unoptimized={produto.foto.startsWith('/uploads') || produto.foto.startsWith('data:')}
       onError={() => setImageError(true)}
@@ -739,7 +739,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
               {/* Product Grid */}
               <div className="flex-1 overflow-y-auto">
-                <div className="grid grid-cols-2 gap-2 pb-4 sm:grid-cols-3 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 pb-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7">
                   {filteredProducts.map(produto => {
                     const isInactive = produto.ativo === false
                     const isDisabled = isInactive || lancamentoBloqueado
@@ -748,7 +748,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                     return (
                       <article
                         key={produto.id}
-                        className={`relative flex min-w-0 flex-col overflow-hidden rounded-xl border bg-white p-2 text-left transition-colors ${isDisabled
+                        className={`relative flex min-w-0 flex-col overflow-hidden rounded-lg border bg-white p-1.5 text-left transition-colors ${isDisabled
                           ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60'
                           : quantity > 0 ? 'border-orange-500' : 'border-gray-200 hover:border-orange-500'
                           }`}
@@ -761,13 +761,13 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                           title={produto.nome}
                           className="absolute inset-0 z-0 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
                         />
-                        <div className="pointer-events-none relative z-[1] aspect-[2.55/1] w-full overflow-hidden rounded-lg bg-gray-100">
+                        <div className="pointer-events-none relative z-[1] aspect-[2.35/1] w-full overflow-hidden rounded-md bg-gray-100">
                           <OrderProductImage produto={produto} />
                         </div>
-                        <div className="pointer-events-none relative z-[1] mt-1.5 grid min-h-[3.1rem] grid-cols-[minmax(0,1fr)_auto] items-end gap-2 px-1 pb-0.5">
+                        <div className="pointer-events-none relative z-[1] mt-1 grid min-h-[2.7rem] grid-cols-[minmax(0,1fr)_auto] items-end gap-1 px-0.5">
                           <div className="min-w-0 self-stretch">
-                            <h3 className="line-clamp-2 text-sm font-bold leading-tight text-gray-900 sm:text-base">{produto.nome}</h3>
-                            <span className="mt-1 block whitespace-nowrap text-sm font-bold text-orange-600 sm:text-base">
+                            <h3 className="line-clamp-2 text-xs font-bold leading-tight text-gray-900 sm:text-sm">{produto.nome}</h3>
+                            <span className="mt-0.5 block whitespace-nowrap text-xs font-bold text-orange-600 sm:text-sm">
                               R$ {preco.toFixed(2).replace('.', ',')}
                             </span>
                           </div>
@@ -778,13 +778,13 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                                 onClick={() => decreaseCartQuantity(produto.id)}
                                 title="Diminuir quantidade"
                                 aria-label={`Diminuir quantidade de ${produto.nome}`}
-                                className="pointer-events-auto relative z-10 flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 sm:h-10 sm:w-10"
+                                className="pointer-events-auto relative z-10 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100"
                               >
-                                <Minus size={20} strokeWidth={2.5} />
+                                <Minus size={17} strokeWidth={2.5} />
                               </button>
                             )}
                             <output
-                              className="flex h-9 min-w-9 items-center justify-center rounded-xl bg-orange-50 px-2 text-base font-bold text-orange-600 sm:h-10 sm:min-w-10"
+                              className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-orange-50 px-1.5 text-sm font-bold text-orange-600"
                               aria-label={`${quantity} ${quantity === 1 ? 'item' : 'itens'} de ${produto.nome} no pedido`}
                               aria-live="polite"
                             >
