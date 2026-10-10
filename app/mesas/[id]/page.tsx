@@ -2,7 +2,8 @@
 
 import { useEffect, useState, use, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Rocket, PlusCircle, Minus, Plus, Search, CreditCard, Receipt, Lock, Loader2, Ban } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Rocket, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Loader2, Ban, ImageIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
 import { ProductOptionsModal } from '@/components/ProductOptionsModal'
@@ -18,6 +19,31 @@ const CANCELLATION_REASONS = [
   'Desistência',
   'Falta do produto'
 ] as const
+
+function CatalogProductImage({ produto }: { produto: Produto }) {
+  const [imageError, setImageError] = useState(false)
+
+  if (!produto.foto || imageError) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center bg-[#dddddd] px-1 text-center text-white">
+        <ImageIcon className="mb-1 h-7 w-7" strokeWidth={2.5} aria-hidden="true" />
+        <span className="text-[9px] font-bold leading-[1.05]">PRODUTO<br />SEM IMAGEM</span>
+      </div>
+    )
+  }
+
+  return (
+    <Image
+      src={produto.foto}
+      alt=""
+      fill
+      sizes="(max-width: 640px) 28vw, 130px"
+      className="object-cover"
+      unoptimized={produto.foto.startsWith('/uploads') || produto.foto.startsWith('data:')}
+      onError={() => setImageError(true)}
+    />
+  )
+}
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -713,18 +739,19 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
               </div>
 
               {/* Product Grid */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="grid grid-cols-2 gap-3 pb-4 sm:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
+              <div className="flex-1 overflow-y-auto bg-[#dfe3e7] p-1.5 sm:p-2">
+                <div className="grid grid-cols-3 gap-1.5 pb-4 sm:grid-cols-[repeat(auto-fill,minmax(132px,1fr))] sm:gap-2">
                   {filteredProducts.map(produto => {
                     const isInactive = produto.ativo === false
                     const isDisabled = isInactive || lancamentoBloqueado
                     const quantity = cartQuantities.get(produto.id) ?? 0
+                    const preco = Number(produto.valorPromo ?? produto.preco)
                     return (
                       <article
                         key={produto.id}
-                        className={`flex flex-col rounded-md border bg-white p-3 text-left transition-colors ${isDisabled
-                          ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60'
-                          : quantity > 0 ? 'border-orange-500' : 'border-gray-200 hover:border-orange-500'
+                        className={`relative flex min-w-0 flex-col border-2 bg-white p-1.5 text-center transition-colors sm:p-2 ${isDisabled
+                          ? 'cursor-not-allowed border-white opacity-60'
+                          : quantity > 0 ? 'border-orange-500' : 'border-white hover:border-orange-400'
                           }`}
                       >
                         <button
@@ -733,35 +760,31 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                           disabled={isDisabled}
                           aria-label={`Adicionar ${produto.nome} ao pedido`}
                           title={produto.nome}
-                          className="block w-full text-left disabled:cursor-not-allowed"
-                        >
-                          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-gray-900">{produto.nome}</h3>
-                        </button>
+                          className="absolute inset-0 z-0 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+                        />
+                        <div className="pointer-events-none relative z-[1] flex h-full w-full min-w-0 flex-col items-center">
+                          <span className="relative block aspect-square w-full max-w-[96px] overflow-hidden bg-[#dddddd] sm:max-w-[108px]">
+                            <CatalogProductImage produto={produto} />
+                            {quantity > 0 && (
+                              <span className="absolute right-1 top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-orange-500 px-1 text-xs font-bold text-white shadow" aria-hidden="true">
+                                {quantity}
+                              </span>
+                            )}
+                          </span>
+                          <h3 className="mt-2 line-clamp-3 min-h-[2.85rem] w-full text-[12px] font-medium uppercase leading-[1.15] text-black sm:text-[13px]">{produto.nome}</h3>
+                          <span className="mt-1 whitespace-nowrap text-sm italic text-[#777777]">
+                            R${preco.toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
 
-                        <div className="mt-2 flex flex-wrap items-end justify-between gap-1">
-                          <span className="whitespace-nowrap text-sm font-bold text-gray-900">R$ {produto.preco.toFixed(2).replace('.', ',')}</span>
-                          {!isDisabled && (quantity === 0 ? (
-                            <button
-                              type="button"
-                              onClick={() => addToCart(produto)}
-                              title={`Adicionar ${produto.nome}`}
-                              aria-label={`Adicionar ${produto.nome}`}
-                              className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200"
-                            >
-                              <PlusCircle size={20} />
-                            </button>
-                          ) : (
-                            <div role="group" aria-label={`Quantidade de ${produto.nome}`} className="ml-auto flex h-9 shrink-0 items-center rounded-md bg-neutral-950 text-white">
-                              <button type="button" onClick={() => decreaseCartQuantity(produto.id)} title="Diminuir quantidade" aria-label={`Diminuir quantidade de ${produto.nome}`} className="flex h-9 w-9 items-center justify-center rounded-l-md hover:bg-neutral-800">
+                        {!isDisabled && quantity > 0 && (
+                          <div role="group" aria-label={`Quantidade de ${produto.nome}`} className="pointer-events-none relative z-10 mt-2 flex h-8 w-full shrink-0 items-center bg-neutral-950 text-white">
+                              <button type="button" onClick={() => decreaseCartQuantity(produto.id)} title="Diminuir quantidade" aria-label={`Diminuir quantidade de ${produto.nome}`} className="pointer-events-auto relative z-10 flex h-8 w-8 items-center justify-center hover:bg-neutral-800">
                                 <Minus size={16} />
                               </button>
-                              <output className="w-4 text-center text-sm font-semibold" aria-live="polite">{quantity}</output>
-                              <button type="button" onClick={() => addToCart(produto)} title="Aumentar quantidade" aria-label={`Aumentar quantidade de ${produto.nome}`} className="flex h-9 w-9 items-center justify-center rounded-r-md hover:bg-neutral-800">
-                                <Plus size={16} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                              <output className="absolute inset-0 flex items-center justify-center text-sm font-semibold" aria-live="polite">{quantity}</output>
+                          </div>
+                        )}
                       </article>
                     )
                   })}
