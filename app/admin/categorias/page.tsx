@@ -189,14 +189,22 @@ export default function CategoriasPage() {
     setExcluindo(true)
 
     const resultado = await chamar(
-      () => apiFetch(`/categories/${paraExcluir.id}`, { method: 'DELETE' }),
+      () => apiFetch<{ produtosDesvinculados: number; vinculosRemovidos: number }>(
+        `/categories/${paraExcluir.id}`,
+        { method: 'DELETE' }
+      ),
       'Erro ao excluir categoria'
     )
 
     setExcluindo(false)
     if (resultado === null) return
 
-    showToast('Categoria excluída', 'success')
+    showToast(
+      resultado.produtosDesvinculados > 0
+        ? `Categoria excluída; ${resultado.produtosDesvinculados} produto(s) ficaram sem categoria`
+        : 'Categoria excluída',
+      'success'
+    )
     setParaExcluir(null)
     void refetch()
     // Se apagou a última linha da página, recuar evita cair numa página vazia.
@@ -312,7 +320,7 @@ export default function CategoriasPage() {
           rowActions={{
           onEdit: abrirEdicao,
           onDelete: setParaExcluir,
-          deleteLabel: 'Desativar',
+          deleteLabel: 'Excluir',
           extra: (categoria) => (
             <button
               type="button"
@@ -446,10 +454,10 @@ export default function CategoriasPage() {
         title="Excluir categoria"
         description={
           paraExcluir
-            ? `Tem certeza que deseja desativar "${paraExcluir.nome}"? Ela deixa de aparecer no cardápio, mas o histórico é preservado.`
+            ? `Tem certeza que deseja excluir definitivamente "${paraExcluir.nome}"? Os produtos não serão apagados: eles ficarão sem categoria. Os vínculos de impressão desta categoria serão removidos.`
             : ''
         }
-        confirmText={excluindo ? 'Desativando...' : 'Desativar'}
+        confirmText={excluindo ? 'Excluindo...' : 'Excluir'}
         onConfirm={confirmarExclusao}
         onClose={() => setParaExcluir(null)}
       />
