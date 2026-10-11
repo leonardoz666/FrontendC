@@ -13,6 +13,7 @@ import { apiFetch, apiRequest, ApiError, fetchAllList, fetchList } from '@/app/l
 import { usePagedQuery, type SortOrder } from '@/app/lib/pagination'
 import { correctProductSectors, fetchAllProducts } from '@/app/lib/product-catalog'
 import { buildProductFormData } from '@/app/lib/product-form'
+import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-import'
 import { 
   ArrowLeft, 
   Plus, 
@@ -395,6 +396,48 @@ export default function ProdutosPage() {
 
       const existingProducts = await fetchAllProducts()
       const existingByName = new Map(existingProducts.map(product => [product.nome.toLowerCase(), product.id]))
+      const selectedCategory = categorias.find(category => String(category.id) === categoriaId)
+      const categoryIdsByName = new Map(categorias.map(category => [importCategoryKey(category.nome), category.id]))
+      const categoriesById = new Map(categorias.map(category => [category.id, category]))
+      const reactivatedCategoryIds = new Set<number>()
+
+      const ensureImportedCategory = async (item: unknown): Promise<number> => {
+        const descriptor = categoryForImportedItem(
+          item,
+          selectedCategory
+            ? {
+                id: selectedCategory.id,
+                nome: selectedCategory.nome,
+                setor: selectedCategory.setor ?? 'COZINHA',
+                imagem: selectedCategory.imagem,
+                ordem: selectedCategory.ordem,
+              }
+            : undefined,
+        )
+        const key = importCategoryKey(descriptor.nome)
+        const existingId = categoryIdsByName.get(key)
+        if (existingId !== undefined) {
+          const existing = categoriesById.get(existingId)
+          if (existing?.ativo === false && !reactivatedCategoryIds.has(existingId)) {
+            await apiFetch(`/categories/${existingId}/ativo`, { method: 'PATCH', body: { ativo: true } })
+            reactivatedCategoryIds.add(existingId)
+          }
+          return existingId
+        }
+
+        const created = await apiFetch<Categoria>('/categories', {
+          method: 'POST',
+          body: {
+            nome: descriptor.nome,
+            setor: descriptor.setor,
+            imagem: descriptor.imagem,
+            ordem: descriptor.ordem,
+          },
+        })
+        categoryIdsByName.set(key, created.id)
+        categoriesById.set(created.id, created)
+        return created.id
+      }
 
       let added = 0
       let updated = 0
@@ -403,6 +446,7 @@ export default function ProdutosPage() {
       for (const i of items) {
         try {
           const existingId = existingByName.get(i.nome.toLowerCase())
+          const importedCategoryId = await ensureImportedCategory(i)
           
           const formData = new FormData()
           formData.append('nome', i.nome)
@@ -415,7 +459,7 @@ export default function ProdutosPage() {
           }
           formData.append('preco', String(price))
 
-          if (categoriaId) formData.append('categoriaId', categoriaId)
+          formData.append('categoriaId', String(importedCategoryId))
           formData.append('ativo', 'true')
           if (i.foto) formData.append('foto', i.foto) // Note: Base64 might need handling on server if direct string
           formData.append('tipoOpcao', i.tipoOpcao || (i.temOpcaoTamanho ? 'tamanho_pg' : 'padrao'))
@@ -454,7 +498,8 @@ export default function ProdutosPage() {
       if (failed > 0) showToast(`${failed} itens falharam na importação.`, 'warning')
 
       queryClient.invalidateQueries({ queryKey: ['products'] })
-    void refetchProdutos()
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      void refetchProdutos()
       e.target.value = '' 
     } catch (err) {
       console.error(err)

@@ -5,6 +5,10 @@ import { ImageIcon, Wine, Utensils, Trash2 } from 'lucide-react'
 export type Categoria = {
   id: number
   nome: string
+  setor?: 'COZINHA' | 'BAR' | 'SOBREMESA'
+  ativo?: boolean
+  imagem?: string | null
+  ordem?: number
 }
 
 export type Produto = {
