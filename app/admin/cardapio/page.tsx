@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { ArrowDown, ArrowLeft, ArrowUp, GripVertical, PackagePlus, Puzzle, RefreshCw, Save, Utensils } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowDown, ArrowLeft, ArrowUp, GripVertical, LockKeyhole, PackagePlus, Puzzle, RefreshCw, Save, Trash2, Utensils } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { apiFetch, fetchAllList, fetchList } from '@/app/lib/api'
+import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { useToast } from '@/contexts/ToastContext'
 import type { Categoria, Produto } from '@/types'
 
@@ -56,8 +58,16 @@ export default function OrganizarCardapioPage() {
   const [complementos, setComplementos] = useState<Complemento[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [apagando, setApagando] = useState(false)
+  const [modalApagarAberto, setModalApagarAberto] = useState(false)
+  const [senhaDono, setSenhaDono] = useState('')
   const [arrastandoId, setArrastandoId] = useState<number | null>(null)
   const [anuncio, setAnuncio] = useState('')
+  const { data: sessao } = useQuery({
+    queryKey: ['auth-me'],
+    queryFn: () => apiFetch<{ user?: { role?: string; permissions?: string[] } }>('/auth/me'),
+  })
+  const podeApagar = sessao?.user?.role === 'DONO' || sessao?.user?.permissions?.includes('produtos.excluir')
 
   const categoriaAtual = useMemo(() => {
     if (categoriaId === 'all') return null
@@ -244,6 +254,36 @@ export default function OrganizarCardapioPage() {
     }
   }
 
+  const fecharModalApagar = () => {
+    if (apagando) return
+    setModalApagarAberto(false)
+    setSenhaDono('')
+  }
+
+  const apagarCardapio = async () => {
+    if (apagando) return
+    if (!senhaDono.trim()) {
+      showToast('Informe a senha do dono', 'warning')
+      return
+    }
+
+    setApagando(true)
+    try {
+      const resultado = await apiFetch<{ produtosRemovidos: number }>('/products/apagar-tudo', {
+        method: 'POST',
+        body: { senhaDono },
+      })
+      await carregar()
+      setModalApagarAberto(false)
+      setSenhaDono('')
+      showToast(`${resultado.produtosRemovidos} produto(s) removido(s) do cardápio`, 'success')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível apagar o cardápio', 'error')
+    } finally {
+      setApagando(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="mx-auto flex max-w-5xl flex-col gap-4">
@@ -262,11 +302,22 @@ export default function OrganizarCardapioPage() {
               <p className="text-sm text-gray-500">Reordene produtos, grupos e complementos usados no lançamento de pedido.</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {podeApagar && (
+              <button
+                type="button"
+                onClick={() => setModalApagarAberto(true)}
+                disabled={loading || saving || apagando}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+                Apagar tudo
+              </button>
+            )}
             <button
               type="button"
               onClick={carregar}
-              disabled={loading || saving}
+              disabled={loading || saving || apagando}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
             >
               <RefreshCw size={16} />
@@ -275,7 +326,7 @@ export default function OrganizarCardapioPage() {
             <button
               type="button"
               onClick={salvar}
-              disabled={loading || saving || itens.length === 0}
+              disabled={loading || saving || apagando || itens.length === 0}
               className="inline-flex items-center gap-2 rounded-lg bg-orange-600 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:opacity-50"
             >
               <Save size={16} />
@@ -413,6 +464,43 @@ export default function OrganizarCardapioPage() {
           <p className="sr-only" aria-live="polite">{anuncio}</p>
         </section>
       </div>
+
+      <ConfirmationModal
+        isOpen={modalApagarAberto}
+        onClose={fecharModalApagar}
+        onConfirm={() => void apagarCardapio()}
+        title="Apagar todo o cardápio?"
+        description="Todos os produtos ativos deixarão de aparecer no cardápio e nos pedidos novos. Os produtos cadastrados, categorias, complementos e pedidos antigos serão preservados."
+        confirmText={apagando ? 'Apagando...' : 'Apagar tudo'}
+        cancelText="Cancelar"
+        variant="danger"
+        closeOnConfirm={false}
+        isLoading={apagando}
+      >
+        <label className="block">
+          <span className="mb-1.5 flex items-center gap-2 text-sm font-bold text-gray-800">
+            <LockKeyhole className="h-4 w-4" />
+            Senha do dono
+          </span>
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={senhaDono}
+            onChange={event => setSenhaDono(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                void apagarCardapio()
+              }
+            }}
+            disabled={apagando}
+            autoFocus
+            className="h-11 w-full rounded-lg border border-gray-300 px-3 text-gray-950 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 disabled:bg-gray-100"
+            placeholder="Digite a senha para autorizar"
+          />
+          <span className="mt-1.5 block text-xs text-gray-500">Somente a senha de um usuário DONO ativo autoriza esta operação.</span>
+        </label>
+      </ConfirmationModal>
     </main>
   )
 }
