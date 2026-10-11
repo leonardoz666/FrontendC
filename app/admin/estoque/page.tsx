@@ -1,10 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, ArrowRight, RefreshCw } from 'lucide-react'
+import { AlertTriangle, ArrowRight, LockKeyhole, RefreshCw, Trash2 } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { formatarNumeroQuantidade, formatarQuantidade } from '@/app/lib/quantity'
+import { ConfirmationModal } from '@/app/components/ConfirmationModal'
+import { useToast } from '@/contexts/ToastContext'
 
 type Meta = {
   page: number
@@ -62,14 +65,53 @@ async function carregarResumo() {
 }
 
 export default function EstoquePage() {
+  const { showToast } = useToast()
+  const [modalZeragemAberto, setModalZeragemAberto] = useState(false)
+  const [senhaDono, setSenhaDono] = useState('')
+  const [zerando, setZerando] = useState(false)
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['estoque-resumo'],
     queryFn: carregarResumo,
+  })
+  const { data: sessao } = useQuery({
+    queryKey: ['auth-me'],
+    queryFn: () => apiFetch<{ user?: { role?: string; permissions?: string[] } }>('/auth/me'),
   })
 
   const totalInsumos = data?.insumos.meta.total ?? 0
   const totalAlertas = data?.alertas.meta.total ?? 0
   const totalMovimentos = data?.movimentos.meta.total ?? 0
+  const podeZerar = sessao?.user?.role === 'DONO' || sessao?.user?.permissions?.includes('estoque.ajustar')
+
+  const fecharModalZeragem = () => {
+    if (zerando) return
+    setModalZeragemAberto(false)
+    setSenhaDono('')
+  }
+
+  const zerarEstoque = async () => {
+    if (zerando) return
+    if (!senhaDono.trim()) {
+      showToast('Informe a senha do dono', 'warning')
+      return
+    }
+
+    setZerando(true)
+    try {
+      const resultado = await apiFetch<{ saldosZerados: number; movimentosExcluidos: number }>('/insumos/zerar-tudo', {
+        method: 'POST',
+        body: { senhaDono },
+      })
+      await refetch()
+      setModalZeragemAberto(false)
+      setSenhaDono('')
+      showToast(`Estoque zerado: ${resultado.saldosZerados} saldo(s) e ${resultado.movimentosExcluidos} movimento(s) removidos`, 'success')
+    } catch (erro) {
+      showToast(erro instanceof Error ? erro.message : 'Não foi possível zerar o estoque', 'error')
+    } finally {
+      setZerando(false)
+    }
+  }
 
   return (
     <main className="mx-auto max-w-7xl p-4 md:p-8">
@@ -200,6 +242,65 @@ export default function EstoquePage() {
           </table>
         </div>
       </section>
+
+      {podeZerar && (
+        <section className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-5">
+          <div className="flex gap-3">
+            <div className="mt-0.5 rounded-full bg-red-100 p-2 text-red-700"><Trash2 className="h-5 w-5" /></div>
+            <div>
+              <h2 className="font-bold text-red-950">Zerar todo o estoque</h2>
+              <p className="mt-1 max-w-3xl text-sm text-red-800">
+                Zera os saldos e apaga todo o histórico de movimentações. Os insumos e produtos cadastrados não serão excluídos.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setModalZeragemAberto(true)}
+            className="mt-4 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-red-700 px-4 text-sm font-bold text-white hover:bg-red-800 sm:mt-0 sm:w-auto"
+          >
+            <Trash2 className="h-4 w-4" />
+            Zerar tudo
+          </button>
+        </section>
+      )}
+
+      <ConfirmationModal
+        isOpen={modalZeragemAberto}
+        onClose={fecharModalZeragem}
+        onConfirm={() => void zerarEstoque()}
+        title="Zerar estoque e histórico?"
+        description="Esta ação não pode ser desfeita. Todos os saldos ficarão em zero e todas as movimentações serão apagadas. Nenhum produto ou insumo cadastrado será excluído."
+        confirmText={zerando ? 'Zerando...' : 'Zerar tudo'}
+        cancelText="Cancelar"
+        variant="danger"
+        closeOnConfirm={false}
+        isLoading={zerando}
+      >
+        <label className="block">
+          <span className="mb-1.5 flex items-center gap-2 text-sm font-bold text-gray-800">
+            <LockKeyhole className="h-4 w-4" />
+            Senha do dono
+          </span>
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={senhaDono}
+            onChange={evento => setSenhaDono(evento.target.value)}
+            onKeyDown={evento => {
+              if (evento.key === 'Enter') {
+                evento.preventDefault()
+                void zerarEstoque()
+              }
+            }}
+            disabled={zerando}
+            autoFocus
+            className="h-11 w-full rounded-lg border border-gray-300 px-3 text-gray-950 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 disabled:bg-gray-100"
+            placeholder="Digite a senha para autorizar"
+          />
+          <span className="mt-1.5 block text-xs text-gray-500">Somente a senha de um usuário DONO ativo autoriza esta operação.</span>
+        </label>
+      </ConfirmationModal>
     </main>
   )
 }
