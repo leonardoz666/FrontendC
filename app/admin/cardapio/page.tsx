@@ -470,7 +470,7 @@ export default function OrganizarCardapioPage() {
         onClose={fecharModalApagar}
         onConfirm={() => void apagarCardapio()}
         title="Apagar todo o cardápio?"
-        description="Todos os produtos ativos deixarão de aparecer no cardápio e nos pedidos novos. Os produtos cadastrados, categorias, complementos e pedidos antigos serão preservados."
+        description="Todos os produtos, ativos e inativos, serão excluídos permanentemente. Categorias e complementos serão preservados. Se houver pedidos ou movimentações vinculadas, a exclusão será cancelada para proteger o histórico."
         confirmText={apagando ? 'Apagando...' : 'Apagar tudo'}
         cancelText="Cancelar"
         variant="danger"
