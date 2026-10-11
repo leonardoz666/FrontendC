@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Check, ChevronRight, ClipboardList, PackageCheck, RefreshCw, X } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { comoDecimalDigitado, comoNumero } from '@/app/lib/crud-client'
+import { formatarNumeroQuantidade, formatarUnidade, quantidadeParaInput } from '@/app/lib/quantity'
 import { Switch } from '@/app/components/ui/Switch'
 import { useToast } from '@/contexts/ToastContext'
 
@@ -45,7 +46,7 @@ const TIPO_LABEL: Record<TipoLote, string> = { ENTRADA: 'Entrada', SAIDA: 'Saíd
 const STATUS_LABEL: Record<string, string> = { PENDENTE: 'Pendente', EFETIVADO: 'Lançado', PARCIAL: 'Parcial', REJEITADO: 'Não lançado', CANCELADO: 'Cancelado' }
 
 function numero(valor: unknown): string {
-  return comoNumero(valor).toLocaleString('pt-BR', { maximumFractionDigits: 3 })
+  return formatarNumeroQuantidade(valor)
 }
 
 export default function RevisaoLotesEstoquePage() {
@@ -72,7 +73,7 @@ export default function RevisaoLotesEstoquePage() {
     setConfirmando(false)
     setSelecionados(new Set(selecionado.status === 'PENDENTE' ? selecionado.itens.map(item => item.id) : []))
     setAjustes(Object.fromEntries(selecionado.itens.map(item => [item.id, {
-      quantidade: String(item.quantidadeInformada),
+      quantidade: quantidadeParaInput(item.quantidadeInformada),
       custoUnitario: item.custoUnitarioInformado === null ? '' : String(item.custoUnitarioInformado),
       observacao: item.observacao ?? '',
     }])))
@@ -189,8 +190,8 @@ export default function RevisaoLotesEstoquePage() {
                   return <article key={item.id} className={`px-4 py-4 sm:px-6 ${selecionado ? 'bg-white' : 'bg-slate-50 opacity-70'}`}>
                     <div className="grid items-start gap-3 lg:grid-cols-[auto_minmax(180px,1fr)_140px_140px_minmax(180px,1fr)]">
                       <label className="flex min-h-11 cursor-pointer items-center"><input type="checkbox" checked={selecionado} onChange={() => alternarItem(item.id)} disabled={lote.status !== 'PENDENTE'} className="h-5 w-5 accent-orange-600" /><span className="sr-only">Selecionar {item.insumo.nome}</span></label>
-                      <div><strong className="block text-sm text-slate-900">{item.insumo.nome}</strong><span className="font-mono text-xs text-slate-500">{item.insumo.codigo}</span>{lote.tipo === 'CONTAGEM' && <span className={`mt-1 block text-xs ${saldoMudou ? 'font-bold text-amber-700' : 'text-slate-500'}`}>No envio: {numero(item.saldoReferencia)} · Agora: {numero(item.insumo.saldoAtual)} {item.insumo.unidade}</span>}</div>
-                      <label><span className="mb-1 block text-xs font-bold text-slate-700">{lote.tipo === 'CONTAGEM' ? 'Contado' : 'Quantidade'}</span><div className="flex h-10 overflow-hidden rounded-lg border border-slate-400 bg-white focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-200"><input inputMode="decimal" value={ajuste?.quantidade ?? ''} onChange={event => atualizarAjuste(item.id, 'quantidade', event.target.value)} disabled={!selecionado || lote.status !== 'PENDENTE'} className="min-w-0 flex-1 bg-white px-2 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-transparent disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500" /><span className="flex items-center border-l border-slate-300 bg-slate-100 px-2 text-xs font-bold text-slate-700">{item.unidadeInformada}</span></div>{item.unidadeInformada !== item.unidadeSnapshot && <span className="mt-1 block text-[11px] text-slate-500">1 {item.unidadeInformada} = {numero(item.fatorConversao)} {item.unidadeSnapshot}</span>}</label>
+                      <div><strong className="block text-sm text-slate-900">{item.insumo.nome}</strong><span className="font-mono text-xs text-slate-500">{item.insumo.codigo}</span>{lote.tipo === 'CONTAGEM' && <span className={`mt-1 block text-xs ${saldoMudou ? 'font-bold text-amber-700' : 'text-slate-500'}`}>No envio: {numero(item.saldoReferencia)} · Agora: {numero(item.insumo.saldoAtual)} {formatarUnidade(item.insumo.unidade)}</span>}</div>
+                      <label><span className="mb-1 block text-xs font-bold text-slate-700">{lote.tipo === 'CONTAGEM' ? 'Contado' : 'Quantidade'}</span><div className="flex h-10 overflow-hidden rounded-lg border border-slate-400 bg-white focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-200"><input inputMode="decimal" value={ajuste?.quantidade ?? ''} onChange={event => atualizarAjuste(item.id, 'quantidade', event.target.value)} disabled={!selecionado || lote.status !== 'PENDENTE'} className="min-w-0 flex-1 bg-white px-2 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-transparent disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500" /><span className="flex items-center border-l border-slate-300 bg-slate-100 px-2 text-xs font-bold text-slate-700">{formatarUnidade(item.unidadeInformada)}</span></div>{item.unidadeInformada !== item.unidadeSnapshot && <span className="mt-1 block text-[11px] text-slate-500">1 {formatarUnidade(item.unidadeInformada)} = {numero(item.fatorConversao)} {formatarUnidade(item.unidadeSnapshot)}</span>}</label>
                       {lote.tipo === 'ENTRADA' ? <label><span className="mb-1 block text-xs font-bold text-slate-700">Custo por {item.unidadeInformada}</span><input inputMode="decimal" value={ajuste?.custoUnitario ?? ''} onChange={event => atualizarAjuste(item.id, 'custoUnitario', event.target.value)} disabled={!selecionado || lote.status !== 'PENDENTE'} className="h-10 w-full rounded-lg border border-slate-400 bg-white px-2 text-sm font-medium text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500" /></label> : <div />}
                       <label><span className="mb-1 block text-xs font-bold text-slate-700">Observação</span><input value={ajuste?.observacao ?? ''} onChange={event => atualizarAjuste(item.id, 'observacao', event.target.value)} disabled={!selecionado || lote.status !== 'PENDENTE'} className="h-10 w-full rounded-lg border border-slate-400 bg-white px-2 text-sm font-medium text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500" /></label>
                     </div>

@@ -9,6 +9,7 @@ import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { fetchAllList, fetchList } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { comoDecimalDigitado, comoNumero, paginaAtual, useCrud, useListaCrud } from '@/app/lib/crud-client'
+import { formatarQuantidade, quantidadeParaInput } from '@/app/lib/quantity'
 import { useToast } from '@/contexts/ToastContext'
 
 const RESOURCE = '/insumos/ficha-tecnica'
@@ -49,13 +50,6 @@ const FORM_VAZIO: FormState = {
   insumoId: '',
   quantidade: '',
   rendimento: '1',
-}
-
-function quantidade(valor: unknown, unidade?: string): string {
-  return `${comoNumero(valor).toLocaleString('pt-BR', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  })} ${unidade ?? ''}`.trim()
 }
 
 export default function FichaTecnicaPage() {
@@ -108,8 +102,8 @@ export default function FichaTecnicaPage() {
     setForm({
       produtoId: String(item.produtoId),
       insumoId: String(item.insumoId),
-      quantidade: String(item.quantidade ?? ''),
-      rendimento: String(item.rendimento ?? 1),
+      quantidade: quantidadeParaInput(item.quantidade),
+      rendimento: quantidadeParaInput(item.rendimento ?? 1),
     })
     setShowForm(true)
   }
@@ -182,7 +176,7 @@ export default function FichaTecnicaPage() {
       key: 'quantidade',
       header: 'Quantidade',
       align: 'right',
-      render: (item) => <span className="text-gray-700">{quantidade(item.quantidade, item.insumo?.unidade)}</span>,
+      render: (item) => <span className="text-gray-700">{formatarQuantidade(item.quantidade, item.insumo?.unidade, 4)}</span>,
     },
     {
       key: 'rendimento',

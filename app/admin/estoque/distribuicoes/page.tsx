@@ -7,6 +7,7 @@ import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { apiFetch, fetchList } from '@/app/lib/api'
 import { paginaAtual, comoDecimalDigitado, comoNumero, useListaCrud } from '@/app/lib/crud-client'
+import { formatarQuantidade } from '@/app/lib/quantity'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { useToast } from '@/contexts/ToastContext'
 
@@ -78,12 +79,6 @@ type LinhaDevolucao = {
 
 function novaLinha(chave = Date.now()): LinhaSaida {
   return { chave, tipo: 'PRODUTO', itemId: '', quantidade: '' }
-}
-
-function formatarQuantidade(valor: unknown, unidade: string): string {
-  const numero = comoNumero(valor)
-  const casas = unidade === 'UN' ? 0 : 3
-  return `${numero.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })} ${unidade}`
 }
 
 function formatarData(valor: string): string {

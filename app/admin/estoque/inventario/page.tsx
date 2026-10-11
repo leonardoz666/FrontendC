@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react'
 import { apiFetch, fetchList } from '@/app/lib/api'
 import { comoDecimalDigitado, comoNumero } from '@/app/lib/crud-client'
+import { formatarQuantidade } from '@/app/lib/quantity'
 import { useToast } from '@/contexts/ToastContext'
 
 type Insumo = {
@@ -18,17 +19,10 @@ type Insumo = {
   ativo: boolean
 }
 
-function quantidade(valor: unknown, unidade?: string): string {
-  return `${comoNumero(valor).toLocaleString('pt-BR', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  })} ${unidade ?? ''}`.trim()
-}
-
 function diferencaTexto(diferenca: number, unidade?: string): string {
   if (diferenca === 0) return 'Sem ajuste'
   const prefixo = diferenca > 0 ? '+' : '-'
-  return `${prefixo}${quantidade(Math.abs(diferenca), unidade)}`
+  return `${prefixo}${formatarQuantidade(Math.abs(diferenca), unidade)}`
 }
 
 export default function InventarioEstoquePage() {
@@ -144,11 +138,11 @@ export default function InventarioEstoquePage() {
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Saldo atual</p>
-                <p className="mt-1 text-lg font-bold text-gray-900">{quantidade(insumo.saldoAtual, insumo.unidade)}</p>
+                <p className="mt-1 text-lg font-bold text-gray-900">{formatarQuantidade(insumo.saldoAtual, insumo.unidade)}</p>
               </div>
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Mínimo</p>
-                <p className="mt-1 text-lg font-bold text-gray-900">{quantidade(insumo.estoqueMin, insumo.unidade)}</p>
+                <p className="mt-1 text-lg font-bold text-gray-900">{formatarQuantidade(insumo.estoqueMin, insumo.unidade)}</p>
               </div>
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Ajuste previsto</p>

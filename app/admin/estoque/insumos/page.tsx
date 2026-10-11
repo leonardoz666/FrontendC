@@ -20,6 +20,7 @@ import {
 } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
 import { useQuery } from '@tanstack/react-query'
+import { formatarQuantidade, quantidadeParaInput } from '@/app/lib/quantity'
 
 const RESOURCE = '/insumos'
 const UNIDADES = ['UN', 'KG', 'G', 'L', 'ML', 'CX', 'PCT'] as const
@@ -93,13 +94,6 @@ const FORM_VAZIO: FormState = {
   conversoes: [],
 }
 
-function quantidade(valor: unknown, unidade?: string): string {
-  return `${comoNumero(valor).toLocaleString('pt-BR', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  })} ${unidade ?? ''}`.trim()
-}
-
 function abaixoDoMinimo(insumo: Insumo): boolean {
   return comoNumero(insumo.saldoAtual) < comoNumero(insumo.estoqueMin)
 }
@@ -167,14 +161,14 @@ export default function InsumosPage() {
       subgrupoId: insumo.subgrupo?.nome.toLocaleLowerCase('pt-BR') === 'geral' ? '' : String(insumo.subgrupoId ?? ''),
       planoContaId: insumo.planoContaId ? String(insumo.planoContaId) : '',
       centroCustoId: insumo.centroCustoId ? String(insumo.centroCustoId) : '',
-      estoqueMin: String(insumo.estoqueMin ?? 0),
-      estoqueMax: String(insumo.estoqueMax ?? 0),
+      estoqueMin: quantidadeParaInput(insumo.estoqueMin ?? 0),
+      estoqueMax: quantidadeParaInput(insumo.estoqueMax ?? 0),
       custoMedio: String(insumo.custoMedio ?? 0),
       saldoInicial: '0',
       conversoes: (insumo.unidadesConversao ?? []).map(conversao => ({
         chave: conversao.id,
         unidade: conversao.unidade,
-        fatorConversao: String(conversao.fatorConversao),
+        fatorConversao: quantidadeParaInput(conversao.fatorConversao),
       })),
     })
     setShowForm(true)
@@ -293,7 +287,7 @@ export default function InsumosPage() {
       align: 'right',
       render: (insumo) => (
         <span className={abaixoDoMinimo(insumo) ? 'font-semibold text-amber-700' : 'text-gray-700'}>
-          {quantidade(insumo.saldoAtual, insumo.unidade)}
+          {formatarQuantidade(insumo.saldoAtual, insumo.unidade)}
         </span>
       ),
     },
@@ -302,7 +296,7 @@ export default function InsumosPage() {
       header: 'Mínimo',
       align: 'right',
       hideOnMobile: true,
-      render: (insumo) => <span className="text-gray-700">{quantidade(insumo.estoqueMin, insumo.unidade)}</span>,
+      render: (insumo) => <span className="text-gray-700">{formatarQuantidade(insumo.estoqueMin, insumo.unidade)}</span>,
     },
     {
       key: 'custo',

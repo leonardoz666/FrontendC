@@ -11,6 +11,7 @@ import { ExportMenu } from '@/app/components/ui/ExportMenu'
 import { apiFetch, fetchList } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { comoDecimalDigitado, comoNumero, formatarMoeda, paginaAtual, useListaCrud } from '@/app/lib/crud-client'
+import { formatarQuantidade } from '@/app/lib/quantity'
 import { useToast } from '@/contexts/ToastContext'
 
 const RESOURCE = '/insumos/movimentos'
@@ -59,13 +60,6 @@ const FORM_VAZIO: FormState = {
 }
 
 const TIPOS = ['ENTRADA', 'SAIDA', 'AJUSTE', 'PERDA'] as const
-
-function quantidade(valor: unknown, unidade?: string): string {
-  return `${comoNumero(valor).toLocaleString('pt-BR', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  })} ${unidade ?? ''}`.trim()
-}
 
 function sinal(sentido: Movimento['sentido']) {
   if (sentido === 'ENTRADA') return <ArrowUpCircle className="h-4 w-4 text-green-600" />
@@ -190,7 +184,7 @@ function MovimentacoesEstoqueContent() {
       sortKey: 'quantidade',
       align: 'right',
       render: (movimento) => (
-        <span className="text-gray-700">{quantidade(movimento.quantidade, movimento.insumo?.unidade)}</span>
+        <span className="text-gray-700">{formatarQuantidade(movimento.quantidade, movimento.insumo?.unidade)}</span>
       ),
     },
     {

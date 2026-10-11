@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, ArrowRight, RefreshCw } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
+import { formatarNumeroQuantidade, formatarQuantidade } from '@/app/lib/quantity'
 
 type Meta = {
   page: number
@@ -43,14 +44,6 @@ type RelatorioEstoque = {
   valorEstoque: number
   movimentos: number
   porTipo: Array<{ tipo: string; quantidadeMovimentos: number; quantidade: number; valor: number }>
-}
-
-function quantidade(valor: unknown, unidade?: string): string {
-  const numero = typeof valor === 'number' ? valor : Number(String(valor ?? 0).replace(',', '.'))
-  return `${(Number.isFinite(numero) ? numero : 0).toLocaleString('pt-BR', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  })} ${unidade ?? ''}`.trim()
 }
 
 function formatarData(valor: string): string {
@@ -148,7 +141,7 @@ export default function EstoquePage() {
               >
                 <p className="text-sm font-semibold text-gray-900">{insumo.nome}</p>
                 <p className="text-xs text-gray-600">
-                  Saldo {quantidade(insumo.saldoAtual, insumo.unidade)} · mínimo {quantidade(insumo.estoqueMin, insumo.unidade)}
+                  Saldo {formatarQuantidade(insumo.saldoAtual, insumo.unidade)} · mínimo {formatarQuantidade(insumo.estoqueMin, insumo.unidade)}
                 </p>
               </Link>
             ))}
@@ -173,7 +166,7 @@ export default function EstoquePage() {
                   <p className="text-xs text-gray-500">{movimento.tipo} · {movimento.motivo ?? movimento.documento ?? 'Sem observação'}</p>
                 </div>
                 <div className="text-left md:text-right">
-                  <p className="text-sm font-semibold text-gray-700">{quantidade(movimento.quantidade, movimento.insumo?.unidade)}</p>
+                  <p className="text-sm font-semibold text-gray-700">{formatarQuantidade(movimento.quantidade, movimento.insumo?.unidade)}</p>
                   <p className="text-xs text-gray-500">{formatarData(movimento.criadoEm)}</p>
                 </div>
               </li>
@@ -196,7 +189,7 @@ export default function EstoquePage() {
                 <tr key={item.tipo}>
                   <td className="px-4 py-3 font-medium text-gray-900">{item.tipo}</td>
                   <td className="px-4 py-3 text-right text-gray-700">{item.quantidadeMovimentos}</td>
-                  <td className="px-4 py-3 text-right text-gray-700">{item.quantidade.toLocaleString('pt-BR', { maximumFractionDigits: 3 })}</td>
+                  <td className="px-4 py-3 text-right text-gray-700">{formatarNumeroQuantidade(item.quantidade)}</td>
                   <td className="px-4 py-3 text-right text-gray-700">{item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                 </tr>
               ))}
