@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Crown, Power, PowerOff, Printer, RefreshCw, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Crown, Power, PowerOff, Printer, RefreshCw, RotateCcw, Settings2, Trash2, Wifi } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { Switch } from '@/app/components/ui/Switch'
@@ -10,6 +10,13 @@ import { apiFetch } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { useCrud, useListaCrud, paginaAtual, SeloAtivo } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
+import {
+  loadPrinterAgentConnection,
+  normalizePrinterAgentUrl,
+  resetPrinterAgentConnection,
+  savePrinterAgentConnection,
+  type PrinterAgentConnection,
+} from '@/app/lib/printer-agent-config'
 
 /**
  * Impressoras — PRD seção 5.1 / RF-DIS-01 a RF-DIS-05, no padrão RF-UI-01
@@ -44,8 +51,10 @@ const LIST_RESOURCE = '/dispositivos?tipo=IMPRESSORA'
 const CONFIGURED_PRINTER_AGENT_URL = (process.env.NEXT_PUBLIC_PRINTER_AGENT_URL || '').trim()
 const PRINTER_AGENT_URL = (CONFIGURED_PRINTER_AGENT_URL || 'http://127.0.0.1:4100').replace(/\/$/, '')
 const PRINTER_AGENT_TOKEN = process.env.NEXT_PUBLIC_PRINTER_AGENT_TOKEN || ''
+const DEFAULT_PRINTER_AGENT_CONNECTION = { url: PRINTER_AGENT_URL, token: PRINTER_AGENT_TOKEN }
 
-function deveUsarAgenteLocal(): boolean {
+function deveUsarAgenteLocal(manual = false): boolean {
+  if (manual) return true
   if (CONFIGURED_PRINTER_AGENT_URL) return true
   if (typeof window === 'undefined') return true
   return !['localhost', '127.0.0.1'].includes(window.location.hostname)
@@ -53,7 +62,7 @@ function deveUsarAgenteLocal(): boolean {
 
 function erroDoAgente(error: unknown): Error {
   if (error instanceof TypeError) {
-    return new Error('Rei Printer Agent não está em execução. Abra o agente neste computador e tente novamente.')
+    return new Error('Não foi possível acessar o Rei Printer Agent. Confirme que ele está Online e permita o acesso à rede local no navegador.')
   }
   return error instanceof Error ? error : new Error('Erro ao comunicar com o Rei Printer Agent')
 }
@@ -155,6 +164,68 @@ export default function DispositivosPage() {
   const [windowsPrinters, setWindowsPrinters] = useState<WindowsPrinter[]>([])
   const [carregandoWindows, setCarregandoWindows] = useState(false)
   const [mostraWindows, setMostraWindows] = useState(false)
+  const [agentConnection, setAgentConnection] = useState<PrinterAgentConnection>({
+    ...DEFAULT_PRINTER_AGENT_CONNECTION,
+    manual: false,
+  })
+  const [agentDraft, setAgentDraft] = useState(DEFAULT_PRINTER_AGENT_CONNECTION)
+  const [mostraConexaoAgente, setMostraConexaoAgente] = useState(false)
+  const [testandoConexaoAgente, setTestandoConexaoAgente] = useState(false)
+  const [statusConexaoAgente, setStatusConexaoAgente] = useState<'idle' | 'online' | 'offline'>('idle')
+
+  useEffect(() => {
+    const connection = loadPrinterAgentConnection(window.localStorage, DEFAULT_PRINTER_AGENT_CONNECTION)
+    setAgentConnection(connection)
+    setAgentDraft({ url: connection.url, token: connection.token })
+  }, [])
+
+  const consultarAgente = async <T,>(
+    rota: string,
+    connection: Pick<PrinterAgentConnection, 'url' | 'token'> = agentConnection,
+    options: RequestInit = {},
+  ): Promise<T> => {
+    const headers = new Headers(options.headers)
+    if (connection.token) headers.set('X-Printer-Agent-Token', connection.token)
+    const response = await fetch(`${connection.url}${rota}`, { ...options, headers, cache: 'no-store' })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) throw new Error(data.error || 'Erro ao comunicar com o Rei Printer Agent')
+    return data as T
+  }
+
+  const testarConexaoAgente = async () => {
+    setTestandoConexaoAgente(true)
+    try {
+      const connection = { ...agentDraft, url: normalizePrinterAgentUrl(agentDraft.url) }
+      await consultarAgente('/printers', connection)
+      setStatusConexaoAgente('online')
+      showToast('Conexão com o agente confirmada.', 'success')
+    } catch (error) {
+      setStatusConexaoAgente('offline')
+      showToast(erroDoAgente(error).message, 'error')
+    } finally {
+      setTestandoConexaoAgente(false)
+    }
+  }
+
+  const salvarConexaoAgente = () => {
+    try {
+      const connection = savePrinterAgentConnection(window.localStorage, agentDraft)
+      setAgentConnection(connection)
+      setAgentDraft({ url: connection.url, token: connection.token })
+      setStatusConexaoAgente('idle')
+      showToast('Conexão do agente salva neste computador.', 'success')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Configuração inválida', 'error')
+    }
+  }
+
+  const restaurarConexaoAgente = () => {
+    const connection = resetPrinterAgentConnection(window.localStorage, DEFAULT_PRINTER_AGENT_CONNECTION)
+    setAgentConnection(connection)
+    setAgentDraft({ url: connection.url, token: connection.token })
+    setStatusConexaoAgente('idle')
+    showToast('Conexão padrão restaurada.', 'success')
+  }
 
   const abrirNovo = () => {
     setEditing(null)
@@ -165,16 +236,10 @@ export default function DispositivosPage() {
   const carregarWindowsPrinters = async () => {
     setCarregandoWindows(true)
     try {
-      const body = deveUsarAgenteLocal()
+      const body = deveUsarAgenteLocal(agentConnection.manual)
         ? await (async () => {
             try {
-              const res = await fetch(`${PRINTER_AGENT_URL}/printers`, {
-                cache: 'no-store',
-                headers: PRINTER_AGENT_TOKEN ? { 'X-Printer-Agent-Token': PRINTER_AGENT_TOKEN } : undefined,
-              })
-              const data = await res.json().catch(() => ({}))
-              if (!res.ok) throw new Error(data.error || 'Erro ao reconhecer impressoras')
-              return data as { data?: WindowsPrinter[] }
+              return await consultarAgente<{ data?: WindowsPrinter[] }>('/printers')
             } catch (error) {
               throw erroDoAgente(error)
             }
@@ -307,24 +372,20 @@ export default function DispositivosPage() {
   const testarImpressora = async (dispositivo: Dispositivo) => {
     setTestandoId(dispositivo.id)
     try {
-      const usandoAgente = deveUsarAgenteLocal() && dispositivo.conexao === 'USB'
+      const usandoAgente = deveUsarAgenteLocal(agentConnection.manual) && dispositivo.conexao === 'USB'
       const body = usandoAgente
         ? await (async () => {
             try {
-              const res = await fetch(`${PRINTER_AGENT_URL}/print-test`, {
+              return await consultarAgente<{ message?: string }>('/print-test', agentConnection, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  ...(PRINTER_AGENT_TOKEN ? { 'X-Printer-Agent-Token': PRINTER_AGENT_TOKEN } : {}),
                 },
                 body: JSON.stringify({
                   printerName: dispositivo.ip,
                   modoTexto: dispositivo.descricao?.includes('[MODO_TEXTO]') ?? false,
                 }),
               })
-              const data = await res.json().catch(() => ({}))
-              if (!res.ok) throw new Error(data.error || 'Falha ao testar impressora')
-              return data
             } catch (error) {
               throw erroDoAgente(error)
             }
@@ -446,7 +507,7 @@ export default function DispositivosPage() {
       <h1 className="mb-2 text-3xl font-bold text-black">Impressoras</h1>
       <p className="mb-6 text-sm text-gray-600">
         Configure impressoras TCP ou filas do Windows, envie testes e defina os destinos usados pelo
-        roteador de pedidos (praça, produto ou caixa).
+        roteador de pedidos (praça, produto, categoria ou caixa).
       </p>
 
       {isError && (
@@ -462,17 +523,87 @@ export default function DispositivosPage() {
             <p className="text-xs text-gray-500">
               Reconhece as impressoras cadastradas no Windows deste computador e preenche como conexão USB/local.
             </p>
+            <p className="mt-1 break-all font-mono text-[11px] text-gray-400">{agentConnection.url}</p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void carregarWindowsPrinters()}
-            isLoading={carregandoWindows}
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Reconhecer impressoras
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setMostraConexaoAgente(atual => !atual)}
+            >
+              <Settings2 className="mr-2 h-4 w-4" />
+              Configurar conexão
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void carregarWindowsPrinters()}
+              isLoading={carregandoWindows}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Reconhecer impressoras
+            </Button>
+          </div>
         </div>
+
+        {mostraConexaoAgente && (
+          <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50/40 p-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Conexão com o agente deste computador</h3>
+                <p className="text-xs text-gray-600">Salva apenas neste navegador. Use outro endereço ou porta quando a instalação do agente for personalizada.</p>
+              </div>
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+                statusConexaoAgente === 'online'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : statusConexaoAgente === 'offline'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-gray-100 text-gray-600'
+              }`}>
+                <span className={`h-2 w-2 rounded-full ${
+                  statusConexaoAgente === 'online' ? 'bg-emerald-500' : statusConexaoAgente === 'offline' ? 'bg-red-500' : 'bg-gray-400'
+                }`} />
+                {statusConexaoAgente === 'online' ? 'Conectado' : statusConexaoAgente === 'offline' ? 'Sem conexão' : 'Não testado'}
+              </span>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,0.55fr)]">
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-gray-700">Endereço do agente</span>
+                <input
+                  type="url"
+                  value={agentDraft.url}
+                  onChange={event => { setAgentDraft(atual => ({ ...atual, url: event.target.value })); setStatusConexaoAgente('idle') }}
+                  placeholder="http://127.0.0.1:4100"
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 font-mono text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-gray-700">Token (opcional)</span>
+                <input
+                  type="password"
+                  autoComplete="off"
+                  value={agentDraft.token}
+                  onChange={event => { setAgentDraft(atual => ({ ...atual, token: event.target.value })); setStatusConexaoAgente('idle') }}
+                  placeholder="Sem token"
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="outline" onClick={restaurarConexaoAgente}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Restaurar padrão
+              </Button>
+              <Button type="button" variant="outline" onClick={() => void testarConexaoAgente()} isLoading={testandoConexaoAgente}>
+                <Wifi className="mr-2 h-4 w-4" />
+                Testar conexão
+              </Button>
+              <Button type="button" onClick={salvarConexaoAgente}>Salvar conexão</Button>
+            </div>
+          </div>
+        )}
 
         {mostraWindows && (
           <div className="mt-4 overflow-hidden rounded-lg border border-gray-100">

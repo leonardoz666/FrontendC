@@ -1,13 +1,13 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ImageIcon, Power, PowerOff } from 'lucide-react'
+import { ImageIcon, Power, PowerOff, Printer } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { useToast } from '@/contexts/ToastContext'
-import { apiFetch, redirectToLogin } from '@/app/lib/api'
+import { apiFetch, fetchList, redirectToLogin } from '@/app/lib/api'
 import { usePagedQuery, type SortOrder } from '@/app/lib/pagination'
 import { SeloAtivo } from '@/app/lib/crud-client'
 
@@ -18,8 +18,16 @@ type Categoria = {
   ativo: boolean
   imagem: string | null
   ordem: number
+  dispositivoId: number | null
+  dispositivo?: { id: number; nome: string; ativo: boolean } | null
   _count?: { produtos: number }
   produtos?: Array<{ id: number }>
+}
+
+type Impressora = {
+  id: number
+  nome: string
+  ativo: boolean
 }
 
 const SETORES = ['COZINHA', 'BAR', 'SOBREMESA'] as const
@@ -56,6 +64,8 @@ export default function CategoriasPage() {
   const [setor, setSetor] = useState<string>('COZINHA')
   const [imagem, setImagem] = useState('')
   const [ordem, setOrdem] = useState('0')
+  const [dispositivoId, setDispositivoId] = useState('')
+  const [impressoras, setImpressoras] = useState<Impressora[]>([])
   const [salvando, setSalvando] = useState(false)
   const [alternandoId, setAlternandoId] = useState<number | null>(null)
   const [paraExcluir, setParaExcluir] = useState<Categoria | null>(null)
@@ -69,6 +79,12 @@ export default function CategoriasPage() {
     sort,
     order,
   })
+
+  useEffect(() => {
+    void fetchList<Impressora>('/dispositivos?page=1&pageSize=100&ativo=true&tipo=IMPRESSORA&sort=nome&order=asc')
+      .then(setImpressoras)
+      .catch(err => showToast(err instanceof Error ? err.message : 'Erro ao carregar impressoras', 'error'))
+  }, [showToast])
 
   /**
    * Envolve a chamada para centralizar toast + redirecionamento em 401, que é o
@@ -98,6 +114,7 @@ export default function CategoriasPage() {
     setSetor('COZINHA')
     setImagem('')
     setOrdem('0')
+    setDispositivoId('')
     setShowForm(true)
   }
 
@@ -107,6 +124,7 @@ export default function CategoriasPage() {
     setSetor(categoria.setor)
     setImagem(categoria.imagem ?? '')
     setOrdem(String(categoria.ordem ?? 0))
+    setDispositivoId(categoria.dispositivoId ? String(categoria.dispositivoId) : '')
     setShowForm(true)
   }
 
@@ -125,7 +143,13 @@ export default function CategoriasPage() {
       () =>
         apiFetch(editando ? `/categories/${editando.id}` : '/categories', {
           method: editando ? 'PUT' : 'POST',
-          body: { nome, setor, imagem, ordem: ordemNumero },
+          body: {
+            nome,
+            setor,
+            imagem,
+            ordem: ordemNumero,
+            dispositivoId: dispositivoId ? Number(dispositivoId) : null,
+          },
         }),
       'Erro ao salvar categoria'
     )
@@ -140,6 +164,7 @@ export default function CategoriasPage() {
     setSetor('COZINHA')
     setImagem('')
     setOrdem('0')
+    setDispositivoId('')
     void refetch()
   }
 
@@ -224,6 +249,17 @@ export default function CategoriasPage() {
       sortKey: 'ativo',
       hideOnMobile: true,
       render: (categoria) => <SeloAtivo ativo={categoria.ativo} />,
+    },
+    {
+      key: 'dispositivo',
+      header: 'Impressora',
+      hideOnMobile: true,
+      render: (categoria) => categoria.dispositivo ? (
+        <span className="inline-flex items-center gap-1.5 text-sm text-gray-700">
+          <Printer className="h-3.5 w-3.5 text-orange-500" />
+          {categoria.dispositivo.nome}
+        </span>
+      ) : <span className="text-xs text-gray-400">Padrão do caixa</span>,
     },
     {
       key: 'produtos',
@@ -335,7 +371,7 @@ export default function CategoriasPage() {
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-gray-500">
-                  Define para qual impressora os itens desta categoria são enviados.
+                  Organiza a produção entre cozinha, bar e sobremesas.
                 </p>
               </div>
 
@@ -351,6 +387,26 @@ export default function CategoriasPage() {
                   placeholder="https://..."
                   className="w-full rounded-lg border border-gray-300 p-2 text-black focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="categoria-impressora" className="mb-1 block text-sm font-medium text-black">
+                  Impressora da categoria
+                </label>
+                <select
+                  id="categoria-impressora"
+                  value={dispositivoId}
+                  onChange={(event) => setDispositivoId(event.target.value)}
+                  className="w-full rounded-lg border border-gray-300 p-2 text-black focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
+                >
+                  <option value="">Usar impressora do produto ou padrão do caixa</option>
+                  {impressoras.map((impressora) => (
+                    <option key={impressora.id} value={impressora.id}>{impressora.nome}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Recebe os itens desta categoria quando o produto não possui uma impressora própria.
+                </p>
               </div>
 
               <div>

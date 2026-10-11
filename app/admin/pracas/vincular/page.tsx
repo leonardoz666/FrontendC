@@ -845,7 +845,7 @@ export default function VincularImpressaoPage() {
                 paraExcluir.dispositivo?.nome ??
                 nomesDeDispositivos.get(paraExcluir.dispositivoId) ??
                 'a impressora'
-              }"? A impressora e o produto/categoria não são apagados — só este vínculo deixa de existir, e o item volta a cair na regra seguinte (produto, depois caixa).`
+              }"? A impressora e o produto/categoria não são apagados — só este vínculo deixa de existir, e o item volta a cair na regra seguinte (produto, categoria e depois caixa).`
             : ''
         }
         confirmText="Remover"
