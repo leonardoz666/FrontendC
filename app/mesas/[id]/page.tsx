@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Rocket, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Loader2, Ban } from 'lucide-react'
+import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Rocket, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
 import { ProductOptionsModal } from '@/components/ProductOptionsModal'
@@ -12,6 +12,7 @@ import { RequestBillModal } from '@/app/components/RequestBillModal'
 import { connectTableSocket } from '@/app/lib/table-socket'
 import { apiFetch, fetchAllList, redirectToLogin } from '@/app/lib/api'
 import { Produto, Categoria, CartItem, SubmittedItem, APIPedido } from '@/types'
+import { LoadingMark, PageLoader } from '@/app/components/ui/PageLoader'
 
 const CUSTOM_CANCELLATION_REASON = '__CUSTOM__'
 const CANCELLATION_REASONS = [
@@ -549,7 +550,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
   }, [submittedItems])
 
   if (loading) {
-    return <div className="p-8 text-center">Carregando cardápio...</div>
+    return <PageLoader message="Carregando cardápio" detail="Preparando os produtos desta mesa" />
   }
 
   return (
@@ -920,7 +921,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setShowItemTransferModal(false)} disabled={isTransferringItems} className="h-10 flex-1 rounded-md border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50 sm:flex-none">Cancelar</button>
                   <button type="button" onClick={handleTransferItems} disabled={!itemTransferTargetId || selectedTransferItemIds.length === 0 || isTransferringItems} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-md bg-orange-600 px-4 font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none">
-                    {isTransferringItems && <Loader2 size={17} className="animate-spin" />}
+                    {isTransferringItems && <LoadingMark />}
                     Transferir itens
                   </button>
                 </div>
@@ -1031,7 +1032,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setShowCancelItemsModal(false)} disabled={isCancellingItems} className="h-10 flex-1 rounded-md border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50 sm:flex-none">Voltar</button>
                   <button type="button" onClick={handleCancelItems} disabled={selectedCancelItemIds.length === 0 || cancellationReason.trim().length < 3 || isCancellingItems} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-md bg-red-600 px-4 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none">
-                    {isCancellingItems ? <Loader2 size={17} className="animate-spin" /> : <Ban size={17} />}
+                    {isCancellingItems ? <LoadingMark /> : <Ban size={17} />}
                     Confirmar cancelamento
                   </button>
                 </div>
@@ -1057,10 +1058,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                 <p className="mb-4 text-gray-600">Selecione a mesa para onde deseja transferir:</p>
 
                 {isTransferring ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
-                    <p className="text-gray-600">Transferindo...</p>
-                  </div>
+                  <PageLoader compact message="Transferindo mesa" detail="Movendo os pedidos com segurança" />
                 ) : (
                   <div className="grid grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                     {availableTables.filter(table => table.status === 'LIVRE').map(table => (

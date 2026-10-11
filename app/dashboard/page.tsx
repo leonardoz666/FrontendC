@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 import {
     TrendingUp,
     DollarSign,
@@ -78,11 +79,7 @@ export default function DashboardPage() {
     }, [router])
 
     if (loading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-            </div>
-        )
+        return <PageLoader message="Carregando dashboard" detail="Atualizando vendas e operação" />
     }
 
     const currentStats = stats ? stats[period] : null

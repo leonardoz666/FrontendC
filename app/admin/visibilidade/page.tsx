@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Eye, EyeOff, Loader2, RotateCcw } from 'lucide-react'
+import { ChevronDown, Eye, EyeOff, RotateCcw } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import {
   buildSidebarVisualSections,
@@ -13,6 +13,7 @@ import {
 } from '@/app/lib/navigation'
 import { initializeUiPreferences } from '@/app/lib/uiPreferences'
 import { Switch } from '@/app/components/ui/Switch'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 export default function SidebarVisibilityPage() {
   const [user, setUser] = useState<NavUser | null>(null)
@@ -88,11 +89,7 @@ export default function SidebarVisibilityPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="animate-spin text-orange-600" size={32} />
-      </div>
-    )
+    return <PageLoader message="Carregando aparência" detail="Preparando as opções do menu" />
   }
 
   const hiddenCount = Number(visibility.hideBrand)

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiFetch } from '@/app/lib/api'
 import { Mesa, TableCard } from '@/app/components/TableCard'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 export default function MinhasMesasPage() {
   const [mesas, setMesas] = useState<Mesa[]>([])
@@ -25,7 +26,7 @@ export default function MinhasMesasPage() {
     fetchMyTables()
   }, [])
 
-  if (loading) return <div className="p-8 text-center">Carregando suas mesas...</div>
+  if (loading) return <PageLoader message="Carregando suas mesas" detail="Buscando seus atendimentos" />
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 pb-4 pt-6 sm:px-6 md:pt-12 lg:px-8 lg:pt-24">

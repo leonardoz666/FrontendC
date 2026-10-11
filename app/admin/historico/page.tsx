@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Ban, CalendarDays, ChevronLeft, ChevronRight, Clock3, Download, History, Loader2, LockKeyhole, RefreshCw, ShoppingBag, Trash2, Upload, UserRound, X } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 type HistoricoItem = {
   id: number
@@ -320,7 +321,7 @@ export default function HistoricoPedidosPage() {
         )}
 
         {erro && <div role="alert" className="my-5 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{erro}</div>}
-        {carregando && !resultado && <div role="status" className="py-16 text-center text-sm text-slate-600">Carregando histórico...</div>}
+        {carregando && !resultado && <PageLoader compact message="Carregando histórico" detail="Buscando pedidos e cancelamentos" />}
 
         {!carregando && !erro && grupos.length === 0 && (
           <div className="py-16 text-center"><CalendarDays className="mx-auto h-9 w-9 text-slate-400" /><p className="mt-3 font-semibold text-slate-700">Nenhum registro encontrado neste período.</p></div>

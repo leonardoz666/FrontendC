@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User } from 'lucide-react'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 type Mesa = {
   id: number
@@ -51,7 +52,7 @@ export default function MesasAbertasPage() {
     }
   }, [router])
 
-  if (loading) return <div className="p-8 text-center">Carregando mesas abertas...</div>
+  if (loading) return <PageLoader message="Carregando mesas abertas" detail="Consultando o salão em tempo real" />
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-8">

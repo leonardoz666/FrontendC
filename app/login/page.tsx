@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ChefHat } from 'lucide-react'
 import { ApiError, apiFetch } from '@/app/lib/api'
+import { InlineLoader } from '@/app/components/ui/PageLoader'
 
 type LoginResponse = { user?: { role?: string } }
 
@@ -186,7 +187,7 @@ export default function LoginPage() {
 
               {locationStatus && (
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700" role="status">
-                  {locationStatus}
+                  <InlineLoader message={locationStatus.replace(/\.\.\.$/, '')} className="text-blue-700" />
                 </div>
               )}
 

@@ -16,6 +16,7 @@ import {
 import { useToast } from '@/contexts/ToastContext'
 import { apiFetch } from '@/app/lib/api'
 import { Switch } from '@/app/components/ui/Switch'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 type MovementType = 'SANGRIA' | 'SUPRIMENTO' | 'AJUSTE'
 
@@ -184,7 +185,7 @@ export default function CaixaDashboard({ fechamento = false }: CashPanelProps) {
   }, [data?.dinheiroEsperado, saldoInformado])
 
   if (loading) {
-    return <div className="flex min-h-[420px] items-center justify-center text-slate-500"><RefreshCw className="mr-2 animate-spin" size={18} /> Carregando caixa...</div>
+    return <PageLoader compact message="Carregando caixa" detail="Conferindo movimentos e valores" />
   }
 
   if (!data?.aberto || !data.caixa) {

@@ -9,6 +9,7 @@ import { apiFetch } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
+import { InlineLoader } from '@/app/components/ui/PageLoader'
 
 type PessoaXml = {
   documento: string | null
@@ -383,7 +384,7 @@ export default function RadarXmlPage() {
               <DownloadCloud size={16} className="mr-2" /> Consultar SEFAZ
             </Button>
           </div>
-          <p className="mb-3 text-sm text-gray-600">{status?.finalidade ?? 'Carregando status do serviço.'}</p>
+          <div className="mb-3 text-sm text-gray-600">{status?.finalidade ?? <InlineLoader message="Carregando status do serviço" />}</div>
           <p className="mb-4 text-xs text-slate-500">O último NSU é iniciado automaticamente na primeira consulta.</p>
           <dl className="grid gap-3 text-sm md:grid-cols-2">
             <div>
@@ -422,11 +423,13 @@ export default function RadarXmlPage() {
         </div>
         <div className="min-w-0 border-t border-gray-100 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Pendências</h2>
-          {status && status.pendencias.length === 0 ? (
+          {!status ? (
+            <InlineLoader message="Carregando pendências" />
+          ) : status.pendencias.length === 0 ? (
             <p className="text-sm font-medium text-green-700">Configuração mínima presente.</p>
           ) : (
             <ul className="space-y-2 text-sm text-gray-700">
-              {(status?.pendencias ?? ['Carregando...']).map((item) => <li key={item} className="border-b border-gray-100 pb-2 last:border-0">{item}</li>)}
+              {status.pendencias.map((item) => <li key={item} className="border-b border-gray-100 pb-2 last:border-0">{item}</li>)}
             </ul>
           )}
           {status && status.pendencias.length > 0 && <Link href="/admin/fiscal" className="mt-4 inline-block text-sm font-semibold text-orange-700 hover:text-orange-800">Abrir configuração fiscal</Link>}

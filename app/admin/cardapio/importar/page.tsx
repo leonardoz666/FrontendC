@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { AlertTriangle, Download, FileSpreadsheet, Upload } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
+import { InlineLoader } from '@/app/components/ui/PageLoader'
 import { apiFetch, apiRequest } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 
@@ -198,7 +199,7 @@ export default function ImportarCardapioPage() {
       {enviandoPreview && (
         <div className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
           <FileSpreadsheet className="h-4 w-4" />
-          Lendo e validando planilha...
+          <InlineLoader message="Lendo e validando planilha" className="text-orange-800" />
         </div>
       )}
 

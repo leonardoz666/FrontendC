@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/contexts/ToastContext'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
+import { LoadingMark, PageLoader } from '@/app/components/ui/PageLoader'
 
 type Mesa = {
   id: number
@@ -145,11 +146,7 @@ export default function Home() {
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[calc(100dvh-4rem)]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
-      </div>
-    )
+    return <PageLoader message="Carregando mesas" detail="Preparando o atendimento" />
   }
 
   return (
@@ -255,7 +252,7 @@ export default function Home() {
                 disabled={openingTable}
                 className="flex-1 py-3.5 px-4 rounded-xl bg-green-600 font-bold text-white hover:bg-green-700 active:scale-95 shadow-lg shadow-green-200 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
               >
-                {openingTable ? 'Abrindo...' : 'Confirmar'}
+                {openingTable ? <><LoadingMark /> Abrindo</> : 'Confirmar'}
               </button>
             </div>
           </div>

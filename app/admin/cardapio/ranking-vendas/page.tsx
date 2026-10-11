@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BarChart3, Package, Search, ShoppingCart, TrendingUp } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 type Period = 'today' | 'week' | 'month'
 
@@ -144,7 +145,7 @@ export default function RankingVendasPage() {
           </div>
 
           {loading ? (
-            <div className="flex min-h-64 items-center justify-center text-sm font-medium text-slate-500">Carregando ranking...</div>
+            <PageLoader compact message="Carregando ranking" detail="Calculando os produtos mais vendidos" />
           ) : error ? (
             <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>
           ) : products.length === 0 ? (

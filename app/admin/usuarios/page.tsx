@@ -9,6 +9,7 @@ import { ConfirmationModal } from '@/components/ConfirmationModal'
 import { Pagination } from '@/app/components/ui/Pagination'
 import { Switch } from '@/app/components/ui/Switch'
 import Skeleton from '@/app/components/ui/Skeleton'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 import { PAGE_SIZE_OPTIONS, usePagedQuery } from '@/app/lib/pagination'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import {
@@ -282,7 +283,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-500">Carregando...</div>
+  if (loading) return <PageLoader message="Carregando usuários" detail="Organizando acessos e permissões" />
 
   if (isCreating || editingId) {
     return (

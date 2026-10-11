@@ -8,6 +8,7 @@ import { comoDecimalDigitado, comoNumero } from '@/app/lib/crud-client'
 import { formatarNumeroQuantidade, formatarUnidade, quantidadeParaInput } from '@/app/lib/quantity'
 import { Switch } from '@/app/components/ui/Switch'
 import { useToast } from '@/contexts/ToastContext'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 type TipoLote = 'ENTRADA' | 'SAIDA' | 'CONTAGEM' | 'PERDA'
 type ItemLote = {
@@ -159,7 +160,7 @@ export default function RevisaoLotesEstoquePage() {
 
       {isError && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error instanceof Error ? error.message : 'Falha ao carregar os lotes'}</div>}
 
-      {!isError && (isLoading ? <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500">Carregando lotes...</div> : data?.data.length ? (
+      {!isError && (isLoading ? <PageLoader compact message="Carregando lotes" detail="Buscando itens para revisão" /> : data?.data.length ? (
         <div className="space-y-2">{data.data.map(item => (
           <button key={item.id} type="button" onClick={() => abrirLote(item)} className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-left hover:border-orange-300 hover:shadow-sm">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-700"><ClipboardList size={20} /></span>

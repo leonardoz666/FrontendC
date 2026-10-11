@@ -7,6 +7,7 @@ import { AlertTriangle, ArrowRight, LockKeyhole, RefreshCw, Trash2 } from 'lucid
 import { apiFetch } from '@/app/lib/api'
 import { formatarNumeroQuantidade, formatarQuantidade } from '@/app/lib/quantity'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
+import { LoadingValue, PageLoader } from '@/app/components/ui/PageLoader'
 import { useToast } from '@/contexts/ToastContext'
 
 type Meta = {
@@ -142,22 +143,22 @@ export default function EstoquePage() {
       <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Insumos ativos</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{isLoading ? '...' : totalInsumos}</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{isLoading ? <LoadingValue /> : totalInsumos}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Abaixo do mínimo</p>
           <p className={`mt-2 text-3xl font-bold ${totalAlertas > 0 ? 'text-amber-700' : 'text-gray-900'}`}>
-            {isLoading ? '...' : totalAlertas}
+            {isLoading ? <LoadingValue /> : totalAlertas}
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Movimentos auditados</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{isLoading ? '...' : totalMovimentos}</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{isLoading ? <LoadingValue /> : totalMovimentos}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Valor em estoque</p>
           <p className="mt-2 text-3xl font-bold text-gray-900">
-            {isLoading ? '...' : Number(data?.relatorio.valorEstoque ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            {isLoading ? <LoadingValue /> : Number(data?.relatorio.valorEstoque ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </p>
         </div>
       </section>
@@ -196,7 +197,7 @@ export default function EstoquePage() {
           <h2 className="text-sm font-bold text-gray-900">Últimas movimentações</h2>
         </div>
         {isLoading ? (
-          <div className="p-4 text-sm text-gray-500">Carregando...</div>
+          <PageLoader compact message="Carregando movimentações" detail="Atualizando o estoque" />
         ) : data?.movimentos.data.length === 0 ? (
           <div className="p-4 text-sm text-gray-500">Nenhuma movimentação registrada.</div>
         ) : (

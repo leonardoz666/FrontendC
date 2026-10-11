@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Loader2, X, ListPlus, Lock } from 'lucide-react'
+import { Plus, X, ListPlus, Lock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/contexts/ToastContext'
 import { TableCard, Mesa } from '@/components/TableCard'
 import { connectTableSocket } from '@/app/lib/table-socket'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
+import { LoadingMark, PageLoader } from '@/app/components/ui/PageLoader'
 
 type User = {
   role: string
@@ -308,7 +309,7 @@ export default function MesasPage() {
     user.permissions.includes('pagamentos.registrar')
   )
 
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={40} /></div>
+  if (loading) return <PageLoader message="Carregando mesas" detail="Atualizando o salão" />
 
   return (
     <div className={`min-h-screen bg-gray-50 px-4 pb-4 sm:px-6 lg:px-8 ${isWaiter ? 'pt-6 md:pt-12 lg:pt-24' : 'pt-6 lg:pt-8'}`}>
@@ -343,7 +344,7 @@ export default function MesasPage() {
                   aria-label="Nova mesa"
                   className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-600 text-white shadow-sm transition-colors hover:bg-orange-700 disabled:opacity-50"
                 >
-                  {creating ? <Loader2 className="animate-spin" size={24} /> : <Plus size={24} strokeWidth={2.5} />}
+                  {creating ? <LoadingMark /> : <Plus size={24} strokeWidth={2.5} />}
                 </button>
               )}
 
@@ -434,7 +435,7 @@ export default function MesasPage() {
                   disabled={creating || !newMesaNumero}
                   className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center"
                 >
-                  {creating ? <Loader2 className="animate-spin" size={20} /> : 'Criar Mesa'}
+                  {creating ? <LoadingMark /> : 'Criar Mesa'}
                 </button>
               </div>
             </form>
@@ -641,7 +642,7 @@ export default function MesasPage() {
                   disabled={loteCarregando}
                   className="rounded-xl border-2 border-gray-200 px-4 py-2.5 font-bold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
                 >
-                  {loteCarregando ? 'Conferindo...' : 'Conferir antes'}
+                  {loteCarregando ? <LoadingMark /> : 'Conferir antes'}
                 </button>
                 <button
                   type="button"

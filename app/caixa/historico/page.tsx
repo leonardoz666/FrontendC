@@ -8,6 +8,7 @@ import { buildPrintHtml } from '@/app/lib/export'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { ExportMenu } from '@/app/components/ui/ExportMenu'
 import { Button } from '@/app/components/ui/Button'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 import { buildListQuery, usePagedQuery, type PageSize, type Paginated } from '@/app/lib/pagination'
 import { useToast } from '@/contexts/ToastContext'
 
@@ -248,7 +249,7 @@ export default function HistoricoCaixaPage() {
 
       {(detalhes || carregandoDetalhes) && <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-950/55 p-4">
         <div className="mx-auto my-6 w-full max-w-5xl bg-white shadow-2xl">
-          {carregandoDetalhes && !detalhes ? <p className="p-8 text-center text-slate-500">Carregando detalhes...</p> : detalhes && <>
+          {carregandoDetalhes && !detalhes ? <PageLoader compact message="Carregando detalhes" detail="Consultando o fechamento do caixa" /> : detalhes && <>
             <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4">
               <div><h2 className="text-xl font-black text-slate-900">Caixa #{detalhes.caixa.id}</h2><p className="text-sm text-slate-500">{formatarData(detalhes.caixa.abertoEm)} até {formatarData(detalhes.caixa.fechadoEm)}</p></div>
               <button type="button" title="Fechar" onClick={() => setDetalhes(null)} className="p-2 text-slate-500 hover:bg-slate-100"><X size={20} /></button>

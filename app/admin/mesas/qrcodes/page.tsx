@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CheckSquare, Printer, QrCode, Square } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import { apiFetch, fetchList } from '@/app/lib/api'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 type MesaResumo = {
   id: number
@@ -163,9 +164,9 @@ export default function MesaQrCodesPage() {
         </div>
 
         {loading ? (
-          <p className="rounded-lg border border-gray-200 bg-white px-4 py-6 text-center text-sm text-gray-500">
-            Carregando mesas...
-          </p>
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <PageLoader compact message="Carregando mesas" detail="Preparando os QR Codes" />
+          </div>
         ) : (
           <div className="mb-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {mesas.map((mesa) => {

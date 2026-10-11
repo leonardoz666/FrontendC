@@ -1,7 +1,7 @@
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { Loader2 } from 'lucide-react'
+import { LoadingMark } from './PageLoader'
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -42,7 +42,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {isLoading && <LoadingMark className="mr-2" />}
         {children}
       </button>
     )

@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check, Info, Search } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
+import { InlineLoader } from '@/app/components/ui/PageLoader'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { apiFetch, fetchAllList } from '@/app/lib/api'
 import { useCrud } from '@/app/lib/crud-client'
@@ -491,7 +492,7 @@ export default function VincularImpressaoPage() {
             </p>
 
             {pracasQuery.isLoading ? (
-              <p className="text-sm text-gray-500">Carregando praças...</p>
+              <InlineLoader message="Carregando praças" />
             ) : pracas.length === 0 ? (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Nenhuma praça cadastrada. Crie uma em “Praças” antes de configurar a impressão.
@@ -529,7 +530,7 @@ export default function VincularImpressaoPage() {
             </p>
 
             {dispositivosQuery.isLoading ? (
-              <p className="text-sm text-gray-500">Carregando impressoras...</p>
+              <InlineLoader message="Carregando impressoras" />
             ) : dispositivos.length === 0 ? (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 Nenhuma impressora cadastrada. Cadastre uma impressora em “Impressoras” antes de
@@ -624,7 +625,7 @@ export default function VincularImpressaoPage() {
                 <strong>{dispositivoSelecionado?.nome ?? '—'}</strong>.
               </p>
             ) : carregandoCatalogo ? (
-              <p className="text-sm text-gray-500">Carregando produtos e categorias...</p>
+              <InlineLoader message="Carregando produtos e categorias" />
             ) : (
               <div className="grid gap-4 lg:grid-cols-2">
                 <section className="rounded-lg border border-gray-200 p-3">

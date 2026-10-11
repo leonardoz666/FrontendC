@@ -13,6 +13,7 @@ import { usePagedQuery } from '@/app/lib/pagination'
 import { comoDecimalDigitado, comoNumero, formatarMoeda, paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { formatarQuantidade } from '@/app/lib/quantity'
 import { useToast } from '@/contexts/ToastContext'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 
 const RESOURCE = '/insumos/movimentos'
 
@@ -325,7 +326,7 @@ function MovimentacoesEstoqueContent() {
 
 export default function MovimentacoesEstoquePage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-7xl p-4 text-sm text-gray-600 sm:p-6 lg:p-8">Carregando movimentações...</div>}>
+    <Suspense fallback={<PageLoader message="Carregando movimentações" detail="Preparando os registros do estoque" />}>
       <MovimentacoesEstoqueContent />
     </Suspense>
   )

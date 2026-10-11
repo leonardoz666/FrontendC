@@ -1,6 +1,7 @@
 import { ReactNode, useId } from 'react';
 import { X, Check, AlertTriangle, Info } from 'lucide-react';
 import { clsx } from 'clsx';
+import { LoadingMark } from '@/app/components/ui/PageLoader';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -85,7 +86,7 @@ export function ConfirmationModal({
                 "bg-blue-600 hover:bg-blue-500"
               )}
             >
-              <Check size={20} />
+              {isLoading ? <LoadingMark /> : <Check size={20} />}
               {confirmText}
             </button>
           </div>

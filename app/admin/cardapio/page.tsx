@@ -6,6 +6,7 @@ import { ArrowDown, ArrowLeft, ArrowUp, GripVertical, LockKeyhole, PackagePlus, 
 import { useRouter } from 'next/navigation'
 import { apiFetch, fetchAllList, fetchList } from '@/app/lib/api'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 import { useToast } from '@/contexts/ToastContext'
 import type { Categoria, Produto } from '@/types'
 
@@ -402,7 +403,7 @@ export default function OrganizarCardapioPage() {
             {itens.length > 1 && <p className="hidden text-xs text-gray-500 sm:block">Arraste pelo pegador ou use as setas</p>}
           </div>
           {loading ? (
-            <div className="p-6 text-sm text-gray-500">Carregando...</div>
+            <PageLoader compact message="Carregando cardápio" detail="Organizando produtos e categorias" />
           ) : itens.length === 0 ? (
             <div className="p-6 text-sm text-gray-500">{vazio}</div>
           ) : (

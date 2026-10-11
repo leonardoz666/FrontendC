@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { X, CreditCard, Smartphone, Banknote, Calculator, Check, Loader2, Users, Receipt, AlertCircle, Lock } from 'lucide-react'
+import { X, CreditCard, Smartphone, Banknote, Calculator, Check, Users, Receipt, AlertCircle, Lock } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
+import { LoadingMark } from '@/app/components/ui/PageLoader'
 import { apiFetch } from '@/app/lib/api'
 import { amountForItems, amountPerPerson, roundMoney, type PaymentSummary } from '@/app/lib/payment'
 
@@ -614,7 +615,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                         >
                         {processing ? (
                             <>
-                                <Loader2 className="animate-spin" size={20} />
+                                <LoadingMark />
                                 Processando...
                             </>
                         ) : (

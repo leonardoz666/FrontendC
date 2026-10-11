@@ -13,6 +13,7 @@ import { apiFetch, apiRequest, ApiError, fetchAllList, fetchList } from '@/app/l
 import { usePagedQuery, type SortOrder } from '@/app/lib/pagination'
 import { correctProductSectors, fetchAllProducts } from '@/app/lib/product-catalog'
 import { buildProductFormData } from '@/app/lib/product-form'
+import { InlineLoader } from '@/app/components/ui/PageLoader'
 import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-import'
 import { 
   ArrowLeft, 
@@ -602,7 +603,9 @@ export default function ProdutosPage() {
       {(importStatus || fixStatus) && (
         <div className="px-4">
           <div className="mt-2 bg-white border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2">
-            {importStatus || fixStatus}
+            {(importStatus || fixStatus)?.endsWith('...')
+              ? <InlineLoader message={(importStatus || fixStatus || '').replace(/\.\.\.$/, '')} />
+              : importStatus || fixStatus}
           </div>
         </div>
       )}

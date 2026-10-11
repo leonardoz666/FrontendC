@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ClipboardCopy, FileSpreadsheet, FileText, Loader2, Printer } from 'lucide-react'
+import { ClipboardCopy, FileSpreadsheet, FileText, Printer } from 'lucide-react'
+import { LoadingMark } from './PageLoader'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { useToast } from '@/contexts/ToastContext'
@@ -136,7 +137,7 @@ export function ExportMenu({
         disabled={disabled || isBusy}
         title="Copiar os registros exibidos (colar no Excel)"
       >
-        {busy === 'copy' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ClipboardCopy className="mr-1.5 h-4 w-4" />}
+        {busy === 'copy' ? <LoadingMark className="mr-1.5" /> : <ClipboardCopy className="mr-1.5 h-4 w-4" />}
         Copiar
       </Button>
 
@@ -148,7 +149,7 @@ export function ExportMenu({
         disabled={disabled || isBusy}
         title="Baixar planilha .xlsx"
       >
-        {busy === 'excel' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-1.5 h-4 w-4" />}
+        {busy === 'excel' ? <LoadingMark className="mr-1.5" /> : <FileSpreadsheet className="mr-1.5 h-4 w-4" />}
         Excel
       </Button>
 
@@ -160,7 +161,7 @@ export function ExportMenu({
         disabled={disabled || isBusy}
         title="Baixar arquivo .csv"
       >
-        {busy === 'csv' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <FileText className="mr-1.5 h-4 w-4" />}
+        {busy === 'csv' ? <LoadingMark className="mr-1.5" /> : <FileText className="mr-1.5 h-4 w-4" />}
         CSV
       </Button>
 
@@ -172,7 +173,7 @@ export function ExportMenu({
         disabled={disabled || isBusy}
         title="Imprimir ou salvar em PDF"
       >
-        {busy === 'pdf' ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Printer className="mr-1.5 h-4 w-4" />}
+        {busy === 'pdf' ? <LoadingMark className="mr-1.5" /> : <Printer className="mr-1.5 h-4 w-4" />}
         PDF
       </Button>
     </div>
