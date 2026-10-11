@@ -6,6 +6,8 @@ export type PrinterAgentConnection = {
   manual: boolean
 }
 
+export type PrinterAgentAddressSpace = 'loopback' | 'local'
+
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 export function normalizePrinterAgentUrl(value: string): string {
@@ -27,6 +29,40 @@ export function normalizePrinterAgentUrl(value: string): string {
   }
 
   return parsed.origin
+}
+
+export function printerAgentAddressSpace(url: string): PrinterAgentAddressSpace {
+  const hostname = new URL(normalizePrinterAgentUrl(url)).hostname.toLowerCase()
+  return hostname === 'localhost' || hostname === '::1' || hostname.startsWith('127.')
+    ? 'loopback'
+    : 'local'
+}
+
+export async function printerAgentPermissionState(url: string): Promise<PermissionState | null> {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) return null
+  const addressSpace = printerAgentAddressSpace(url)
+  const names = addressSpace === 'loopback'
+    ? ['loopback-network', 'local-network-access']
+    : ['local-network', 'local-network-access']
+
+  for (const name of names) {
+    try {
+      const status = await navigator.permissions.query({ name } as PermissionDescriptor)
+      return status.state
+    } catch {
+      // Navegadores sem a permissão nova ainda podem acessar o agente via CORS.
+    }
+  }
+  return null
+}
+
+export function printerAgentFetchOptions(url: string, options: RequestInit = {}): RequestInit {
+  return {
+    ...options,
+    // Ainda não faz parte dos tipos estáveis do TypeScript, mas é suportado
+    // pelo Chrome atual e dispara a permissão correta de rede local/loopback.
+    targetAddressSpace: printerAgentAddressSpace(url),
+  } as RequestInit
 }
 
 export function loadPrinterAgentConnection(

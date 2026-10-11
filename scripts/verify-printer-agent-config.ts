@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import {
   loadPrinterAgentConnection,
   normalizePrinterAgentUrl,
+  printerAgentAddressSpace,
+  printerAgentFetchOptions,
   PRINTER_AGENT_STORAGE_KEY,
   resetPrinterAgentConnection,
   savePrinterAgentConnection,
@@ -19,6 +21,13 @@ assert.equal(normalizePrinterAgentUrl(' http://192.168.0.20:4200/ '), 'http://19
 assert.throws(() => normalizePrinterAgentUrl('192.168.0.20:4200'), /inválido/)
 assert.throws(() => normalizePrinterAgentUrl('ftp://127.0.0.1'), /http/)
 assert.throws(() => normalizePrinterAgentUrl('http://127.0.0.1:4100/printers'), /endereço base/)
+assert.equal(printerAgentAddressSpace('http://127.0.0.1:4100'), 'loopback')
+assert.equal(printerAgentAddressSpace('http://localhost:4100'), 'loopback')
+assert.equal(printerAgentAddressSpace('http://192.168.0.20:4100'), 'local')
+assert.equal(
+  (printerAgentFetchOptions('http://127.0.0.1:4100') as RequestInit & { targetAddressSpace?: string }).targetAddressSpace,
+  'loopback',
+)
 
 assert.deepEqual(loadPrinterAgentConnection(storage, defaults), { ...defaults, manual: false })
 const saved = savePrinterAgentConnection(storage, { url: 'http://192.168.0.20:4200/', token: ' segredo ' })

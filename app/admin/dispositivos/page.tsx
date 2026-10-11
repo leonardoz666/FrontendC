@@ -13,6 +13,8 @@ import { useToast } from '@/contexts/ToastContext'
 import {
   loadPrinterAgentConnection,
   normalizePrinterAgentUrl,
+  printerAgentFetchOptions,
+  printerAgentPermissionState,
   resetPrinterAgentConnection,
   savePrinterAgentConnection,
   type PrinterAgentConnection,
@@ -184,9 +186,16 @@ export default function DispositivosPage() {
     connection: Pick<PrinterAgentConnection, 'url' | 'token'> = agentConnection,
     options: RequestInit = {},
   ): Promise<T> => {
+    const permission = await printerAgentPermissionState(connection.url)
+    if (permission === 'denied') {
+      throw new Error('O Chrome bloqueou o acesso ao agente local. Clique no ícone ao lado do endereço do site, abra Permissões e permita Acesso à rede local.')
+    }
     const headers = new Headers(options.headers)
     if (connection.token) headers.set('X-Printer-Agent-Token', connection.token)
-    const response = await fetch(`${connection.url}${rota}`, { ...options, headers, cache: 'no-store' })
+    const response = await fetch(
+      `${connection.url}${rota}`,
+      printerAgentFetchOptions(connection.url, { ...options, headers, cache: 'no-store' }),
+    )
     const data = await response.json().catch(() => ({}))
     if (!response.ok) throw new Error(data.error || 'Erro ao comunicar com o Rei Printer Agent')
     return data as T
