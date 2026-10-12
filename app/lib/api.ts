@@ -254,7 +254,18 @@ export async function apiFetch<T = unknown>(
   if (isAuthMe && authMeInFlight) return authMeInFlight as Promise<T>
 
   const execute = async (): Promise<T> => {
-    const response = await apiRequest(path, options)
+    let response: Response
+    try {
+      response = await apiRequest(path, options)
+    } catch (error) {
+      // Consultar a sessão sem cookie é um estado esperado, não uma falha da
+      // aplicação. O apiRequest já cuida do redirecionamento quando habilitado;
+      // aqui normalizamos o retorno para evitar erros no console e overlays do Next.
+      if (isAuthMe && error instanceof ApiError && error.isUnauthorized) {
+        return { user: null } as T
+      }
+      throw error
+    }
 
     if (response.status === 204 || response.status === 205) {
       return undefined as T

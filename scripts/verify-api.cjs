@@ -46,7 +46,17 @@ async function main() {
   )
   assert.equal(calls, 4, 'tentativas devem ser limitadas')
 
-  console.log('8 verificações de resiliência da API passaram')
+  invalidateAuthMeCache()
+  calls = 0
+  global.fetch = async () => {
+    calls += 1
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const expiredSession = await apiFetch('/auth/me', { redirectOn401: false })
+  assert.deepEqual(expiredSession, { user: null }, 'sessão expirada em /auth/me deve ser um estado normal')
+  assert.equal(calls, 1, '401 de /auth/me não deve repetir nem lançar ApiError')
+
+  console.log('10 verificações de resiliência da API passaram')
 }
 
 main()
