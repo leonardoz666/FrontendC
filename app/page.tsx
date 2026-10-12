@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { Delete as DeleteIcon } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
 import { LoadingMark, PageLoader } from '@/app/components/ui/PageLoader'
@@ -103,6 +104,7 @@ export default function Home() {
   // Keyboard support
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return
       if (e.key >= '0' && e.key <= '9') {
         handleNumber(parseInt(e.key))
       } else if (e.key === 'Backspace') {
@@ -150,88 +152,85 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100dvh-4rem)] p-2 sm:p-4 select-none touch-manipulation">
-      <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm md:shadow-xl w-full max-w-sm border border-gray-100 flex flex-col justify-between">
-        
-        {/* Header Title */}
-        <div className="text-center mb-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight">Número da Mesa</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Toque no teclado ou digite</p>
-        </div>
-        
-        {/* Display Screen */}
-        <div className="bg-gray-50 border-2 border-gray-200/80 p-3 sm:p-4 rounded-2xl mb-4 text-center h-20 sm:h-24 flex flex-col items-center justify-center relative">
-          <span className={`font-mono font-bold tracking-widest transition-all ${input ? 'text-4xl sm:text-5xl text-gray-900' : 'text-gray-300 text-xl'}`}>
-            {input ? `MESA ${input}` : 'Digite o número...'}
-          </span>
+    <main className="flex min-h-[calc(100dvh-4rem)] select-none flex-col items-center justify-center bg-[#f4f6f8] px-4 py-6 touch-manipulation">
+      <header className="mb-5 text-center sm:mb-7">
+        <h1 className="text-[26px] font-bold tracking-[-0.025em] text-slate-950 sm:text-[34px]">Número da Mesa</h1>
+        <p className="mt-1 text-[13px] font-medium text-slate-500 sm:text-[16px]">Toque no teclado ou digite</p>
+      </header>
 
-          {/* Quick status badge preview */}
-          {matchingTable && (
-            <div className="mt-1">
-              {matchingTable.status === 'LIVRE' && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Livre (Abrir)
+      <section className="w-full max-w-[360px] rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.02)] sm:max-w-[480px] sm:p-8">
+        <div
+          id="numero-mesa"
+          role="textbox"
+          aria-label={input ? `Mesa ${input}` : 'Digite o número da mesa'}
+          aria-readonly="true"
+          tabIndex={0}
+          className="mb-5 flex h-[98px] w-full flex-col items-center justify-center rounded-lg border border-orange-500 bg-white px-4 outline-none transition-shadow focus:ring-2 focus:ring-orange-100 sm:h-[118px] sm:mb-6"
+        >
+          {input ? (
+            <>
+              <strong className="font-mono text-[37px] font-black leading-none tracking-[0.14em] text-slate-900 sm:text-[48px]">
+                MESA {input}
+              </strong>
+              {matchingTable && (
+                <span className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold sm:text-[12px] ${
+                  matchingTable.status === 'LIVRE'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : matchingTable.status === 'OCUPADA'
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-red-100 text-red-700'
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${matchingTable.status === 'LIVRE' ? 'bg-emerald-500' : matchingTable.status === 'OCUPADA' ? 'bg-amber-500' : 'bg-red-500'}`} aria-hidden="true" />
+                  {matchingTable.status === 'LIVRE'
+                    ? 'Livre (Abrir)'
+                    : matchingTable.status === 'OCUPADA'
+                      ? 'Ocupada (Entrar)'
+                      : 'Em fechamento'}
                 </span>
               )}
-              {matchingTable.status === 'OCUPADA' && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-800 bg-yellow-100 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Ocupada (Entrar)
-                </span>
-              )}
-              {matchingTable.status === 'FECHAMENTO' && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> Fechamento
-                </span>
-              )}
-            </div>
+            </>
+          ) : (
+            <span className="text-[15px] text-slate-400 sm:text-[17px]">Digite o número...</span>
           )}
         </div>
 
-        {/* Ergonomic One-Hand Keypad (Thumb Zone Optimized) */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 mb-2">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
             <button
+              type="button"
               key={num}
               onClick={() => handleNumber(num)}
-              className="h-16 sm:h-20 text-2xl sm:text-3xl font-bold text-gray-800 bg-gray-50/80 active:bg-orange-100 border border-gray-200/90 rounded-2xl active:scale-95 transition-all shadow-sm flex items-center justify-center select-none"
+              className="flex h-14 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[19px] font-medium text-slate-800 transition-colors hover:border-orange-200 hover:bg-orange-50 active:bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:h-[72px] sm:text-[24px]"
             >
               {num}
             </button>
           ))}
           <button
+            type="button"
             onClick={handleBackspace}
             aria-label="Apagar dígito"
-            className="h-16 sm:h-20 text-lg sm:text-xl font-bold text-red-600 bg-red-50/80 active:bg-red-100 border border-red-100 rounded-2xl active:scale-95 transition-all flex items-center justify-center select-none"
+            className="flex h-14 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-orange-200 hover:bg-orange-50 active:bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:h-[72px]"
           >
-            ⌫
+            <DeleteIcon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
           </button>
           <button
+            type="button"
             onClick={() => handleNumber(0)}
-            className="h-16 sm:h-20 text-2xl sm:text-3xl font-bold text-gray-800 bg-gray-50/80 active:bg-orange-100 border border-gray-200/90 rounded-2xl active:scale-95 transition-all shadow-sm flex items-center justify-center select-none"
+            className="flex h-14 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-[19px] font-medium text-slate-800 transition-colors hover:border-orange-200 hover:bg-orange-50 active:bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:h-[72px] sm:text-[24px]"
           >
             0
           </button>
           <button
+            type="button"
             onClick={handleEnter}
             disabled={!input}
-            className="h-16 sm:h-20 text-base sm:text-lg font-bold text-white bg-green-600 active:bg-green-700 rounded-2xl active:scale-95 transition-all shadow-md shadow-green-200 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed select-none"
+            className="flex h-14 items-center justify-center rounded-lg bg-orange-600 text-[11px] font-bold text-white transition-colors hover:bg-orange-700 active:bg-orange-800 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 sm:h-[72px] sm:text-[14px]"
           >
             ENTRAR
           </button>
         </div>
 
-        {/* Clear shortcut */}
-        {input && (
-          <div className="text-center mt-1">
-            <button
-              onClick={handleClear}
-              className="text-xs font-semibold text-gray-400 hover:text-gray-600 py-1 px-3"
-            >
-              Limpar digitação
-            </button>
-          </div>
-        )}
-      </div>
+      </section>
 
       {/* Modal Confirm Open Table */}
       {showConfirmModal && targetTable && (
@@ -259,6 +258,6 @@ export default function Home() {
         </div>
       )}
 
-    </div>
+    </main>
   )
 }
