@@ -18,6 +18,7 @@ export type Produto = {
   descricao?: string | null
   preco: number
   ativo: boolean
+  visivelGarcom?: boolean
   categoriaId: number | null
   categoria?: Categoria
   tipo?: 'COMUM' | 'POR_TAMANHO'

@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
-import { Pagination } from '@/components/ui/Pagination'
+import { DataTable, type DataTableColumn } from '@/components/ui/DataTable'
+import { Switch } from '@/components/ui/Switch'
 import { useToast } from '@/contexts/ToastContext'
 import Skeleton from '@/components/ui/Skeleton'
-import { ProductCard, Produto, Categoria } from '@/components/ProductCard'
+import type { Produto, Categoria } from '@/components/ProductCard'
 import { apiFetch, apiRequest, ApiError, fetchAllList, fetchList } from '@/app/lib/api'
 import { usePagedQuery, type SortOrder } from '@/app/lib/pagination'
 import { correctProductSectors, fetchAllProducts } from '@/app/lib/product-catalog'
@@ -18,7 +19,6 @@ import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-
 import { 
   ArrowLeft, 
   Plus, 
-  Search, 
   Upload, 
   X, 
   Check,
@@ -109,6 +109,21 @@ export default function ProdutosPage() {
   const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null)
   const [fixStatus, setFixStatus] = useState<string | null>(null)
   const [confirmarFixSetores, setConfirmarFixSetores] = useState(false)
+
+  const alternarVisibilidadeGarcom = async (produto: Produto, visivelGarcom: boolean) => {
+    await apiFetch(`/products/${produto.id}/visibilidade-garcom`, {
+      method: 'PATCH',
+      body: { visivelGarcom },
+    })
+    await queryClient.invalidateQueries({ queryKey: ['products'] })
+    void refetchProdutos()
+    showToast(
+      visivelGarcom
+        ? `${produto.nome} agora aparece para o garçom.`
+        : `${produto.nome} foi ocultado do garçom.`,
+      'success'
+    )
+  }
 
   const handleFixSectors = async () => {
     setConfirmarFixSetores(false)
@@ -509,6 +524,82 @@ export default function ProdutosPage() {
     }
   }
 
+  const columns: Array<DataTableColumn<Produto>> = [
+    {
+      key: 'produto',
+      header: 'Produto',
+      sortKey: 'nome',
+      render: (produto) => (
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+            {produto.foto ? (
+              <Image
+                src={produto.foto}
+                alt=""
+                fill
+                sizes="44px"
+                className="object-cover"
+                unoptimized={produto.foto.startsWith('/uploads') || produto.foto.startsWith('data:')}
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-xs font-bold text-slate-400">
+                {produto.nome.slice(0, 1).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <strong className="block truncate text-sm text-slate-900">{produto.nome}</strong>
+            {produto.codigo && <span className="block truncate text-xs text-slate-500">{produto.codigo}</span>}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'categoria',
+      header: 'Categoria',
+      render: (produto) => (
+        <span className="inline-flex rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
+          {produto.categoria?.nome ?? 'Sem categoria'}
+        </span>
+      ),
+      hideOnMobile: true,
+    },
+    {
+      key: 'preco',
+      header: 'Preço',
+      sortKey: 'preco',
+      render: (produto) => produto.tipo === 'POR_TAMANHO'
+        ? <span className="text-sm font-medium text-slate-600">Por tamanho</span>
+        : <span className="text-sm font-semibold text-slate-700">{Number(produto.valorPromo ?? produto.preco ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>,
+      hideOnMobile: true,
+    },
+    {
+      key: 'visivelGarcom',
+      header: 'Garçom',
+      align: 'center',
+      render: (produto) => (
+        <Switch
+          checked={produto.visivelGarcom !== false}
+          onCheckedChange={(visivel) => alternarVisibilidadeGarcom(produto, visivel)}
+          label={`${produto.nome}: aparecer para o garçom`}
+          size="sm"
+          className="justify-center gap-0 [&>span]:sr-only"
+        />
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      align: 'center',
+      render: (produto) => (
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${produto.ativo ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${produto.ativo ? 'bg-emerald-500' : 'bg-slate-400'}`} aria-hidden="true" />
+          {produto.ativo ? 'Ativo' : 'Inativo'}
+        </span>
+      ),
+    },
+  ]
+
   if (loadingProd || loadingCat) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
@@ -548,47 +639,30 @@ export default function ProdutosPage() {
           <div className="w-10" /> 
         </div>
 
-        {/* Search & Add */}
-        <div className="grid grid-cols-4 gap-2 sm:flex">
-          <div className="relative col-span-4 sm:flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value)
-                setPage(1)
-              }}
-              placeholder="Buscar por nome..."
-              className="w-full bg-gray-100 border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none text-sm placeholder:text-gray-500"
-            />
-          </div>
-          <button
-            onClick={() => setIsAdding(true)}
-            className="flex min-h-10 items-center justify-center rounded-xl bg-blue-600 p-2.5 font-bold text-white shadow-lg shadow-blue-900/20 transition-transform active:scale-95"
-          >
-            <Plus size={20} />
-          </button>
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             onClick={() => setConfirmarFixSetores(true)}
             title="Auto-corrigir setores (Cozinha/Bar) de TODO o cardápio"
-            className="flex min-h-10 items-center justify-center rounded-xl border border-gray-200 bg-white p-2.5 font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
+            className="flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
           >
             <Wand2 size={18} />
+            Autocorrigir
           </button>
           <button
             onClick={handleExport}
             title="Exportar cardápio (JSON)"
-            className="flex min-h-10 items-center justify-center rounded-xl border border-gray-200 bg-white p-2.5 font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
+            className="flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
           >
             <Download size={18} />
+            Exportar
           </button>
           <button
             onClick={() => importInputRef.current?.click()}
             title="Importar cardápio (JSON)"
-            className="flex min-h-10 items-center justify-center rounded-xl border border-gray-200 bg-white p-2.5 font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
+            className="flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
           >
             <Upload size={18} />
+            Importar
           </button>
           <input
             ref={importInputRef}
@@ -610,104 +684,37 @@ export default function ProdutosPage() {
         </div>
       )}
 
-      {/* Listagem: grade de cards, não DataTable.
-          Decisão: o cardápio é um catálogo VISUAL (foto do prato é o que o
-          operador reconhece), e o DataTable do padrão RF-UI-01 é uma tabela —
-          usá-lo aqui destruiria a informação da imagem. O que o padrão exige e
-          que foi adotado: paginação/busca/ordenação no servidor, contagem no
-          rodapé e seletor de itens por página. */}
       <div className="p-4">
-        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <label htmlFor="produtos-pagesize" className="whitespace-nowrap">
-              Exibir
-            </label>
-            <select
-              id="produtos-pagesize"
-              value={pageSize}
-              onChange={(evento) => {
-                setPageSize(Number(evento.target.value))
-                setPage(1)
-              }}
-              className="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-800 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
-            >
-              {[10, 25, 50, 100].map((valor) => (
-                <option key={valor} value={valor}>
-                  {valor}
-                </option>
-              ))}
-            </select>
-            <span className="whitespace-nowrap">resultados por página</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label htmlFor="produtos-sort" className="sr-only">
-              Ordenar
-            </label>
-            <select
-              id="produtos-sort"
-              value={sort ? `${sort}:${order ?? 'asc'}` : ''}
-              onChange={(evento) => {
-                const valor = evento.target.value
-                if (!valor) {
-                  setSort(null)
-                  setOrder(null)
-                } else {
-                  const [campo, direcao] = valor.split(':')
-                  setSort(campo)
-                  setOrder(direcao as SortOrder)
-                }
-                setPage(1)
-              }}
-              className="h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-800 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
-            >
-              <option value="">Ordenar por…</option>
-              <option value="nome:asc">Nome (A–Z)</option>
-              <option value="nome:desc">Nome (Z–A)</option>
-              <option value="id:desc">Mais recentes primeiro</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 min-[380px]:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-          {loadingProd &&
-            Array.from({ length: Math.min(pageSize, 20) }).map((_, indice) => (
-              <div key={`skeleton-${indice}`} className="flex flex-col gap-2">
-                <Skeleton className="aspect-square w-full" />
-                <Skeleton className="h-3 w-3/4" />
-              </div>
-            ))}
-
-          {!loadingProd &&
-            produtos.map((prod) => (
-              <ProductCard
-                key={prod.id}
-                prod={prod}
-                onEdit={handleEdit}
-                onDelete={setDeleteConfirmationId}
-              />
-            ))}
-
-          {!loadingProd && produtos.length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500 gap-3">
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                <Search size={20} />
-              </div>
-              <p className="text-sm">
-                {searchTerm
-                  ? `Nenhum produto corresponde a "${searchTerm}"`
-                  : 'Nenhum produto cadastrado'}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <Pagination
+        <DataTable
+          columns={columns}
+          data={produtos}
+          getRowId={(produto) => produto.id}
           meta={meta}
-          onPageChange={setPage}
-          disabled={loadingProd}
+          loading={loadingProd}
+          rowActions={{
+            onEdit: handleEdit,
+            onDelete: (produto) => setDeleteConfirmationId(produto.id),
+            editLabel: 'Editar produto',
+            deleteLabel: 'Excluir produto',
+          }}
+          storageKey="admin-produtos"
           itemLabel="produtos"
-          className="mt-4 rounded-xl border border-gray-200 bg-white"
+          emptyMessage={searchTerm ? `Nenhum produto corresponde a “${searchTerm}”` : 'Nenhum produto cadastrado'}
+          onPageChange={setPage}
+          onPageSizeChange={(novoTamanho) => {
+            setPageSize(novoTamanho)
+            setPage(1)
+          }}
+          onSearch={(busca) => {
+            setSearchTerm(busca)
+            setPage(1)
+          }}
+          onSort={(campo, direcao) => {
+            setSort(campo)
+            setOrder(direcao)
+            setPage(1)
+          }}
+          ariaLabel="Produtos do cardápio"
         />
       </div>
 

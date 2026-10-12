@@ -210,7 +210,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
         setUserPermissions(meData.user.permissions ?? [])
 
         const [productsData] = await Promise.all([
-          fetchAllList<Categoria>('/categories?ativo=true&sort=ordem&order=asc'),
+          fetchAllList<Categoria>('/categories?ativo=true&garcom=true&sort=ordem&order=asc'),
           fetchTableData(),
           fetchEstadoCaixa()
         ])
