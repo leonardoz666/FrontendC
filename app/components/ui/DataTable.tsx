@@ -91,6 +91,8 @@ export interface DataTableProps<T> {
   rowActions?: DataTableRowActions<T>
   /** Conteúdo à direita da barra de busca (ex.: botão Exportar). */
   toolbar?: ReactNode
+  /** Permite que telas com uma barra própria ocultem busca e pageSize internos. */
+  showControls?: boolean
   /** Botão primário de criação, exibido ABAIXO da lista (padrão Gesfood). */
   createAction?: { label: string; onClick: () => void }
   /** Chave de persistência do `pageSize` por tela. */
@@ -139,6 +141,7 @@ export function DataTable<T>({
   emptyHint,
   rowActions,
   toolbar,
+  showControls = true,
   createAction,
   storageKey,
   itemLabel = 'registros',
@@ -249,7 +252,7 @@ export function DataTable<T>({
   return (
     <div className="min-w-0 w-full [overflow-wrap:anywhere]">
       {/* Barra de controles: pageSize + busca + ações da tela */}
-      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {showControls && <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <label htmlFor={`pagesize-${storageKey ?? 'default'}`} className="whitespace-nowrap">
             Exibir
@@ -282,7 +285,7 @@ export function DataTable<T>({
           )}
           {toolbar}
         </div>
-      </div>
+      </div>}
 
       {selectable && selectedIds.length > 0 && bulkActions && (
         <div className="mb-3 flex items-center justify-between rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm">

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
@@ -11,13 +10,12 @@ import { useToast } from '@/contexts/ToastContext'
 import Skeleton from '@/components/ui/Skeleton'
 import type { Produto, Categoria } from '@/components/ProductCard'
 import { apiFetch, apiRequest, ApiError, fetchAllList, fetchList } from '@/app/lib/api'
-import { usePagedQuery, type SortOrder } from '@/app/lib/pagination'
+import { PAGE_SIZE_OPTIONS, usePagedQuery, type PageSize, type SortOrder } from '@/app/lib/pagination'
 import { correctProductSectors, fetchAllProducts } from '@/app/lib/product-catalog'
 import { buildProductFormData } from '@/app/lib/product-form'
 import { InlineLoader } from '@/app/components/ui/PageLoader'
 import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-import'
 import { 
-  ArrowLeft, 
   Plus, 
   Upload, 
   X, 
@@ -25,7 +23,11 @@ import {
   Pencil, 
   Download,
   Wand2,
-  Printer
+  Printer,
+  Search,
+  ListFilter,
+  LayoutGrid,
+  Tag
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -53,7 +55,6 @@ type ComplementoGrupo = {
 export default function ProdutosPage() {
   const { showToast } = useToast()
   const queryClient = useQueryClient()
-  const router = useRouter()
   
   // Paginação/busca/ordenação no SERVIDOR (DT-2). Antes a tela baixava a base
   // inteira e filtrava no cliente, o que não escala para o cardápio real.
@@ -62,13 +63,14 @@ export default function ProdutosPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sort, setSort] = useState<string | null>(null)
   const [order, setOrder] = useState<SortOrder | null>(null)
+  const [categoriaFiltro, setCategoriaFiltro] = useState<number | null>(null)
 
   const {
     data: paginaProdutos,
     isLoading: loadingProd,
     refetch: refetchProdutos,
   } = usePagedQuery<Produto>({
-    resource: '/products',
+    resource: categoriaFiltro ? `/products?categoriaId=${categoriaFiltro}` : '/products',
     page,
     pageSize,
     search: searchTerm,
@@ -110,17 +112,17 @@ export default function ProdutosPage() {
   const [fixStatus, setFixStatus] = useState<string | null>(null)
   const [confirmarFixSetores, setConfirmarFixSetores] = useState(false)
 
-  const alternarVisibilidadeGarcom = async (produto: Produto, visivelGarcom: boolean) => {
+  const alternarAtivo = async (produto: Produto, ativo: boolean) => {
     await apiFetch(`/products/${produto.id}/visibilidade-garcom`, {
       method: 'PATCH',
-      body: { visivelGarcom },
+      body: { visivelGarcom: ativo },
     })
     await queryClient.invalidateQueries({ queryKey: ['products'] })
     void refetchProdutos()
     showToast(
-      visivelGarcom
-        ? `${produto.nome} agora aparece para o garçom.`
-        : `${produto.nome} foi ocultado do garçom.`,
+      ativo
+        ? `${produto.nome} foi ativado e agora aparece para o garçom.`
+        : `${produto.nome} foi desativado e ocultado do garçom.`,
       'success'
     )
   }
@@ -289,6 +291,23 @@ export default function ProdutosPage() {
     setPermiteGeloLimao(false)
     setError('')
     if (categorias.length > 0) setCategoriaId(categorias[0].id.toString())
+  }
+
+  const handleNewProduct = () => {
+    resetForm()
+    setIsAdding(true)
+  }
+
+  const handleSortSelect = (value: string) => {
+    if (!value) {
+      setSort(null)
+      setOrder(null)
+    } else {
+      const [campo, direcao] = value.split(':') as [string, SortOrder]
+      setSort(campo)
+      setOrder(direcao)
+    }
+    setPage(1)
   }
 
   const handleEdit = useCallback((prod: Produto) => {
@@ -579,9 +598,9 @@ export default function ProdutosPage() {
       align: 'center',
       render: (produto) => (
         <Switch
-          checked={produto.visivelGarcom !== false}
-          onCheckedChange={(visivel) => alternarVisibilidadeGarcom(produto, visivel)}
-          label={`${produto.nome}: aparecer para o garçom`}
+          checked={produto.ativo}
+          onCheckedChange={(ativo) => alternarAtivo(produto, ativo)}
+          label={`${produto.nome}: ativar ou desativar para o garçom`}
           size="sm"
           className="justify-center gap-0 [&>span]:sr-only"
         />
@@ -630,20 +649,28 @@ export default function ProdutosPage() {
 
   return (
     <div className="min-h-screen pb-32 bg-gray-50 relative">
-      <header className="sticky top-14 z-40 border-b border-gray-200 bg-white/90 p-4 backdrop-blur-md md:top-0">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={() => router.push('/')} className="p-2 -ml-2 text-gray-500 hover:text-gray-900 transition-colors">
-            <ArrowLeft size={24} />
-          </button>
-          <h1 className="text-xl font-bold text-gray-900">Gerenciar Cardápio</h1>
-          <div className="w-10" /> 
-        </div>
+      <header className="sticky top-14 z-40 space-y-3 border-b border-gray-200 bg-white/95 p-4 backdrop-blur-md md:top-0">
+        <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+          <label className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => {
+                setSearchTerm(event.target.value)
+                setPage(1)
+              }}
+              placeholder="Buscar produto, código ou categoria..."
+              aria-label="Buscar produto, código ou categoria"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+            />
+          </label>
 
-        <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
           <button
             onClick={() => setConfirmarFixSetores(true)}
             title="Auto-corrigir setores (Cozinha/Bar) de TODO o cardápio"
-            className="flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
           >
             <Wand2 size={18} />
             Autocorrigir
@@ -651,7 +678,7 @@ export default function ProdutosPage() {
           <button
             onClick={handleExport}
             title="Exportar cardápio (JSON)"
-            className="flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
           >
             <Download size={18} />
             Exportar
@@ -659,7 +686,7 @@ export default function ProdutosPage() {
           <button
             onClick={() => importInputRef.current?.click()}
             title="Importar cardápio (JSON)"
-            className="flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold text-gray-700 transition-transform hover:bg-gray-50 active:scale-95"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
           >
             <Upload size={18} />
             Importar
@@ -671,6 +698,90 @@ export default function ProdutosPage() {
             className="hidden"
             onChange={handleImportFileChange}
           />
+
+          <label className="relative min-w-[11rem]">
+            <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" aria-hidden="true" />
+            <select
+              value={sort && order ? `${sort}:${order}` : ''}
+              onChange={(event) => handleSortSelect(event.target.value)}
+              aria-label="Ordenar produtos"
+              className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-10 pr-9 text-sm font-bold text-slate-700 shadow-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+            >
+              <option value="">Ordenar por</option>
+              <option value="nome:asc">Nome: A–Z</option>
+              <option value="nome:desc">Nome: Z–A</option>
+              <option value="preco:asc">Menor preço</option>
+              <option value="preco:desc">Maior preço</option>
+              <option value="ultimoUso:desc">Mais recentes</option>
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">⌄</span>
+          </label>
+
+          <button
+            type="button"
+            onClick={handleNewProduct}
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-orange-700 active:scale-95"
+          >
+            <Plus size={18} />
+            Novo Produto
+          </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 scrollbar-hide lg:pb-0">
+            <button
+              type="button"
+              onClick={() => {
+                setCategoriaFiltro(null)
+                setPage(1)
+              }}
+              className={clsx(
+                'flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
+                categoriaFiltro === null
+                  ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              )}
+            >
+              <LayoutGrid size={15} />
+              Todos
+            </button>
+            {categorias.map((categoria) => (
+              <button
+                key={categoria.id}
+                type="button"
+                onClick={() => {
+                  setCategoriaFiltro(categoria.id)
+                  setPage(1)
+                }}
+                className={clsx(
+                  'flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
+                  categoriaFiltro === categoria.id
+                    ? 'border-orange-500 bg-orange-50 text-orange-700'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                )}
+              >
+                <Tag size={14} />
+                {categoria.nome}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex shrink-0 items-center justify-end gap-2 text-sm text-slate-500">
+            <span>Exibir</span>
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value) as PageSize)
+                setPage(1)
+              }}
+              aria-label="Resultados por página"
+              className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size}</option>)}
+            </select>
+            <span>resultados</span>
+          </div>
         </div>
       </header>
 
@@ -691,6 +802,7 @@ export default function ProdutosPage() {
           getRowId={(produto) => produto.id}
           meta={meta}
           loading={loadingProd}
+          showControls={false}
           rowActions={{
             onEdit: handleEdit,
             onDelete: (produto) => setDeleteConfirmationId(produto.id),
