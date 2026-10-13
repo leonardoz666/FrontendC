@@ -1133,7 +1133,7 @@ export default function ProdutosPage() {
                     </div>
                     <div>
                       <span className="text-sm font-bold text-gray-700">Disponível / Ativo?</span>
-                      <p className="text-[10px] text-gray-500 leading-tight">Se desmarcar, o produto some do cardápio</p>
+                      <p className="text-xs leading-5 text-gray-500">Se desmarcar, o produto some do cardápio</p>
                     </div>
                   </div>
 
@@ -1217,7 +1217,7 @@ export default function ProdutosPage() {
                     </div>
                     <div>
                       <span className="text-sm font-bold text-gray-700">Gelo e Limão?</span>
-                      <p className="text-[10px] text-gray-500 leading-tight">Exibir botões de Gelo/Limão</p>
+                      <p className="text-xs leading-5 text-gray-500">Exibir botões de Gelo/Limão</p>
                     </div>
                   </div>
                 </div>
@@ -1261,32 +1261,14 @@ export default function ProdutosPage() {
 
                 {/* Observações rápidas */}
                 <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-gray-600">Observações</label>
-                      <p className="mt-0.5 text-[10px] leading-relaxed text-gray-600">
-                        Adicione opções rápidas para o pedido, como “Sem cebola” ou “Molho à parte”.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={permitirObservacao}
-                      onClick={() => setPermitirObservacao(!permitirObservacao)}
-                      className={clsx(
-                        'relative mt-0.5 h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-                        permitirObservacao ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'
-                      )}
-                      title={permitirObservacao ? 'Desativar observações no pedido' : 'Ativar observações no pedido'}
-                    >
-                      <span
-                        className={clsx(
-                          'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
-                          permitirObservacao ? 'translate-x-5' : 'translate-x-0.5'
-                        )}
-                      />
-                    </button>
-                  </div>
+                  <Switch
+                    checked={permitirObservacao}
+                    onCheckedChange={setPermitirObservacao}
+                    label="Observações"
+                    description="Adicione opções rápidas para o pedido, como “Sem cebola” ou “Molho à parte”."
+                    size="sm"
+                    className="w-full"
+                  />
 
                   <div className={clsx('space-y-2 transition-opacity', !permitirObservacao && 'opacity-60')}>
                     <div className="flex gap-2">

@@ -20,6 +20,17 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Espaçamento mínimo entre conteúdos distribuídos nas extremidades.
+   Evita que textos e ações encostem quando a largura fica apertada. */
+:where(.flex.justify-between):not([class*="gap-"]) {
+  gap: .75rem;
+}
+
+/* Ícones nunca devem disputar largura com o texto dos controles. */
+:where(button, a) > svg {
+  flex-shrink: 0;
+}
+
 .rei-page-loader {
   display: grid;
   min-height: calc(100dvh - 4rem);

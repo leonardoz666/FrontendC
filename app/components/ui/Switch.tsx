@@ -77,10 +77,10 @@ export function Switch({
     : { trilho: 'h-7 w-12 p-0.5', botao: 'h-6 w-6', spinner: 'h-3.5 w-3.5' }
 
   return (
-    <div className={cn('flex items-center justify-between gap-4', className)}>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold text-gray-900">{label}</span>
-        {description && <span id={descriptionId} className="mt-0.5 block text-xs text-gray-500">{description}</span>}
+    <div className={cn('flex min-w-0 items-start justify-between gap-4 sm:items-center', className)}>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold leading-5 text-gray-900">{label}</span>
+        {description && <span id={descriptionId} className="mt-1 block text-xs leading-5 text-gray-500">{description}</span>}
       </span>
       <button
         type="button"
@@ -92,7 +92,7 @@ export function Switch({
         disabled={disabled || ocupado}
         onClick={() => void toggle()}
         className={cn(
-          'relative flex shrink-0 items-center rounded-full border transition-[background-color,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          'relative flex shrink-0 items-center overflow-hidden rounded-full border transition-[background-color,border-color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
           dimensoes.trilho,
           visualChecked ? 'justify-end border-orange-600 bg-orange-600' : 'justify-start border-gray-300 bg-gray-200'
         )}

@@ -16,7 +16,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="mb-2 block text-sm font-medium leading-5 text-gray-700">
             {label}
           </label>
         )}
@@ -29,7 +29,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+        {error && <p className="mt-1.5 text-xs leading-5 text-red-600">{error}</p>}
       </div>
     )
   }
