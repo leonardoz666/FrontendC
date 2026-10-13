@@ -6,6 +6,7 @@
     "test:payment": "node scripts/verify-payment.cjs",
     "test:product-catalog": "node scripts/verify-product-catalog.cjs",
     "test:product-form": "node scripts/verify-product-form.cjs",
+    "test:category-printer": "node scripts/verify-category-printer.cjs",
     "test:menu-json-import": "ts-node --project scripts/tsconfig.json scripts/verify-menu-json-import.ts",
     "test:printer-agent-config": "ts-node --project scripts/tsconfig.json scripts/verify-printer-agent-config.ts",
     "test:api": "node scripts/verify-api.cjs",

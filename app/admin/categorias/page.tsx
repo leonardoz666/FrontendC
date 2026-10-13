@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { ImageIcon, Power, PowerOff, Printer } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
@@ -49,7 +48,6 @@ const SETOR_BADGE: Record<string, string> = {
  * - formatação de erro e chamadas padronizadas por `lib/api.ts`.
  */
 export default function CategoriasPage() {
-  const router = useRouter()
   const { showToast } = useToast()
 
   const [page, setPage] = useState(1)
@@ -109,7 +107,7 @@ export default function CategoriasPage() {
         return null
       }
     },
-    [router, showToast]
+    [showToast]
   )
 
   const abrirNova = () => {
@@ -301,7 +299,7 @@ export default function CategoriasPage() {
           <Printer className="h-3.5 w-3.5 text-orange-500" />
           {categoria.dispositivo.nome}
         </span>
-      ) : <span className="text-xs text-gray-600">Padrão do caixa</span>,
+      ) : <span className="text-xs text-gray-600">Nenhuma vinculada</span>,
     },
     {
       key: 'produtos',
@@ -443,13 +441,13 @@ export default function CategoriasPage() {
                   onChange={(event) => setDispositivoId(event.target.value)}
                   className="w-full rounded-lg border border-gray-300 p-2 text-black focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
                 >
-                  <option value="">Usar impressora do produto ou padrão do caixa</option>
+                  <option value="">Nenhuma impressora</option>
                   {impressoras.map((impressora) => (
                     <option key={impressora.id} value={impressora.id}>{impressora.nome}</option>
                   ))}
                 </select>
                 <p className="mt-1 text-xs text-gray-500">
-                  Recebe os itens desta categoria quando o produto não possui uma impressora própria.
+                  Sem seleção, a categoria não define uma impressora própria.
                 </p>
               </div>
 
