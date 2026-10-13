@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { ToastProvider } from './contexts/ToastContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { createQueryClient } from './lib/queryClient'
+import { DataSyncBridge } from './components/DataSyncBridge'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(createQueryClient)
@@ -12,6 +13,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
+        <DataSyncBridge />
         <ToastProvider>
           {children}
         </ToastProvider>

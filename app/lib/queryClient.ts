@@ -17,10 +17,10 @@ export function createQueryClient(): QueryClient {
       queries: {
         staleTime: QUERY_STALE_TIME_MS,
         retry: QUERY_RETRY,
-        // Sistema operacional de restaurante: a janela perde o foco o tempo todo
-        // (balança, impressora, PDV). Refetch automático ao focar gera rajadas de
-        // requisição sem valor; quem quer refresh usa o staleTime/invalidate.
-        refetchOnWindowFocus: false,
+        // Ao voltar para uma tela que ficou aberta, confirme dados que possam ter
+        // sido alterados em outra aba ou computador durante a ausência.
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
       },
       mutations: {
         retry: 0,

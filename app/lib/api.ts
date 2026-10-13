@@ -1,4 +1,5 @@
 import { unwrapList } from './legacyArray'
+import { publishLocalDataChange, shouldPublishApiMutation } from './data-sync'
 
 /**
  * Cliente HTTP do frontend.
@@ -234,6 +235,10 @@ export async function apiRequest(path: string, options: ApiRequestOptions = {}):
       details: extractDetails(parsed),
       body: parsed,
     })
+  }
+
+  if (typeof window !== 'undefined' && shouldPublishApiMutation(upperMethod, url)) {
+    publishLocalDataChange(window, { method: upperMethod, path: url })
   }
 
   return response
