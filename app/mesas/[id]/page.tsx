@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Rocket, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban } from 'lucide-react'
+import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Check, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
 import { ProductOptionsModal } from '@/components/ProductOptionsModal'
@@ -1101,71 +1101,74 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
       {/* Conferência obrigatória antes do lançamento */}
       {showReviewModal && (
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-2 sm:p-4">
-            <div ref={reviewDialog} role="dialog" aria-modal="true" aria-labelledby="review-order-title" className="flex h-[96dvh] w-full max-w-6xl flex-col overflow-hidden rounded-md bg-white shadow-2xl sm:h-[94dvh]">
-              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4">
-                <div className="flex items-center gap-3">
-                  <ListOrdered className="text-orange-600" size={24} />
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-[2px] sm:p-6">
+            <div ref={reviewDialog} role="dialog" aria-modal="true" aria-labelledby="review-order-title" className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:h-[86dvh] sm:min-h-[36rem] sm:max-h-[54rem]">
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-10 sm:py-7">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700 sm:h-16 sm:w-16 sm:rounded-2xl">
+                    <Receipt className="h-5 w-5 sm:h-8 sm:w-8" aria-hidden="true" />
+                  </div>
                   <div>
-                    <h2 id="review-order-title" className="text-xl font-semibold text-gray-900 sm:text-2xl">Conferir pedido</h2>
-                    <p className="text-sm text-gray-500">Mesa {mesaNumero} · {cartItemCount} {cartItemCount === 1 ? 'item' : 'itens'}</p>
+                    <h2 id="review-order-title" className="text-lg font-bold text-slate-950 sm:text-3xl">Resumo do pedido</h2>
+                    <p className="text-sm text-slate-500 sm:mt-1 sm:text-lg">Mesa {mesaNumero} · Total de itens: {cartItemCount}</p>
                   </div>
                 </div>
-                <button ref={reviewCloseButton} type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} aria-label="Fechar conferência" className="rounded-md p-3 text-gray-500 hover:bg-gray-100 disabled:opacity-50">
-                  <X size={24} />
+                <button ref={reviewCloseButton} type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} aria-label="Fechar conferência" className="rounded-full bg-slate-100 p-2.5 text-slate-600 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50 sm:p-4">
+                  <X className="h-[22px] w-[22px] sm:h-8 sm:w-8" />
                 </button>
               </div>
 
-              <div className="grid flex-1 content-start overflow-y-auto px-4 py-2 sm:px-6 sm:py-4 md:grid-cols-2 md:gap-x-8">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50/70 px-4 py-4 sm:space-y-4 sm:px-10 sm:py-6">
                 {cart.length === 0 ? (
-                  <p className="col-span-full py-12 text-center text-base text-gray-500">Nenhum item para lançar.</p>
+                  <p className="py-10 text-center text-base text-slate-500 sm:text-xl">Nenhum item para lançar.</p>
                 ) : (
                   cart.map((item, index) => (
-                    <div key={index} className="flex items-start gap-4 border-b border-gray-100 py-4">
-                      <div className="flex min-w-0 flex-1 gap-3">
-                        <span className="shrink-0 text-base font-bold text-orange-700">
-                          {item.quantidade}x
-                        </span>
-                        <div className="min-w-0">
-                          <p className="break-words text-base font-semibold text-gray-900">{item.nome}</p>
-                          {item.observacao && <p className="mt-1 break-words text-sm text-gray-600">{item.observacao}</p>}
-                          <p className="mt-1.5 text-base font-semibold text-gray-800">
-                            R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}
-                          </p>
-                        </div>
+                    <div key={index} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:min-h-24 sm:gap-5 sm:px-6 sm:py-4">
+                      <span className="shrink-0 rounded-lg bg-orange-100 px-2.5 py-1.5 text-sm font-black text-orange-700 sm:px-4 sm:py-2.5 sm:text-lg">
+                        {item.quantidade}x
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="break-words text-base font-bold text-slate-950 sm:text-2xl">{item.nome}</p>
+                        {item.observacao && <p className="mt-1 break-words text-sm leading-5 text-slate-600 sm:mt-2 sm:text-base sm:leading-6">{item.observacao}</p>}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFromCart(index)}
-                        disabled={submitting}
-                        title="Remover item"
-                        aria-label={`Remover ${item.nome} do pedido`}
-                        className="shrink-0 rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <div className="flex shrink-0 items-center gap-2 sm:gap-5">
+                        <span className="text-right text-base font-black text-slate-950 sm:text-2xl">
+                          R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(index)}
+                          disabled={submitting}
+                          title="Remover item"
+                          aria-label={`Remover ${item.nome} do pedido`}
+                          className="flex items-center justify-center gap-2 rounded-lg bg-red-600 p-2.5 font-bold text-white hover:bg-red-700 disabled:opacity-50 sm:min-w-32 sm:px-5 sm:py-3.5"
+                        >
+                          <Trash2 className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
+                          <span className="hidden sm:inline">Excluir</span>
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className="border-t border-gray-200 bg-gray-50 p-4 sm:px-6 sm:py-5">
+              <div className="border-t border-slate-200 bg-white p-4 sm:px-10 sm:py-6">
                 {(reviewError || tableStatus === 'FECHAMENTO') && (
-                  <p role="alert" className="mb-3 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+                  <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:text-base">
                     {reviewError || 'A conta está em fechamento. Reabra a mesa antes de lançar itens.'}
                   </p>
                 )}
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className="text-base font-medium text-gray-600">Total do pedido</span>
-                  <span className="text-xl font-bold text-gray-900 sm:text-2xl">R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
+                <div className="mb-4 flex items-end justify-between gap-3 sm:mb-5">
+                  <span className="text-sm font-semibold text-slate-600 sm:text-lg">Total do pedido</span>
+                  <span className="text-2xl font-black tracking-tight text-slate-950 sm:text-4xl">R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
                 </div>
-                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <button type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} className="rounded-md border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50">
-                    Continuar escolhendo
-                  </button>
-                  <button type="button" onClick={submitOrder} disabled={cart.length === 0 || submitting || lancamentoBloqueado} className="flex items-center justify-center gap-2 rounded-md bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">
-                    <Rocket size={18} />
+                <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+                  <button type="button" onClick={submitOrder} disabled={cart.length === 0 || submitting || lancamentoBloqueado} className="flex items-center justify-center gap-3 rounded-xl bg-green-600 px-5 py-3.5 text-base font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-xl">
+                    <Check className="h-5 w-5 sm:h-7 sm:w-7" />
                     {submitting ? 'Lançando...' : 'Lançar pedido'}
+                  </button>
+                  <button type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} className="rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-50 sm:py-5 sm:text-xl">
+                    Continuar escolhendo
                   </button>
                 </div>
               </div>
