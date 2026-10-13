@@ -230,7 +230,7 @@ export default function FormasPagamentoPage() {
       sortKey: 'taxa',
       align: 'right',
       render: (forma) => (
-        <span className={comoNumero(forma.taxa) > 0 ? 'text-gray-900' : 'text-gray-400'}>
+        <span className={comoNumero(forma.taxa) > 0 ? 'text-gray-900' : 'text-gray-600'}>
           {formatarPercentual(forma.taxa)}
         </span>
       ),
@@ -252,7 +252,7 @@ export default function FormasPagamentoPage() {
       header: 'Conta bancária',
       hideOnMobile: true,
       render: (forma) => {
-        if (!forma.contaBancariaId) return <span className="text-gray-400">—</span>
+        if (!forma.contaBancariaId) return <span className="text-gray-600">—</span>
         const conta = contasPorId.get(forma.contaBancariaId)
         return (
           <span className="text-gray-700">

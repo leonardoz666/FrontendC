@@ -7,13 +7,12 @@ import { ConfirmationModal } from '@/components/ConfirmationModal'
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable'
 import { Switch } from '@/components/ui/Switch'
 import { useToast } from '@/contexts/ToastContext'
-import Skeleton from '@/components/ui/Skeleton'
 import type { Produto, Categoria } from '@/components/ProductCard'
 import { apiFetch, apiRequest, ApiError, fetchAllList, fetchList } from '@/app/lib/api'
 import { PAGE_SIZE_OPTIONS, usePagedQuery, type PageSize, type SortOrder } from '@/app/lib/pagination'
 import { correctProductSectors, fetchAllProducts } from '@/app/lib/product-catalog'
 import { buildProductFormData } from '@/app/lib/product-form'
-import { InlineLoader } from '@/app/components/ui/PageLoader'
+import { InlineLoader, PageLoader } from '@/app/components/ui/PageLoader'
 import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-import'
 import { 
   Plus, 
@@ -52,6 +51,28 @@ type ComplementoGrupo = {
   ativo: boolean
 }
 
+function categoryColorStyle(categoryId: number, selected = false) {
+  // O passo áureo distribui categorias vizinhas em matizes bem separados.
+  const hue = Math.round((categoryId * 137.508) % 360)
+  return {
+    backgroundColor: `hsl(${hue} 82% ${selected ? '89%' : '95%'})`,
+    borderColor: `hsl(${hue} 62% ${selected ? '62%' : '84%'})`,
+    color: `hsl(${hue} 68% 30%)`,
+  }
+}
+
+function parseStringList(value?: string | null): string[] {
+  if (!value) return []
+  try {
+    const parsed: unknown = JSON.parse(value)
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      : []
+  } catch {
+    return []
+  }
+}
+
 export default function ProdutosPage() {
   const { showToast } = useToast()
   const queryClient = useQueryClient()
@@ -87,7 +108,7 @@ export default function ProdutosPage() {
     queryFn: async () => {
       // Lista completa de categorias: alimenta os selects do formulário e a
       // importação, então precisa de TODAS, não de uma página.
-      return fetchAllList<Categoria>('/categories?sort=nome&order=asc')
+      return fetchAllList<Categoria>('/categories?sort=ordem&order=asc')
     }
   })
 
@@ -166,6 +187,8 @@ export default function ProdutosPage() {
   const [tipoOpcao, setTipoOpcao] = useState<'padrao' | 'tamanho_pg' | 'refrigerante' | 'sabores' | 'sabores_com_tamanho' | 'combinado'>('padrao')
   const [sabores, setSabores] = useState<string[]>([])
   const [newSabor, setNewSabor] = useState('')
+  const [observacoes, setObservacoes] = useState<string[]>([])
+  const [newObservacao, setNewObservacao] = useState('')
   const [isDrink, setIsDrink] = useState(false)
   const [isFood, setIsFood] = useState(true)
   const [favorito, setFavorito] = useState(false)
@@ -222,6 +245,19 @@ export default function ProdutosPage() {
     setSabores(sabores.filter(s => s !== saborToRemove))
   }
 
+  const handleAddObservacao = (event: React.FormEvent) => {
+    event.preventDefault()
+    const observacao = newObservacao.trim()
+    if (!observacao || observacoes.some((item) => item.toLocaleLowerCase('pt-BR') === observacao.toLocaleLowerCase('pt-BR'))) return
+    setObservacoes([...observacoes, observacao])
+    setNewObservacao('')
+    setPermitirObservacao(true)
+  }
+
+  const handleRemoveObservacao = (observacao: string) => {
+    setObservacoes(observacoes.filter((item) => item !== observacao))
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -234,7 +270,7 @@ export default function ProdutosPage() {
       const formData = buildProductFormData({
         nome, codigo, descricao, preco, valorPromo, custo, categoriaId, tipo,
         tipoTamanhoId, dispositivoIds, ordemProduto, ativo, file, tipoOpcao,
-        sabores, isDrink, isFood, favorito, destaque, controlaEstoque,
+        sabores, observacoes, isDrink, isFood, favorito, destaque, controlaEstoque,
         autoatendimento, fiscal, ncm, cfop, cstCsosn, aliquotaIcms,
         permitirObservacao, permiteGeloLimao, gruposComplementoIds,
       })
@@ -275,6 +311,8 @@ export default function ProdutosPage() {
     setTipoOpcao('padrao')
     setSabores([])
     setNewSabor('')
+    setObservacoes([])
+    setNewObservacao('')
     setIsDrink(false)
     setIsFood(true)
     setFavorito(false)
@@ -332,15 +370,9 @@ export default function ProdutosPage() {
     setFoto(prod.foto)
     setTipoOpcao((prod.tipoOpcao as Produto['tipoOpcao']) || 'padrao')
     
-    let parsedSabores: string[] = []
-    try {
-      if (prod.sabores) {
-        parsedSabores = JSON.parse(prod.sabores)
-      }
-    } catch (e) {
-      console.error('Error parsing sabores', e)
-    }
-    setSabores(parsedSabores)
+    setSabores(parseStringList(prod.sabores))
+    setObservacoes(parseStringList(prod.observacoes))
+    setNewObservacao('')
     
     setIsDrink(prod.isDrink || false)
     setIsFood(prod.isFood !== undefined ? prod.isFood : true)
@@ -393,7 +425,8 @@ export default function ProdutosPage() {
         exportedAt: new Date().toISOString(),
         items: allProducts.map(p => ({
           ...p,
-          sabores: p.sabores ? JSON.parse(p.sabores) : undefined
+          sabores: parseStringList(p.sabores),
+          observacoes: parseStringList(p.observacoes),
         }))
       }
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
@@ -501,6 +534,10 @@ export default function ProdutosPage() {
           
           const saboresJson = i.sabores ? JSON.stringify(i.sabores) : '[]'
           formData.append('sabores', saboresJson)
+          const observacoesJson = i.observacoes
+            ? JSON.stringify(Array.isArray(i.observacoes) ? i.observacoes : parseStringList(i.observacoes))
+            : '[]'
+          formData.append('observacoes', observacoesJson)
           
           formData.append('isDrink', String(!!i.isDrink))
           formData.append('isFood', String(i.isFood !== undefined ? i.isFood : true))
@@ -577,9 +614,18 @@ export default function ProdutosPage() {
       key: 'categoria',
       header: 'Categoria',
       render: (produto) => (
-        <span className="inline-flex rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
-          {produto.categoria?.nome ?? 'Sem categoria'}
-        </span>
+        produto.categoria ? (
+          <span
+            className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold"
+            style={categoryColorStyle(produto.categoria.id)}
+          >
+            {produto.categoria.nome}
+          </span>
+        ) : (
+          <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
+            Sem categoria
+          </span>
+        )
       ),
       hideOnMobile: true,
     },
@@ -620,37 +666,13 @@ export default function ProdutosPage() {
   ]
 
   if (loadingProd || loadingCat) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <header className="flex items-center justify-between mb-8">
-          <Skeleton className="w-8 h-8 rounded-full" />
-          <Skeleton className="w-48 h-8" />
-          <div className="w-10" />
-        </header>
-        <div className="flex gap-2 mb-8">
-          <Skeleton className="flex-1 h-10 rounded-xl" />
-          <Skeleton className="w-10 h-10 rounded-xl" />
-          <Skeleton className="w-10 h-10 rounded-xl" />
-        </div>
-        <div className="grid grid-cols-3 gap-3 min-[380px]:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl overflow-hidden border border-gray-200">
-              <Skeleton className="aspect-square w-full" />
-              <div className="p-2 space-y-2">
-                <Skeleton className="h-3 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+    return <PageLoader message="Carregando produtos" detail="Preparando o cardápio" />
   }
 
   return (
     <div className="min-h-screen pb-32 bg-gray-50 relative">
-      <header className="sticky top-14 z-40 space-y-3 border-b border-gray-200 bg-white/95 p-4 backdrop-blur-md md:top-0">
-        <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+      <header className="sticky top-14 z-40 space-y-3 border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur-md md:top-0">
+        <div className="grid gap-2 lg:grid-cols-[minmax(20rem,1fr)_auto] lg:items-center">
           <label className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input
@@ -662,50 +684,18 @@ export default function ProdutosPage() {
               }}
               placeholder="Buscar produto, código ou categoria..."
               aria-label="Buscar produto, código ou categoria"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
             />
           </label>
 
-          <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
-          <button
-            onClick={() => setConfirmarFixSetores(true)}
-            title="Auto-corrigir setores (Cozinha/Bar) de TODO o cardápio"
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
-          >
-            <Wand2 size={18} />
-            Autocorrigir
-          </button>
-          <button
-            onClick={handleExport}
-            title="Exportar cardápio (JSON)"
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
-          >
-            <Download size={18} />
-            Exportar
-          </button>
-          <button
-            onClick={() => importInputRef.current?.click()}
-            title="Importar cardápio (JSON)"
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
-          >
-            <Upload size={18} />
-            Importar
-          </button>
-          <input
-            ref={importInputRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={handleImportFileChange}
-          />
-
+          <div className="flex items-center justify-end gap-2">
           <label className="relative min-w-[11rem]">
             <ListFilter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" aria-hidden="true" />
             <select
               value={sort && order ? `${sort}:${order}` : ''}
               onChange={(event) => handleSortSelect(event.target.value)}
               aria-label="Ordenar produtos"
-              className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-10 pr-9 text-sm font-bold text-slate-700 shadow-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+              className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-10 pr-9 text-sm font-bold text-slate-700 shadow-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
             >
               <option value="">Ordenar por</option>
               <option value="nome:asc">Nome: A–Z</option>
@@ -720,7 +710,7 @@ export default function ProdutosPage() {
           <button
             type="button"
             onClick={handleNewProduct}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-orange-700 active:scale-95"
+            className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-orange-700 active:scale-95"
           >
             <Plus size={18} />
             Novo Produto
@@ -728,8 +718,8 @@ export default function ProdutosPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 scrollbar-hide lg:pb-0">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 scrollbar-hide xl:pb-0">
             <button
               type="button"
               onClick={() => {
@@ -737,7 +727,7 @@ export default function ProdutosPage() {
                 setPage(1)
               }}
               className={clsx(
-                'flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
+                'flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
                 categoriaFiltro === null
                   ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
                   : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
@@ -755,11 +745,12 @@ export default function ProdutosPage() {
                   setPage(1)
                 }}
                 className={clsx(
-                  'flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
+                  'flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
                   categoriaFiltro === categoria.id
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    ? 'shadow-sm ring-1 ring-current/20'
+                    : 'hover:brightness-95'
                 )}
+                style={categoryColorStyle(categoria.id, categoriaFiltro === categoria.id)}
               >
                 <Tag size={14} />
                 {categoria.nome}
@@ -767,7 +758,40 @@ export default function ProdutosPage() {
             ))}
           </div>
 
-          <div className="flex shrink-0 items-center justify-end gap-2 text-sm text-slate-500">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <button
+              onClick={() => setConfirmarFixSetores(true)}
+              title="Auto-corrigir setores (Cozinha/Bar) de TODO o cardápio"
+              className="flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+            >
+              <Wand2 size={15} />
+              Autocorrigir
+            </button>
+            <button
+              onClick={handleExport}
+              title="Exportar cardápio (JSON)"
+              className="flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+            >
+              <Download size={15} />
+              Exportar
+            </button>
+            <button
+              onClick={() => importInputRef.current?.click()}
+              title="Importar cardápio (JSON)"
+              className="flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+            >
+              <Upload size={15} />
+              Importar
+            </button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleImportFileChange}
+            />
+
+            <div className="flex items-center gap-2 text-xs text-slate-500">
             <span>Exibir</span>
             <select
               value={pageSize}
@@ -781,6 +805,7 @@ export default function ProdutosPage() {
               {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size}</option>)}
             </select>
             <span>resultados</span>
+            </div>
           </div>
         </div>
       </header>
@@ -817,10 +842,6 @@ export default function ProdutosPage() {
             setPageSize(novoTamanho)
             setPage(1)
           }}
-          onSearch={(busca) => {
-            setSearchTerm(busca)
-            setPage(1)
-          }}
           onSort={(campo, direcao) => {
             setSort(campo)
             setOrder(direcao)
@@ -836,7 +857,7 @@ export default function ProdutosPage() {
           <div className="bg-white w-full max-w-lg max-h-[90vh] rounded-2xl border border-gray-200 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-gray-200 shrink-0">
               <h2 className="text-lg font-bold text-gray-900">{editingId ? 'Editar Produto' : 'Novo Produto'}</h2>
-              <button onClick={resetForm} className="text-gray-400 hover:text-gray-900 p-1 rounded-lg hover:bg-gray-100">
+              <button onClick={resetForm} className="rounded-lg p-1 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                 <X size={20} />
               </button>
             </div>
@@ -1008,7 +1029,7 @@ export default function ProdutosPage() {
                       value={tipoTamanhoId}
                       onChange={e => setTipoTamanhoId(e.target.value)}
                       disabled={tipo !== 'POR_TAMANHO'}
-                      className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 text-sm disabled:bg-gray-100 disabled:text-gray-400"
+                      className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 text-sm disabled:bg-gray-100 disabled:text-gray-500"
                     >
                       <option value="">Selecione</option>
                       {tiposTamanho.map(item => (
@@ -1043,7 +1064,7 @@ export default function ProdutosPage() {
                 <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
                   <div className="flex items-center justify-between gap-3">
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Grupos de Complementos</label>
-                    <span className="text-[10px] text-gray-400">{gruposComplementoIds.length} vinculados</span>
+                    <span className="text-[10px] text-gray-600">{gruposComplementoIds.length} vinculados</span>
                   </div>
                   {gruposComplemento.length === 0 ? (
                     <p className="text-xs text-gray-500">Cadastre grupos em Cardápio &gt; Complementos.</p>
@@ -1183,23 +1204,6 @@ export default function ProdutosPage() {
                     </div>
                   </div>
 
-                  {/* Permitir Observação */}
-                  <div 
-                    className="flex items-center gap-3 bg-gray-50 p-2.5 rounded-lg border border-gray-200 cursor-pointer active:bg-gray-100 transition-colors" 
-                    onClick={() => setPermitirObservacao(!permitirObservacao)}
-                  >
-                    <div className={clsx(
-                      "w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0",
-                      permitirObservacao ? "bg-blue-600 border-blue-600" : "border-gray-400 bg-white"
-                    )}>
-                      {permitirObservacao && <Check size={14} className="text-white" />}
-                    </div>
-                    <div>
-                      <span className="text-sm font-bold text-gray-700">Permitir Observação?</span>
-                      <p className="text-[10px] text-gray-500 leading-tight">Exibir campo no pedido</p>
-                    </div>
-                  </div>
-
                   {/* Permitir Gelo e Limão */}
                   <div 
                     className="flex items-center gap-3 bg-gray-50 p-2.5 rounded-lg border border-gray-200 cursor-pointer active:bg-gray-100 transition-colors" 
@@ -1255,6 +1259,84 @@ export default function ProdutosPage() {
                   </div>
                 )}
 
+                {/* Observações rápidas */}
+                <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-gray-600">Observações</label>
+                      <p className="mt-0.5 text-[10px] leading-relaxed text-gray-600">
+                        Adicione opções rápidas para o pedido, como “Sem cebola” ou “Molho à parte”.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={permitirObservacao}
+                      onClick={() => setPermitirObservacao(!permitirObservacao)}
+                      className={clsx(
+                        'relative mt-0.5 h-6 w-11 shrink-0 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+                        permitirObservacao ? 'border-blue-600 bg-blue-600' : 'border-gray-400 bg-white'
+                      )}
+                      title={permitirObservacao ? 'Desativar observações no pedido' : 'Ativar observações no pedido'}
+                    >
+                      <span
+                        className={clsx(
+                          'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                          permitirObservacao ? 'translate-x-5' : 'translate-x-0.5'
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  <div className={clsx('space-y-2 transition-opacity', !permitirObservacao && 'opacity-60')}>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newObservacao}
+                        onChange={(event) => setNewObservacao(event.target.value)}
+                        placeholder="Nova observação..."
+                        disabled={!permitirObservacao}
+                        className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:ring-2 focus:ring-blue-600 disabled:cursor-not-allowed disabled:bg-gray-100"
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault()
+                            handleAddObservacao(event)
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddObservacao}
+                        disabled={!permitirObservacao || !newObservacao.trim()}
+                        aria-label="Adicionar observação"
+                        className="rounded-lg bg-gray-800 p-2 text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </div>
+
+                    <div className="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
+                      {observacoes.map((observacao) => (
+                        <div key={observacao} className="flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-800">
+                          <span>{observacao}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveObservacao(observacao)}
+                            disabled={!permitirObservacao}
+                            aria-label={`Remover observação ${observacao}`}
+                            className="rounded-full p-0.5 text-gray-600 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                      {observacoes.length === 0 && (
+                        <p className="w-full py-1 text-center text-xs italic text-gray-600">Nenhuma observação cadastrada</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Sabores List */}
                 {(tipoOpcao === 'sabores' || tipoOpcao === 'sabores_com_tamanho' || tipoOpcao === 'combinado' || tipoOpcao === 'refrigerante') && (
                   <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
@@ -1301,14 +1383,14 @@ export default function ProdutosPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveSabor(sabor)}
-                            className="text-gray-400 hover:text-red-500 p-0.5 rounded-full hover:bg-gray-100"
+                            className="rounded-full p-0.5 text-gray-600 hover:bg-red-50 hover:text-red-700"
                           >
                             <X size={12} />
                           </button>
                         </div>
                       ))}
                       {sabores.length === 0 && (
-                        <p className="text-gray-400 text-xs italic w-full text-center py-1">Nenhuma variação</p>
+                        <p className="w-full py-1 text-center text-xs italic text-gray-600">Nenhuma variação</p>
                       )}
                     </div>
                   </div>

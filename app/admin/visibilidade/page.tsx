@@ -145,10 +145,10 @@ export default function SidebarVisibilityPage() {
                       className="flex min-h-12 items-center justify-between gap-4 border-t border-slate-100 px-5 py-2 first:border-t-0"
                     >
                       <div className="min-w-0">
-                        <p className={`truncate text-sm font-medium ${sectionVisible ? 'text-slate-700' : 'text-slate-400'}`}>
+                        <p className={`truncate text-sm font-medium ${sectionVisible ? 'text-slate-700' : 'text-slate-600'}`}>
                           {item.label}
                         </p>
-                        {item.disabled && <p className="text-xs text-slate-400">Em breve</p>}
+                        {item.disabled && <p className="text-xs text-slate-600">Em breve</p>}
                       </div>
                       <Switch
                         checked={itemVisible}

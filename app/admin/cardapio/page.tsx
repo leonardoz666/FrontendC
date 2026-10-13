@@ -427,7 +427,7 @@ export default function OrganizarCardapioPage() {
                       if (event.key === 'ArrowDown') { event.preventDefault(); mover(index, 1) }
                     }}
                     className={`shrink-0 touch-none rounded-md p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
-                      arrastandoId === item.id ? 'cursor-grabbing text-orange-700' : 'cursor-grab text-gray-400 hover:bg-gray-100 hover:text-gray-700'
+                      arrastandoId === item.id ? 'cursor-grabbing text-orange-700' : 'cursor-grab text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                     aria-label={`Arrastar ${item.nome}. Use as setas do teclado para mover.`}
                     aria-pressed={arrastandoId === item.id}

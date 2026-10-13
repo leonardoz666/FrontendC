@@ -196,7 +196,7 @@ export default function LoginPage() {
               </Button>
             </form>
             
-            <div className="mt-6 text-center text-xs text-gray-400">
+            <div className="mt-6 text-center text-xs text-gray-600">
               &copy; {new Date().getFullYear()} Rei do Pirão. Todos os direitos reservados.
             </div>
           </CardContent>

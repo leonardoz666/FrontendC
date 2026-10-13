@@ -467,7 +467,7 @@ export default function AdminUsersPage() {
                 onChange={(event) => lista.definirBusca(event.target.value)}
                 placeholder="Pesquisar..."
                 aria-label="Pesquisar usuários"
-                className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-500"
               />
             </label>
             <div className="grid grid-cols-3 rounded-lg bg-slate-200 p-1">

@@ -14,6 +14,7 @@ export type ProductFormValues = {
   file: File | null
   tipoOpcao: string
   sabores: string[]
+  observacoes: string[]
   isDrink: boolean
   isFood: boolean
   favorito: boolean
@@ -49,6 +50,7 @@ export function buildProductFormData(values: ProductFormValues): FormData {
   if (values.file) form.append('foto', values.file)
   form.append('tipoOpcao', values.tipoOpcao)
   form.append('sabores', JSON.stringify(values.sabores))
+  form.append('observacoes', JSON.stringify(values.observacoes))
   for (const field of ['isDrink', 'isFood', 'favorito', 'destaque', 'controlaEstoque', 'autoatendimento', 'fiscal', 'permitirObservacao', 'permiteGeloLimao'] as const) {
     form.append(field, String(values[field]))
   }

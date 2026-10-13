@@ -43,16 +43,20 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
 
   if (!isOpen || !product) return null
 
-  const parseSabores = () => {
+  const parseList = (value?: string | null) => {
     try {
-      if (!product.sabores) return []
-      return JSON.parse(product.sabores)
+      if (!value) return []
+      const parsed: unknown = JSON.parse(value)
+      return Array.isArray(parsed)
+        ? parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+        : []
     } catch {
       return []
     }
   }
 
-  const options = parseSabores()
+  const options = parseList(product.sabores)
+  const commonTags = parseList(product.observacoes)
   const tamanhos = product.tipo === 'POR_TAMANHO' ? (product.tipoTamanho?.tamanhos ?? []) : []
   const gruposComplemento = product.gruposComplemento ?? []
   const tamanhoSelecionado = tamanhos.find(tamanho => tamanho.id === selectedTamanhoId)
@@ -81,6 +85,14 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
       }
       
       return { ...prev, [opt]: newQty }
+    })
+  }
+
+  const addObservationTag = (tag: string) => {
+    setObservation((current) => {
+      const parts = current.split(',').map((item) => item.trim()).filter(Boolean)
+      if (parts.some((item) => item.toLocaleLowerCase('pt-BR') === tag.toLocaleLowerCase('pt-BR'))) return current
+      return [...parts, tag].join(', ')
     })
   }
 
@@ -219,7 +231,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                         <div className="flex items-center justify-between bg-white rounded-lg p-1 border border-orange-200">
                           <button 
                             onClick={() => updateOptionQuantity(`${size} - Normal`, -1)}
-                            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-orange-600"
+                            className="flex h-8 w-8 items-center justify-center rounded text-orange-700 hover:bg-gray-100"
                           >
                             <Minus size={16} />
                           </button>
@@ -228,7 +240,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                           </span>
                           <button 
                             onClick={() => updateOptionQuantity(`${size} - Normal`, 1)}
-                            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-orange-600"
+                            className="flex h-8 w-8 items-center justify-center rounded text-orange-700 hover:bg-gray-100"
                           >
                             <Plus size={16} />
                           </button>
@@ -376,19 +388,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
     }
   }
 
-  const getTags = () => {
-    const isDrink = ['refrigerante', 'sabores'].includes(product.tipoOpcao || '') || product.setor === 'Bebidas' || product.setor === 'Drinks' || product.isDrink
-    
-    if (isDrink) {
-      // Removed Gelo/Limao from text tags since they are now buttons
-      return []
-    }
-    return ['Sem cebola', 'Sem molho', 'Bem passado', 'Ao ponto', 'Mal passado']
-  }
-
   const showGeloLimao = product.permiteGeloLimao
-
-  const commonTags = getTags()
 
   const totalQuantity = product.tipoOpcao === 'refrigerante'
     ? Object.values(optionQuantities).reduce((a, b) => a + b, 0)
@@ -405,7 +405,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
         <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-2xl sticky top-0 z-10">
           <div>
             <h2 className="text-lg font-bold text-gray-900 leading-tight">{product.nome}</h2>
-            <p className="text-orange-500 font-bold">R$ {precoUnitario.toFixed(2).replace('.', ',')}</p>
+            <p className="font-bold text-orange-700">R$ {precoUnitario.toFixed(2).replace('.', ',')}</p>
           </div>
           <button 
             onClick={onClose}
@@ -489,10 +489,10 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                   className="w-10 h-10 rounded-md flex items-center justify-center hover:bg-gray-50 text-gray-600 transition-colors">
                   <Minus size={20} />
                 </button>
-                <span className="font-bold text-xl w-8 text-center">{quantity}</span>
+                <span className="w-8 text-center text-xl font-bold text-gray-900">{quantity}</span>
                 <button 
                   onClick={() => setQuantity(q => q + 1)}
-                  className="w-10 h-10 rounded-md flex items-center justify-center bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors">
+                  className="flex h-10 w-10 items-center justify-center rounded-md bg-orange-100 text-orange-800 transition-colors hover:bg-orange-200">
                   <Plus size={20} />
                 </button>
               </div>
@@ -539,9 +539,10 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
               <div className="flex flex-wrap gap-2">
                 {commonTags.map(tag => (
                   <button
+                    type="button"
                     key={tag}
-                    onClick={() => setObservation(prev => prev ? `${prev}, ${tag}` : tag)}
-                    className="px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-600 hover:bg-orange-50 hover:text-orange-600 border border-transparent hover:border-orange-200 transition-all">
+                    onClick={() => addObservationTag(tag)}
+                    className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700">
                     {tag}
                   </button>
                 ))}

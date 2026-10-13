@@ -188,7 +188,7 @@ export default function FornecedoresPage() {
             {fornecedor.telefone}
           </span>
         ) : (
-          <span className="text-gray-400">—</span>
+          <span className="text-gray-600">—</span>
         ),
     },
     {
@@ -205,7 +205,7 @@ export default function FornecedoresPage() {
             {fornecedor.email}
           </a>
         ) : (
-          <span className="text-gray-400">—</span>
+          <span className="text-gray-600">—</span>
         ),
     },
     {

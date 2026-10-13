@@ -536,7 +536,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                                     Valor Recebido
                                 </label>
                                 <div className="relative mb-3">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">R$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-600">R$</span>
                                     <input
                                         type="number"
                                         min="0"

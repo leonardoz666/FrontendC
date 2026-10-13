@@ -139,7 +139,7 @@ export default function RankingVendasPage() {
                 value={search}
                 onChange={event => setSearch(event.target.value)}
                 placeholder="Buscar produto"
-                className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500"
               />
             </label>
           </div>
@@ -174,7 +174,7 @@ export default function RankingVendasPage() {
                   </div>
                   <div className="col-start-2 flex items-baseline justify-between rounded-lg bg-slate-50 px-3 py-2 md:col-auto md:block md:bg-transparent md:px-0 md:py-0 md:text-right">
                     <span className="text-xs font-medium text-slate-500 md:hidden">Vendido</span>
-                    <span className={`text-base font-extrabold ${product.quantity > 0 ? 'text-orange-700' : 'text-slate-400'}`}>
+                    <span className={`text-base font-extrabold ${product.quantity > 0 ? 'text-orange-700' : 'text-slate-600'}`}>
                       {product.quantity}
                     </span>
                   </div>

@@ -216,7 +216,7 @@ export default function MesaQrCodesPage() {
                 />
                 <h2 className="mt-3 text-2xl font-bold text-gray-900">Mesa {qr.numero}</h2>
                 <p className="mt-1 text-sm text-gray-500">{mesa?.praca?.nome ?? 'Não definida'}</p>
-                <p className="mt-2 break-all text-[10px] text-gray-400">{qr.payload}</p>
+                <p className="mt-2 break-all text-[10px] text-gray-600">{qr.payload}</p>
               </article>
             )
           })}

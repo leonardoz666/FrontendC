@@ -190,7 +190,7 @@ export default function Home() {
               )}
             </>
           ) : (
-            <span className="text-[15px] text-slate-400 sm:text-[17px]">Digite o número...</span>
+            <span className="text-[15px] text-slate-600 sm:text-[17px]">Digite o número...</span>
           )}
         </div>
 

@@ -175,7 +175,7 @@ export default function BatidaPontoPage() {
         <section className="p-5 sm:p-7">
           <div className="relative aspect-video overflow-hidden bg-gray-950">
             <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover [transform:scaleX(-1)]" />
-            {!cameraAtiva && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-300"><Camera className="h-10 w-10" /><span className="text-sm">A câmera está desligada</span></div>}
+            {!cameraAtiva && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-600"><Camera className="h-10 w-10" /><span className="text-sm">A câmera está desligada</span></div>}
             <div className="pointer-events-none absolute inset-[12%] rounded-[45%] border-2 border-white/70 shadow-[0_0_0_999px_rgba(0,0,0,0.16)]" />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">

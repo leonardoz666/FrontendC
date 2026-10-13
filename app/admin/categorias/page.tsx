@@ -8,7 +8,7 @@ import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { useToast } from '@/contexts/ToastContext'
 import { apiFetch, fetchList, redirectToLogin } from '@/app/lib/api'
-import { usePagedQuery, type SortOrder } from '@/app/lib/pagination'
+import { usePagedQuery } from '@/app/lib/pagination'
 import { SeloAtivo } from '@/app/lib/crud-client'
 
 type Categoria = {
@@ -55,8 +55,8 @@ export default function CategoriasPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [search, setSearch] = useState('')
-  const [sort, setSort] = useState<string | null>(null)
-  const [order, setOrder] = useState<SortOrder | null>(null)
+  const [orderedCategories, setOrderedCategories] = useState<Categoria[]>([])
+  const [reordering, setReordering] = useState(false)
 
   const [editing, setEditing] = useState<Categoria | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -76,9 +76,13 @@ export default function CategoriasPage() {
     page,
     pageSize,
     search,
-    sort,
-    order,
+    sort: 'ordem',
+    order: 'asc',
   })
+
+  useEffect(() => {
+    setOrderedCategories(data?.data ?? [])
+  }, [data?.data])
 
   useEffect(() => {
     void fetchList<Impressora>('/dispositivos?page=1&pageSize=100&ativo=true&tipo=IMPRESSORA&sort=nome&order=asc')
@@ -213,11 +217,42 @@ export default function CategoriasPage() {
     }
   }
 
+  const reordenarCategorias = async (categorias: Categoria[]) => {
+    if (reordering || search.trim()) return
+
+    const ordemInicial = (page - 1) * pageSize
+    const anteriores = orderedCategories
+    const reordenadas = categorias.map((categoria, indice) => ({
+      ...categoria,
+      ordem: ordemInicial + indice,
+    }))
+
+    setOrderedCategories(reordenadas)
+    setReordering(true)
+    const resultado = await chamar(
+      () => apiFetch<{ success: boolean; count: number }>('/categories/ordem', {
+        method: 'PATCH',
+        body: {
+          itens: reordenadas.map((categoria) => ({ id: categoria.id, ordem: categoria.ordem })),
+        },
+      }),
+      'Erro ao salvar a ordem das categorias'
+    )
+    setReordering(false)
+
+    if (resultado === null) {
+      setOrderedCategories(anteriores)
+      return
+    }
+
+    showToast('Ordem das categorias atualizada', 'success')
+    void refetch()
+  }
+
   const columns: Array<DataTableColumn<Categoria>> = [
     {
       key: 'nome',
       header: 'Categoria',
-      sortKey: 'nome',
       render: (categoria) => (
         <div className="flex items-center gap-3">
           {categoria.imagem ? (
@@ -254,7 +289,6 @@ export default function CategoriasPage() {
     {
       key: 'ativo',
       header: 'Status',
-      sortKey: 'ativo',
       hideOnMobile: true,
       render: (categoria) => <SeloAtivo ativo={categoria.ativo} />,
     },
@@ -267,7 +301,7 @@ export default function CategoriasPage() {
           <Printer className="h-3.5 w-3.5 text-orange-500" />
           {categoria.dispositivo.nome}
         </span>
-      ) : <span className="text-xs text-gray-400">Padrão do caixa</span>,
+      ) : <span className="text-xs text-gray-600">Padrão do caixa</span>,
     },
     {
       key: 'produtos',
@@ -295,7 +329,7 @@ export default function CategoriasPage() {
       <DataTable<Categoria>
         ariaLabel="Listagem de categorias"
         columns={columns}
-        data={data?.data ?? []}
+        data={orderedCategories}
         getRowId={(categoria) => categoria.id}
         meta={data?.meta ?? { page, pageSize, total: 0, totalPages: 0 }}
         loading={isLoading}
@@ -312,12 +346,14 @@ export default function CategoriasPage() {
           setSearch(texto)
           setPage(1)
         }}
-        onSort={(campo, direcao) => {
-          setSort(campo)
-          setOrder(direcao)
-          setPage(1)
-        }}
-          rowActions={{
+        onRowReorder={reordenarCategorias}
+        reorderDisabled={reordering || Boolean(search.trim())}
+        reorderDisabledHint={
+          search.trim()
+            ? 'Limpe a busca para reordenar todas as categorias'
+            : 'Salvando a nova ordem'
+        }
+        rowActions={{
           onEdit: abrirEdicao,
           onDelete: setParaExcluir,
           deleteLabel: 'Excluir',

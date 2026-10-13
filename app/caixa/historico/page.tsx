@@ -224,7 +224,7 @@ export default function HistoricoCaixaPage() {
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-8 lg:px-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div><p className="text-xs font-bold uppercase text-orange-600">Caixa</p><h1 className="mt-1 text-3xl font-black text-slate-900">Histórico de caixas</h1><p className="mt-1 text-sm text-slate-500">Conferência, pagamentos, movimentos e divergências por turno.</p></div>
+        <div><p className="text-xs font-bold uppercase text-orange-700">Caixa</p><h1 className="mt-1 text-3xl font-black text-slate-900">Histórico de caixas</h1><p className="mt-1 text-sm text-slate-500">Conferência, pagamentos, movimentos e divergências por turno.</p></div>
         <label className="text-sm font-semibold text-slate-700">Desde<input type="date" value={desde} onChange={event => { setDesde(event.target.value); setPage(1) }} className="ml-3 h-10 rounded-lg border border-slate-300 px-3" /></label>
       </header>
       <CashTabs />

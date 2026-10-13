@@ -313,7 +313,7 @@ export default function PlanoContasPage() {
         return nome ? (
           <span className="text-gray-700">{nome}</span>
         ) : (
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-400">Raiz</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-600">Raiz</span>
         )
       },
     },

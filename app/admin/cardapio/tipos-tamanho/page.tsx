@@ -163,7 +163,7 @@ export default function TiposTamanhoPage() {
       render: (tipo) => (
         <div className="space-y-1">
           {(tipo.tamanhos ?? []).length === 0 ? (
-            <span className="text-sm text-gray-400">Nenhum tamanho</span>
+            <span className="text-sm text-gray-600">Nenhum tamanho</span>
           ) : (
             tipo.tamanhos?.map((tamanho) => (
               <div key={tamanho.id} className="flex items-center justify-between gap-2 rounded bg-gray-50 px-2 py-1 text-xs">

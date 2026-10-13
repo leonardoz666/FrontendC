@@ -401,7 +401,7 @@ export default function MesasPage() {
           <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Nova Mesa</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-gray-900">
                 <X size={24} />
               </button>
             </div>
@@ -537,7 +537,7 @@ export default function MesasPage() {
               <h2 className="text-xl font-bold text-gray-900">Gerar mesas em lote</h2>
               <button
                 onClick={() => setShowLoteModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-600 hover:text-gray-900"
                 aria-label="Fechar"
               >
                 <X size={22} />

@@ -144,7 +144,7 @@ export function Pagination({
               item === 'ellipsis' ? (
                 <span
                   key={`ellipsis-${index}`}
-                  className="flex h-8 w-8 items-center justify-center text-sm text-gray-400"
+                  className="flex h-8 w-8 items-center justify-center text-sm text-gray-600"
                   aria-hidden="true"
                 >
                   …

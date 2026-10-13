@@ -199,7 +199,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     onClick={handleLogout}
                     title="Sair"
                     aria-label="Sair"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 shadow-sm transition-colors hover:border-red-300 hover:bg-red-100 sm:h-9 sm:w-9 sm:border-transparent sm:bg-transparent sm:text-slate-400 sm:shadow-none sm:hover:bg-red-50 sm:hover:text-red-600"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 shadow-sm transition-colors hover:border-red-300 hover:bg-red-100 sm:h-9 sm:w-9 sm:border-transparent sm:bg-transparent sm:text-slate-600 sm:shadow-none sm:hover:bg-red-50 sm:hover:text-red-700"
                   >
                     <LogOut size={17} />
                   </button>

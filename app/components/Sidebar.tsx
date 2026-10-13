@@ -277,7 +277,7 @@ export default function Sidebar({
           <Icon size={19} className={`hidden shrink-0 ${isCollapsed ? 'md:block' : ''}`} aria-hidden="true" />
           <span className={`flex-1 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
           <span
-            className={`rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400 ${
+            className={`rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 ${
               isCollapsed ? 'md:hidden' : ''
             }`}
           >
@@ -377,11 +377,11 @@ export default function Sidebar({
           {!visibility.hideSearch && (
           <div className={`${visibility.hideBrand ? '' : 'mt-3'} ${isWaiter ? 'hidden' : isCollapsed ? 'md:hidden' : ''}`}>
             <label className="flex h-10 items-center gap-2 rounded-[10px] border border-slate-200 bg-slate-50 px-3 focus-within:border-orange-300 focus-within:ring-4 focus-within:ring-orange-100">
-              <span className="shrink-0 text-[15px] font-semibold text-slate-400">/</span>
+              <span className="shrink-0 text-[15px] font-semibold text-slate-500">/</span>
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-slate-700 outline-none placeholder:text-slate-400"
+                className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-slate-700 outline-none placeholder:text-slate-500"
                 placeholder="Buscar módulo ou ação"
                 type="search"
               />

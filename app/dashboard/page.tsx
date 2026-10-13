@@ -204,7 +204,7 @@ export default function DashboardPage() {
                                         }}
                                         title={`R$ ${hour.total.toFixed(2)}`}
                                     />
-                                    <span className="text-xs text-gray-400">{hour.hour}</span>
+                                    <span className="text-xs text-gray-600">{hour.hour}</span>
                                 </div>
                             ))}
                         </div>

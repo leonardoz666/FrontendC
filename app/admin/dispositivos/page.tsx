@@ -499,7 +499,7 @@ export default function DispositivosPage() {
             SIM
           </span>
         ) : (
-          <span className="text-xs text-gray-400">NÃO</span>
+          <span className="text-xs text-gray-600">NÃO</span>
         ),
     },
     {
@@ -532,7 +532,7 @@ export default function DispositivosPage() {
             <p className="text-xs text-gray-500">
               Reconhece as impressoras cadastradas no Windows deste computador e preenche como conexão USB/local.
             </p>
-            <p className="mt-1 break-all font-mono text-[11px] text-gray-400">{agentConnection.url}</p>
+            <p className="mt-1 break-all font-mono text-[11px] text-gray-600">{agentConnection.url}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -790,7 +790,7 @@ export default function DispositivosPage() {
                     value={form.modoWindows}
                     onChange={(event) => atualizarCampo('modoWindows', event.target.value as FormState['modoWindows'])}
                     disabled={form.conexao !== 'USB'}
-                    className="w-full rounded-lg border border-gray-300 p-2 text-black focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-400"
+                    className="w-full rounded-lg border border-gray-300 p-2 text-black focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100 disabled:bg-gray-100 disabled:text-gray-500"
                   >
                     <option value="TERMICA">Térmica ESC/POS</option>
                     <option value="TEXTO">Impressora comum (teste)</option>

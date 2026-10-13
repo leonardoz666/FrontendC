@@ -42,6 +42,7 @@ export type Produto = {
   foto?: string
   tipoOpcao?: 'padrao' | 'tamanho_pg' | 'refrigerante' | 'sabores' | 'sabores_com_tamanho' | 'combinado'
   sabores?: string // JSON string
+  observacoes?: string | null // JSON string com sugestões rápidas
   isDrink?: boolean
   isFood?: boolean
   favorito?: boolean
@@ -130,7 +131,7 @@ export const ProductCard = memo(function ProductCard({ prod, onEdit, onDelete }:
           <span className="text-[10px] font-semibold text-gray-900">
             {prod.tipo === 'POR_TAMANHO' ? 'Por tamanho' : `R$ ${Number(prod.valorPromo ?? prod.preco ?? 0).toFixed(2)}`}
           </span>
-          {prod.codigo && <span className="text-[8px] text-gray-400 truncate">{prod.codigo}</span>}
+          {prod.codigo && <span className="truncate text-[8px] text-gray-600">{prod.codigo}</span>}
         </div>
         
         <div className="mt-1.5 flex flex-wrap gap-1">
@@ -170,6 +171,7 @@ export const ProductCard = memo(function ProductCard({ prod, onEdit, onDelete }:
          prev.prod.tipoTamanhoId === next.prod.tipoTamanhoId &&
          prev.prod.valorPromo === next.prod.valorPromo &&
          prev.prod.codigo === next.prod.codigo &&
+         prev.prod.observacoes === next.prod.observacoes &&
          prev.prod.controlaEstoque === next.prod.controlaEstoque &&
          prev.prod.isDrink === next.prod.isDrink &&
          prev.prod.isFood === next.prod.isFood

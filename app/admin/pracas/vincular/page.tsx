@@ -149,7 +149,7 @@ export default function VincularImpressaoPage() {
       try {
         const [listaProdutos, listaCategorias] = await Promise.all([
           fetchAllList<Produto>('/products'),
-          fetchAllList<Categoria>('/categories'),
+          fetchAllList<Categoria>('/categories?sort=ordem&order=asc'),
         ])
         if (cancelado) return
         setProdutos(listaProdutos)
@@ -651,7 +651,7 @@ export default function VincularImpressaoPage() {
                       onChange={(event) => setBuscaProduto(event.target.value)}
                       placeholder="Buscar produto..."
                       aria-label="Buscar produto"
-                      className="h-9 w-full rounded-lg border border-gray-300 pl-8 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
+                      className="h-9 w-full rounded-lg border border-gray-300 pl-8 pr-3 text-sm text-gray-800 placeholder:text-gray-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
                     />
                   </div>
 
@@ -674,7 +674,7 @@ export default function VincularImpressaoPage() {
                             />
                             <span className="text-sm text-gray-800">{produto.nome}</span>
                             {categoria && (
-                              <span className="ml-auto text-[10px] uppercase text-gray-400">
+                              <span className="ml-auto text-[10px] uppercase text-gray-600">
                                 {categoria.nome}
                               </span>
                             )}
@@ -708,7 +708,7 @@ export default function VincularImpressaoPage() {
                       onChange={(event) => setBuscaCategoria(event.target.value)}
                       placeholder="Buscar categoria..."
                       aria-label="Buscar categoria"
-                      className="h-9 w-full rounded-lg border border-gray-300 pl-8 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
+                      className="h-9 w-full rounded-lg border border-gray-300 pl-8 pr-3 text-sm text-gray-800 placeholder:text-gray-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
                     />
                   </div>
 
@@ -728,7 +728,7 @@ export default function VincularImpressaoPage() {
                             className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                           />
                           <span className="text-sm text-gray-800">{categoria.nome}</span>
-                          <span className="ml-auto text-[10px] uppercase text-gray-400">
+                          <span className="ml-auto text-[10px] uppercase text-gray-600">
                             {categoria.setor}
                           </span>
                         </label>

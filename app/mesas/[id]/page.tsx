@@ -679,7 +679,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                             {productGroup.variations.map((v, vIdx) => {
                                return (
                                  <div key={vIdx} className="flex gap-1.5 py-1.5 text-xs leading-tight">
-                                      <span className="shrink-0 font-bold text-orange-600">{v.quantidade}x</span>
+                                      <span className="shrink-0 font-bold text-orange-700">{v.quantidade}x</span>
                                       <div className="min-w-0">
                                         {v.observacao && <span className="block break-words text-gray-700">{v.observacao}</span>}
                                         <span className="block font-semibold text-gray-600">R$ {(v.preco * v.quantidade).toFixed(2).replace('.', ',')}</span>
@@ -768,7 +768,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                         <div className="pointer-events-none relative z-[1] mt-1 grid min-h-[2.7rem] grid-cols-[minmax(0,1fr)_auto] items-end gap-1 px-0.5">
                           <div className="min-w-0 self-stretch">
                             <h3 className="line-clamp-2 text-xs font-bold leading-tight text-gray-900 sm:text-sm">{produto.nome}</h3>
-                            <span className="mt-0.5 block whitespace-nowrap text-xs font-bold text-orange-600 sm:text-sm">
+                            <span className="mt-0.5 block whitespace-nowrap text-xs font-bold text-orange-700 sm:text-sm">
                               R$ {preco.toFixed(2).replace('.', ',')}
                             </span>
                           </div>
@@ -779,13 +779,13 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                                 onClick={() => decreaseCartQuantity(produto.id)}
                                 title="Diminuir quantidade"
                                 aria-label={`Diminuir quantidade de ${produto.nome}`}
-                                className="pointer-events-auto relative z-10 flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100"
+                                className="pointer-events-auto relative z-10 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
                               >
                                 <Minus size={17} strokeWidth={2.5} />
                               </button>
                             )}
                             <output
-                              className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-orange-50 px-1.5 text-sm font-bold text-orange-600"
+                              className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-orange-100 px-1.5 text-sm font-bold text-orange-800"
                               aria-label={`${quantity} ${quantity === 1 ? 'item' : 'itens'} de ${produto.nome} no pedido`}
                               aria-live="polite"
                             >
@@ -886,7 +886,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                               <span className="shrink-0 text-sm font-semibold text-slate-700">R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
                             </span>
                             {item.observacao && <span className="mt-1 block break-words text-xs text-slate-500">{item.observacao}</span>}
-                            <span className="mt-1 block text-xs text-slate-400">Lançado às {item.horario}</span>
+                            <span className="mt-1 block text-xs text-slate-600">Lançado às {item.horario}</span>
                           </span>
                         </label>
                       )
@@ -981,7 +981,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                             <span className="shrink-0 text-sm font-semibold text-slate-700">R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
                           </span>
                           {item.observacao && <span className="mt-1 block break-words text-xs text-slate-500">{item.observacao}</span>}
-                          <span className="mt-1 block text-xs text-slate-400">Lançado às {item.horario}</span>
+                          <span className="mt-1 block text-xs text-slate-600">Lançado às {item.horario}</span>
                         </span>
                       </label>
                     )
@@ -1020,7 +1020,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                       />
                       <div className="mt-1 flex justify-between gap-3 text-xs">
                         <span className={customCancellationReason.trim().length > 0 && customCancellationReason.trim().length < 3 ? 'text-red-600' : 'text-slate-500'}>Obrigatório, mínimo de 3 caracteres.</span>
-                        <span className="text-slate-400">{customCancellationReason.length}/500</span>
+                        <span className="text-slate-600">{customCancellationReason.length}/500</span>
                       </div>
                     </div>
                   )}
@@ -1049,7 +1049,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
               <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-900">Trocar Mesa</h2>
-                <button onClick={() => setShowTransferModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setShowTransferModal(false)} className="text-gray-600 hover:text-gray-900">
                   <X size={24} />
                 </button>
               </div>
@@ -1123,7 +1123,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                   cart.map((item, index) => (
                     <div key={index} className="flex items-start gap-4 border-b border-gray-100 py-4">
                       <div className="flex min-w-0 flex-1 gap-3">
-                        <span className="shrink-0 text-base font-bold text-orange-600">
+                        <span className="shrink-0 text-base font-bold text-orange-700">
                           {item.quantidade}x
                         </span>
                         <div className="min-w-0">

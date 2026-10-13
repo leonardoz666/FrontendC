@@ -403,7 +403,7 @@ export default function PracasPage() {
                           className="w-full rounded-lg border border-gray-300 p-2 text-black focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
                         />
                       </div>
-                      <span className="text-gray-400">até</span>
+                      <span className="text-gray-600">até</span>
                       <div className="flex-1">
                         <label htmlFor={`praca-range-fim-${linha.key}`} className="sr-only">
                           Número final da faixa

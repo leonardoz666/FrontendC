@@ -26,7 +26,8 @@ export type Produto = {
     }
   }>
   tipoOpcao?: 'padrao' | 'tamanho_pg' | 'refrigerante' | 'sabores' | 'sabores_com_tamanho' | 'combinado'
-  sabores?: string
+  sabores?: string | null
+  observacoes?: string | null
   isDrink?: boolean
   isFood?: boolean
   setor?: string // Added optional because it was used in handleModalConfirm logic check

@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react'
 import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
   Inbox,
+  GripVertical,
   Pencil,
   Trash2,
 } from 'lucide-react'
@@ -109,6 +110,12 @@ export interface DataTableProps<T> {
   onSelectionChange?: (ids: Array<string | number>) => void
   /** Barra de ações exibida quando há linhas selecionadas. */
   bulkActions?: (selectedIds: Array<string | number>) => ReactNode
+  /** Reordena as linhas por arraste ou pelas setas do teclado na alça. */
+  onRowReorder?: (orderedRows: T[]) => void | Promise<void>
+  /** Mantém a alça visível, mas impede uma nova alteração enquanto salva. */
+  reorderDisabled?: boolean
+  /** Motivo exibido quando a reordenação está desabilitada. */
+  reorderDisabledHint?: string
   /** Nome acessível da tabela. */
   ariaLabel?: string
 }
@@ -153,6 +160,9 @@ export function DataTable<T>({
   selectedIds = [],
   onSelectionChange,
   bulkActions,
+  onRowReorder,
+  reorderDisabled = false,
+  reorderDisabledHint,
   ariaLabel = 'Listagem',
 }: DataTableProps<T>) {
   const [searchInput, setSearchInput] = useState('')
@@ -160,6 +170,8 @@ export function DataTable<T>({
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortOrder, setSortOrder] = useState<SortOrder | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [draggedRowId, setDraggedRowId] = useState<string | number | null>(null)
+  const [dragOverRowId, setDragOverRowId] = useState<string | number | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -169,13 +181,13 @@ export function DataTable<T>({
   // primeira renderização para não disparar um fetch idêntico ao inicial.
   const [searchInitialized, setSearchInitialized] = useState(false)
   useEffect(() => {
-    if (!onSearch) return
+    if (!onSearch || !showControls) return
     if (!searchInitialized) {
       setSearchInitialized(true)
       return
     }
     onSearch(debouncedSearch.trim())
-  }, [debouncedSearch, onSearch, searchInitialized])
+  }, [debouncedSearch, onSearch, searchInitialized, showControls])
 
   // Restaura o pageSize salvo desta tela uma única vez, no cliente.
   const [pageSizeInitialized, setPageSizeInitialized] = useState(false)
@@ -247,7 +259,46 @@ export function DataTable<T>({
     onPageSizeChange?.(value)
   }
 
-  const columnCount = columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)
+  const reorderEnabled = Boolean(onRowReorder && data.length > 1 && !loading && !reorderDisabled)
+
+  const reorderRows = (sourceIndex: number, targetIndex: number) => {
+    if (!reorderEnabled || !onRowReorder || sourceIndex === targetIndex) return
+    const orderedRows = [...data]
+    const [movedRow] = orderedRows.splice(sourceIndex, 1)
+    if (!movedRow) return
+    orderedRows.splice(targetIndex, 0, movedRow)
+    void onRowReorder(orderedRows)
+  }
+
+  const handleDragStart = (event: DragEvent<HTMLButtonElement>, id: string | number) => {
+    if (!reorderEnabled) {
+      event.preventDefault()
+      return
+    }
+    setDraggedRowId(id)
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', String(id))
+  }
+
+  const handleDrop = (targetIndex: number) => {
+    const sourceIndex = data.findIndex((row) => getRowId(row) === draggedRowId)
+    if (sourceIndex >= 0) reorderRows(sourceIndex, targetIndex)
+    setDraggedRowId(null)
+    setDragOverRowId(null)
+  }
+
+  const handleReorderKey = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return
+    event.preventDefault()
+    const targetIndex = event.key === 'ArrowUp' ? index - 1 : index + 1
+    if (targetIndex >= 0 && targetIndex < data.length) reorderRows(index, targetIndex)
+  }
+
+  const reorderTitle = reorderDisabled
+    ? (reorderDisabledHint ?? 'Aguarde para reordenar')
+    : 'Arraste para reordenar. Use as setas para mover pelo teclado.'
+
+  const columnCount = columns.length + (selectable ? 1 : 0) + (onRowReorder ? 1 : 0) + (rowActions ? 1 : 0)
 
   return (
     <div className="min-w-0 w-full [overflow-wrap:anywhere]">
@@ -280,7 +331,7 @@ export function DataTable<T>({
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Pesquisar..."
               aria-label="Pesquisar"
-              className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:max-w-xs"
+              className="h-9 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-800 placeholder:text-gray-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100 sm:max-w-xs"
             />
           )}
           {toolbar}
@@ -317,8 +368,44 @@ export function DataTable<T>({
             const detailColumns = mobileColumns.slice(1)
 
             return (
-              <article key={id} className={cn('px-4 py-4', isSelected && 'bg-orange-50/60')}>
+              <article
+                key={id}
+                onDragOver={(event) => {
+                  if (!reorderEnabled) return
+                  event.preventDefault()
+                  event.dataTransfer.dropEffect = 'move'
+                  setDragOverRowId(id)
+                }}
+                onDrop={(event) => {
+                  event.preventDefault()
+                  handleDrop(index)
+                }}
+                className={cn(
+                  'px-4 py-4 transition-colors',
+                  isSelected && 'bg-orange-50/60',
+                  draggedRowId === id && 'opacity-50',
+                  dragOverRowId === id && draggedRowId !== id && 'bg-orange-50 ring-1 ring-inset ring-orange-300'
+                )}
+              >
                 <div className="flex min-w-0 items-start gap-3">
+                  {onRowReorder && (
+                    <button
+                      type="button"
+                      draggable={reorderEnabled}
+                      disabled={!reorderEnabled}
+                      onDragStart={(event) => handleDragStart(event, id)}
+                      onDragEnd={() => {
+                        setDraggedRowId(null)
+                        setDragOverRowId(null)
+                      }}
+                      onKeyDown={(event) => handleReorderKey(event, index)}
+                      title={reorderTitle}
+                      aria-label={`Reordenar linha ${index + 1}`}
+                      className="mt-0.5 flex h-9 w-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <GripVertical className="h-5 w-5" />
+                    </button>
+                  )}
                   {selectable && (
                     <input
                       type="checkbox"
@@ -389,6 +476,11 @@ export function DataTable<T>({
           <table className="w-full border-collapse text-sm" aria-label={ariaLabel}>
             <thead className="bg-gray-50">
               <tr>
+                {onRowReorder && (
+                  <th scope="col" className="w-11 px-2 py-3">
+                    <span className="sr-only">Reordenar</span>
+                  </th>
+                )}
                 {selectable && (
                   <th className="w-10 px-3 py-3">
                     <input
@@ -439,7 +531,7 @@ export function DataTable<T>({
                               <ArrowDown className="h-3.5 w-3.5" />
                             )
                           ) : (
-                            <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
+                            <ArrowUpDown className="h-3.5 w-3.5 text-gray-500" />
                           )}
                         </button>
                       ) : (
@@ -476,11 +568,43 @@ export function DataTable<T>({
                   return (
                     <tr
                       key={id}
+                      onDragOver={(event) => {
+                        if (!reorderEnabled) return
+                        event.preventDefault()
+                        event.dataTransfer.dropEffect = 'move'
+                        setDragOverRowId(id)
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault()
+                        handleDrop(index)
+                      }}
                       className={cn(
                         'border-t border-gray-100 transition-colors hover:bg-orange-50/40',
-                        isSelected && 'bg-orange-50/60'
+                        isSelected && 'bg-orange-50/60',
+                        draggedRowId === id && 'opacity-50',
+                        dragOverRowId === id && draggedRowId !== id && 'bg-orange-50 ring-1 ring-inset ring-orange-300'
                       )}
                     >
+                      {onRowReorder && (
+                        <td className="w-11 px-2 py-3 text-center">
+                          <button
+                            type="button"
+                            draggable={reorderEnabled}
+                            disabled={!reorderEnabled}
+                            onDragStart={(event) => handleDragStart(event, id)}
+                            onDragEnd={() => {
+                              setDraggedRowId(null)
+                              setDragOverRowId(null)
+                            }}
+                            onKeyDown={(event) => handleReorderKey(event, index)}
+                            title={reorderTitle}
+                            aria-label={`Reordenar linha ${index + 1}`}
+                            className="inline-flex h-8 w-8 cursor-grab items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-orange-50 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <GripVertical className="h-5 w-5" />
+                          </button>
+                        </td>
+                      )}
                       {selectable && (
                         <td className="px-3 py-3">
                           <input

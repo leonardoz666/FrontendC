@@ -450,7 +450,7 @@ export default function DistribuicoesEstoquePage() {
                 aria-label={temPendente ? 'Registrar devolução' : 'Saída já acertada'}
                 disabled={!temPendente}
                 onClick={() => abrirDevolucao(saida)}
-                className="rounded-lg p-1.5 text-green-700 hover:bg-green-50 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+                className="rounded-lg p-1.5 text-green-700 hover:bg-green-50 disabled:cursor-not-allowed disabled:text-gray-500 disabled:hover:bg-transparent"
               >
                 <RotateCcw className="h-4 w-4" />
               </button>
@@ -507,7 +507,7 @@ export default function DistribuicoesEstoquePage() {
                           {selecionado && <p className="mt-1 text-xs text-gray-500">Saldo central: {formatarQuantidade(saldo, unidade ?? 'UN')}</p>}
                         </div>
                         <input aria-label="Quantidade enviada" inputMode="decimal" value={linha.quantidade} onChange={(event) => alterarLinha(linha.chave, { quantidade: event.target.value })} className="rounded-lg border border-gray-300 p-2 text-sm text-gray-950" placeholder="0" required />
-                        <button type="button" title="Remover item" aria-label="Remover item" disabled={linhas.length === 1} onClick={() => setLinhas((atuais) => atuais.filter((item) => item.chave !== linha.chave))} className="flex h-9 w-9 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 disabled:text-gray-300 disabled:hover:bg-transparent">
+                        <button type="button" title="Remover item" aria-label="Remover item" disabled={linhas.length === 1} onClick={() => setLinhas((atuais) => atuais.filter((item) => item.chave !== linha.chave))} className="flex h-9 w-9 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 disabled:text-gray-500 disabled:hover:bg-transparent">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
