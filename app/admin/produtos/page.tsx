@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react'
 import Image from 'next/image'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
@@ -55,10 +55,13 @@ function categoryColorStyle(categoryId: number, selected = false) {
   // O passo áureo distribui categorias vizinhas em matizes bem separados.
   const hue = Math.round((categoryId * 137.508) % 360)
   return {
-    backgroundColor: `hsl(${hue} 82% ${selected ? '89%' : '95%'})`,
-    borderColor: `hsl(${hue} 62% ${selected ? '62%' : '84%'})`,
-    color: `hsl(${hue} 68% 30%)`,
-  }
+    '--category-bg': `hsl(${hue} 82% ${selected ? '89%' : '95%'})`,
+    '--category-border': `hsl(${hue} 62% ${selected ? '62%' : '84%'})`,
+    '--category-text': `hsl(${hue} 68% 30%)`,
+    '--category-bg-dark': `hsl(${hue} 42% ${selected ? '24%' : '18%'})`,
+    '--category-border-dark': `hsl(${hue} 48% ${selected ? '52%' : '36%'})`,
+    '--category-text-dark': `hsl(${hue} 82% 82%)`,
+  } as CSSProperties
 }
 
 function parseStringList(value?: string | null): string[] {
@@ -616,7 +619,7 @@ export default function ProdutosPage() {
       render: (produto) => (
         produto.categoria ? (
           <span
-            className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold"
+            className="rei-category-color inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold"
             style={categoryColorStyle(produto.categoria.id)}
           >
             {produto.categoria.nome}
@@ -745,7 +748,7 @@ export default function ProdutosPage() {
                   setPage(1)
                 }}
                 className={clsx(
-                  'flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
+                  'rei-category-color flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
                   categoriaFiltro === categoria.id
                     ? 'shadow-sm ring-1 ring-current/20'
                     : 'hover:brightness-95'

@@ -1,0 +1,173 @@
+/* Tema noturno operacional do Rei. As regras cobrem o vocabulário de cores
+   já usado pelas telas, sem exigir uma segunda marcação em cada componente. */
+
+html.dark {
+  --background: #0b1220;
+  --foreground: #f8fafc;
+  color-scheme: dark;
+}
+
+html.dark body {
+  background: #0b1220;
+  color: #f8fafc;
+}
+
+.rei-category-color {
+  background-color: var(--category-bg);
+  border-color: var(--category-border);
+  color: var(--category-text);
+}
+
+.dark .rei-category-color {
+  background-color: var(--category-bg-dark);
+  border-color: var(--category-border-dark);
+  color: var(--category-text-dark);
+}
+
+.dark :where([class~="bg-[#e8eef5]"], [class~="bg-[#f4f6f8]"]) {
+  background-color: #0f1a2b;
+}
+
+.dark :where(.bg-white, [class~="bg-white/95"], [class~="bg-white/90"], [class~="bg-white/80"]) {
+  background-color: #111c2e;
+}
+
+.dark .rei-switch-knob {
+  background-color: #ffffff;
+}
+
+/* QR Codes precisam de uma superfície clara para manter contraste de leitura. */
+.dark .qr-print-card {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.dark .qr-print-card :where(.text-gray-900) { color: #111827; }
+.dark .qr-print-card :where(.text-gray-500, .text-gray-600) { color: #4b5563; }
+
+.dark :where(.bg-gray-50, .bg-slate-50, [class~="bg-slate-50/95"], [class~="bg-slate-50/70"], [class~="bg-orange-50/40"], [class~="bg-orange-50/60"]) {
+  background-color: #0f1a2b;
+}
+
+.dark :where(.bg-gray-100, .bg-slate-100) {
+  background-color: #182438;
+}
+
+.dark :where(.bg-gray-200, .bg-slate-200, [class~="bg-slate-200/70"]) {
+  background-color: #223148;
+}
+
+.dark :where(.bg-gray-300, .bg-slate-300) {
+  background-color: #334155;
+}
+
+.dark :where(.text-black, .text-gray-950, .text-gray-900, .text-slate-950, .text-slate-900) {
+  color: #f8fafc;
+}
+
+.dark :where(.text-gray-800, .text-gray-700, .text-slate-800, .text-slate-700) {
+  color: #e2e8f0;
+}
+
+.dark :where(.text-gray-600, .text-slate-600) {
+  color: #cbd5e1;
+}
+
+.dark :where(.text-gray-500, .text-slate-500) {
+  color: #a9b6c8;
+}
+
+.dark :where(.text-gray-400, .text-slate-400) {
+  color: #94a3b8;
+}
+
+.dark :where(.text-gray-300, .text-slate-300) {
+  color: #7f8da3;
+}
+
+.dark :where(.border-gray-50, .border-gray-100, .border-gray-200, .border-slate-100, .border-slate-200) {
+  border-color: #2b3a52;
+}
+
+.dark :where(.border-gray-300, .border-gray-400, .border-slate-300, .border-slate-400) {
+  border-color: #41516b;
+}
+
+.dark :where(.divide-gray-100, .divide-gray-200, .divide-slate-100, .divide-slate-200) > :not(:last-child) {
+  border-color: #2b3a52;
+}
+
+/* Cores de estado mantêm significado sem criar manchas claras no modo escuro. */
+.dark :where(.bg-orange-50, .bg-orange-100) { background-color: #3a2115; }
+.dark :where(.bg-red-50, .bg-red-100) { background-color: #361820; }
+.dark :where(.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100) { background-color: #0f2d28; }
+.dark :where(.bg-blue-50, .bg-blue-100) { background-color: #132b4a; }
+.dark :where(.bg-amber-50, .bg-amber-100, .bg-yellow-100) { background-color: #352812; }
+.dark :where(.bg-purple-50, .bg-purple-100, .bg-indigo-50, .bg-indigo-100) { background-color: #292044; }
+.dark :where(.bg-pink-50, .bg-pink-100) { background-color: #381a2d; }
+
+.dark :where(.text-orange-500, .text-orange-600, .text-orange-700, .text-orange-800, .text-orange-900, .text-orange-950) { color: #fdba74; }
+.dark :where(.text-red-500, .text-red-600, .text-red-700, .text-red-800, .text-red-900, .text-red-950) { color: #fca5a5; }
+.dark :where(.text-green-600, .text-green-700, .text-green-800, .text-emerald-600, .text-emerald-700, .text-emerald-800) { color: #6ee7b7; }
+.dark :where(.text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900) { color: #93c5fd; }
+.dark :where(.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950, .text-yellow-600, .text-yellow-800) { color: #fcd34d; }
+.dark :where(.text-purple-600, .text-purple-700, .text-purple-800, .text-indigo-600, .text-indigo-700) { color: #d8b4fe; }
+
+.dark :where(.border-orange-100, .border-orange-200, .border-orange-300) { border-color: #7c3d1d; }
+.dark :where(.border-red-100, .border-red-200, .border-red-300, .border-red-400) { border-color: #7f3340; }
+.dark :where(.border-green-100, .border-green-200, .border-green-300, .border-emerald-100, .border-emerald-200, .border-emerald-300) { border-color: #226557; }
+.dark :where(.border-blue-100, .border-blue-200, .border-blue-300, .border-indigo-100) { border-color: #315b8c; }
+.dark :where(.border-amber-200, .border-amber-300, .border-yellow-400) { border-color: #80621f; }
+.dark :where(.border-purple-100, .border-purple-200) { border-color: #60478c; }
+
+.dark :where(input, select, textarea) {
+  color-scheme: dark;
+}
+
+.dark :where(input, select, textarea):not([class*="bg-transparent"]) {
+  background-color: #111c2e;
+  color: #f8fafc;
+}
+
+.dark :where(input, textarea)::placeholder {
+  color: #8492a7;
+}
+
+.dark option {
+  background: #111c2e;
+  color: #f8fafc;
+}
+
+.dark :where(.hover\:bg-gray-50:hover, .hover\:bg-slate-50:hover, .hover\:bg-gray-100:hover, .hover\:bg-slate-100:hover) {
+  background-color: #223148;
+}
+
+.dark :where(.hover\:bg-orange-50:hover, .hover\:bg-orange-100:hover) { background-color: #4a2817; }
+.dark :where(.hover\:bg-red-50:hover, .hover\:bg-red-100:hover) { background-color: #4a1f28; }
+.dark :where(.hover\:bg-green-50:hover, .hover\:bg-green-100:hover, .hover\:bg-emerald-50:hover, .hover\:bg-emerald-100:hover) { background-color: #153c35; }
+.dark :where(.hover\:bg-blue-50:hover, .hover\:bg-blue-100:hover) { background-color: #19385f; }
+
+.dark :where(.shadow-green-200, .shadow-blue-200, .shadow-orange-200) {
+  --tw-shadow-color: rgb(0 0 0 / .28);
+}
+
+.dark .rei-page-loader {
+  background: #0b1220;
+  color: #f8fafc;
+}
+
+.dark .rei-loading-value {
+  background: linear-gradient(100deg, #172338 20%, #24344d 42%, #172338 64%);
+  background-size: 220% 100%;
+}
+
+.dark .rei-inline-loader {
+  color: #a9b6c8;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html,
+  body {
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+}

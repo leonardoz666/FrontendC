@@ -8,6 +8,7 @@ import Sidebar from './Sidebar'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 import { initializeUiPreferences } from '@/app/lib/uiPreferences'
+import { ThemeToggle } from './ui/ThemeToggle'
 import {
   ROUTE_SHORTCUTS,
   readStoredCollapsed,
@@ -136,6 +137,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {(isLoginPage || !user) && (
+        <ThemeToggle compact className="fixed right-4 top-4 z-[80] sm:right-6 sm:top-6" />
+      )}
       {!isLoginPage && user && (
         <>
           {isSimplifiedStockkeeper ? (
@@ -146,6 +150,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className="hidden max-w-40 truncate text-sm font-semibold text-slate-700 sm:block">{user?.name}</span>
+                <ThemeToggle compact />
                 <button type="button" onClick={handleLogout} title="Sair" aria-label="Sair" className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100">
                   <LogOut size={17} />
                 </button>
@@ -194,6 +199,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white sm:flex">
                     {user?.name?.charAt(0).toUpperCase() || 'G'}
                   </div>
+                  <ThemeToggle compact />
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -222,6 +228,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   <p className="truncate text-sm font-bold text-slate-950">Rei do Pirão</p>
                   <p className="truncate text-xs font-medium text-slate-500">{isStockkeeper ? 'Estoque' : 'Menu do sistema'}</p>
                 </div>
+                <ThemeToggle compact className="ml-auto" />
               </header>
               <Sidebar
                 isOpen={isSidebarOpen}

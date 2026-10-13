@@ -97,7 +97,7 @@ export function Switch({
           visualChecked ? 'justify-end border-orange-600 bg-orange-600' : 'justify-start border-gray-300 bg-gray-200'
         )}
       >
-        <span className={cn('flex items-center justify-center rounded-full bg-white text-orange-600 shadow-sm transition-transform motion-reduce:transition-none', dimensoes.botao)}>
+        <span className={cn('rei-switch-knob flex items-center justify-center rounded-full bg-white text-orange-600 shadow-sm transition-transform motion-reduce:transition-none', dimensoes.botao)}>
           {ocupado && <Loader2 className={cn('animate-spin', dimensoes.spinner)} aria-hidden="true" />}
         </span>
       </button>

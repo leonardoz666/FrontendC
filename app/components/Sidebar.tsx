@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   Armchair,
   Bike,
@@ -45,6 +45,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
+import { ThemeToggle } from '@/app/components/ui/ThemeToggle'
 import {
   buildSidebarVisualSections,
   findActiveNavItem,
@@ -114,7 +115,6 @@ export default function Sidebar({
   onToggleCollapse,
 }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [fetchedUser, setFetchedUser] = useState<NavUser | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selfCollapsed, setSelfCollapsed] = useState(false)
@@ -493,6 +493,7 @@ export default function Sidebar({
             </div>
 
             <div className={`flex shrink-0 items-center gap-1 ${isCollapsed ? 'md:flex-col' : ''}`}>
+              <ThemeToggle compact />
               {visibility.hideBrand && (
                 <button
                   type="button"
