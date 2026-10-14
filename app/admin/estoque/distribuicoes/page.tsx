@@ -104,7 +104,7 @@ export default function DistribuicoesEstoquePage() {
   })
   const { data: produtosRecebidos = [] } = useQuery({
     queryKey: ['distribuicoes-produtos'],
-    queryFn: () => fetchList<Produto>('/products?page=1&pageSize=100&ativo=true&sort=nome&order=asc'),
+    queryFn: () => fetchList<Produto>('/products?page=1&pageSize=100&ativo=true&sort=nome&order=asc&view=summary'),
   })
   const produtos = useMemo(
     () => produtosRecebidos.filter((produto) => produto.estoque !== null),

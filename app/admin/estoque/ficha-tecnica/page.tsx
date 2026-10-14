@@ -61,7 +61,7 @@ export default function FichaTecnicaPage() {
 
   const { data: produtos = [] } = useQuery({
     queryKey: ['ficha-produtos-select'],
-    queryFn: () => fetchAllList<Produto>('/products?ativo=true&sort=nome&order=asc'),
+    queryFn: () => fetchAllList<Produto>('/products?ativo=true&sort=nome&order=asc&view=summary'),
   })
   const { data: insumos = [] } = useQuery({
     queryKey: ['ficha-insumos-select'],

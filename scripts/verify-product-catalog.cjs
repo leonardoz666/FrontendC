@@ -8,7 +8,9 @@ async function run() {
     const calls = []
     global.fetch = async (url, options) => {
       calls.push({ url, options })
-      if (options.method === 'PUT') return new Response('{}', { status: 200 })
+      if (options.method === 'POST' && url === '/api/products/corrigir-setores') {
+        return Response.json({ total: 3, updated: 2, failed: 0 })
+      }
       const page = Number(new URL(url, 'http://local').searchParams.get('page'))
       const data = page === 1 ? [
         { id: 1, nome: 'Suco', preco: 8, categoria: { nome: 'Bebidas' }, isDrink: false, isFood: true },
@@ -21,11 +23,13 @@ async function run() {
     assert.equal(sectorFromCategory('Bebidas')?.isDrink, true)
     assert.equal(sectorFromCategory('Pratos')?.isFood, true)
     assert.equal(sectorFromCategory('Diversos'), null)
-    assert.deepEqual(await correctProductSectors(), { updated: 2, failed: 0 })
-    const updates = calls.filter(call => call.options.method === 'PUT')
-    assert.equal(updates.length, 2)
-    assert.deepEqual(updates.map(call => call.url), ['/api/products/1', '/api/products/3'])
-    assert.deepEqual([...updates[0].options.body.keys()], ['nome', 'preco', 'isDrink', 'isFood'])
+    let loadedTotal = 0
+    assert.deepEqual(await correctProductSectors(total => { loadedTotal = total }), { updated: 2, failed: 0 })
+    assert.equal(loadedTotal, 3)
+    const corrections = calls.filter(call => call.options.method === 'POST')
+    assert.equal(corrections.length, 1)
+    assert.equal(corrections[0].url, '/api/products/corrigir-setores')
+    assert.equal(calls.filter(call => call.options.method === 'PUT').length, 0)
     assert.ok(calls.every(call => call.options.credentials === 'include'))
 
     global.fetch = async url => Response.json({
@@ -33,7 +37,7 @@ async function run() {
       meta: { total: 2 }
     })
     await assert.rejects(fetchAllProducts(), /incompleta/)
-    console.log('10 verificações do catálogo passaram')
+    console.log('11 verificações do catálogo passaram')
   } finally {
     global.fetch = originalFetch
   }

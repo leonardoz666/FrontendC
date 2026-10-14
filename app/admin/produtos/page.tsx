@@ -94,7 +94,9 @@ export default function ProdutosPage() {
     isLoading: loadingProd,
     refetch: refetchProdutos,
   } = usePagedQuery<Produto>({
-    resource: categoriaFiltro ? `/products?categoriaId=${categoriaFiltro}` : '/products',
+    resource: categoriaFiltro
+      ? `/products?view=summary&categoriaId=${categoriaFiltro}`
+      : '/products?view=summary',
     page,
     pageSize,
     search: searchTerm,
