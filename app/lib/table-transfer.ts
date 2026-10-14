@@ -5,7 +5,7 @@ export type TransferTable = {
 }
 
 export type TableTransferTarget =
-  | { ok: true; table: TransferTable }
+  | { ok: true; numero: number; table: TransferTable | null }
   | { ok: false; message: string }
 
 export function resolveTableTransferTarget(
@@ -20,9 +20,9 @@ export function resolveTableTransferTarget(
   }
   if (numero === sourceTable.numero) return { ok: false, message: 'Escolha uma mesa diferente da mesa atual.' }
   const table = tables.find(item => item.numero === numero)
-  if (!table) return { ok: false, message: `Mesa ${numero} não encontrada.` }
+  if (!table) return { ok: true, numero, table: null }
   if (table.id === sourceTable.id) return { ok: false, message: 'Escolha uma mesa diferente da mesa atual.' }
   if (table.status === 'FECHAMENTO') return { ok: false, message: `Mesa ${numero} está em fechamento.` }
   if (table.status !== 'LIVRE') return { ok: false, message: `Mesa ${numero} já está em atendimento.` }
-  return { ok: true, table }
+  return { ok: true, numero, table }
 }

@@ -12,8 +12,8 @@ const source = { id: 101, numero: 12 }
 const result = resolveTableTransferTarget(tables, source, '15')
 assert.equal(result.ok, true, 'uma mesa livre pode receber a transferência')
 if (result.ok) {
-  assert.equal(result.table.id, 208, 'o número digitado resolve para o ID interno correto')
-  assert.equal(result.table.numero, 15, 'a mesa resolvida mantém o número visível ao garçom')
+  assert.equal(result.table?.id, 208, 'o número digitado resolve para o ID interno correto')
+  assert.equal(result.numero, 15, 'a mesa resolvida mantém o número visível ao garçom')
 }
 
 for (const input of ['', 'abc', '2,5', '0']) {
@@ -27,7 +27,7 @@ assert.deepEqual(
 )
 assert.deepEqual(
   resolveTableTransferTarget(tables, source, '99'),
-  { ok: false, message: 'Mesa 99 não encontrada.' }
+  { ok: true, numero: 99, table: null }
 )
 assert.deepEqual(
   resolveTableTransferTarget(tables, source, '16'),

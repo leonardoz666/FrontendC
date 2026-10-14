@@ -164,7 +164,6 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
     { id: mesaId, numero: mesaNumero },
     targetTableNumber
   )
-  const targetTableId = transferTarget.ok ? transferTarget.table.id : null
 
   const fetchTableData = useCallback(async () => {
     try {
@@ -223,18 +222,18 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
       if (targetTableNumber.trim()) showToast(transferTarget.message, 'error')
       return
     }
-    const target = transferTarget.table
+    const targetNumber = transferTarget.numero
 
     setIsTransferring(true)
     try {
-      await apiFetch(`/tables/${mesaId}/transfer`, {
+      const result = await apiFetch<{ targetTableId: number; targetTableNumber: number; created: boolean }>(`/tables/${mesaId}/transfer`, {
         method: 'POST',
-        body: { targetTableId: target.id }
+        body: { targetTableNumber: targetNumber }
       })
 
-      showToast(`Mesa ${target.numero} aberta e transferência concluída!`, 'success')
+      showToast(`Mesa ${result.targetTableNumber} aberta e transferência concluída!`, 'success')
       setShowTransferModal(false)
-      router.push(`/mesas/${target.id}`)
+      router.push(`/mesas/${result.targetTableId}`)
     } catch (error) {
       console.error('Error transferring table:', error)
       showToast(error instanceof Error ? error.message : 'Erro ao conectar com o servidor', 'error')
@@ -1156,7 +1155,9 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                     {targetTableNumber && (
                       <p className={`mt-2 text-sm ${transferTarget.ok ? 'font-semibold text-emerald-700' : 'text-red-600'}`}>
                         {transferTarget.ok
-                          ? `Mesa ${transferTarget.table.numero} está livre e será aberta ao confirmar.`
+                          ? transferTarget.table
+                            ? `Mesa ${transferTarget.numero} está livre e será aberta ao confirmar.`
+                            : `Mesa ${transferTarget.numero} será criada e aberta ao confirmar.`
                           : transferTarget.message}
                       </p>
                     )}
@@ -1173,7 +1174,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                   </button>
                   <button
                     type="submit"
-                    disabled={!targetTableId || isTransferring}
+                    disabled={!transferTarget.ok || isTransferring}
                     className="flex-1 py-3 px-4 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 disabled:opacity-50"
                   >
                     Confirmar
