@@ -19,6 +19,7 @@ import {
   savePrinterAgentConnection,
   type PrinterAgentConnection,
 } from '@/app/lib/printer-agent-config'
+import { erroDestinoImpressora, type PrinterConnection } from '@/app/lib/printer-destination'
 
 /**
  * Impressoras — PRD seção 5.1 / RF-DIS-01 a RF-DIS-05, no padrão RF-UI-01
@@ -72,7 +73,7 @@ function erroDoAgente(error: unknown): Error {
 const CONEXOES = ['TCP', 'USB'] as const
 const LARGURAS_MM = [58, 80] as const
 
-type Conexao = (typeof CONEXOES)[number]
+type Conexao = PrinterConnection
 
 type Dispositivo = {
   id: number
@@ -306,6 +307,16 @@ export default function DispositivosPage() {
     setForm((atual) => ({ ...atual, [campo]: valor }))
   }
 
+  const atualizarConexao = (conexao: Conexao) => {
+    setForm((atual) => ({
+      ...atual,
+      conexao,
+      // O destino muda de significado: TCP usa IPv4; USB usa o nome da fila Windows.
+      // Limpar evita reaproveitar automaticamente um valor incompatível.
+      ip: conexao === atual.conexao ? atual.ip : '',
+    }))
+  }
+
   /** Alterna uma flag booleana do formulário. */
   const alternarFlag = (campo: 'isCaixa' | 'vincularTodos') => {
     setForm((atual) => ({ ...atual, [campo]: !atual[campo] }))
@@ -334,6 +345,11 @@ export default function DispositivosPage() {
     }
 
     const ip = form.ip.trim()
+    const erroDestino = erroDestinoImpressora(form.conexao, ip)
+    if (erroDestino) {
+      showToast(erroDestino, 'error')
+      return
+    }
 
     // `''` nunca vai para o banco: o backend normaliza, mas mandar `null`
     // deixa explícita a intenção de limpar o campo.
@@ -381,7 +397,7 @@ export default function DispositivosPage() {
   const testarImpressora = async (dispositivo: Dispositivo) => {
     setTestandoId(dispositivo.id)
     try {
-      const usandoAgente = deveUsarAgenteLocal(agentConnection.manual) && dispositivo.conexao === 'USB'
+      const usandoAgente = deveUsarAgenteLocal(agentConnection.manual)
       const body = usandoAgente
         ? await (async () => {
             try {
@@ -391,7 +407,9 @@ export default function DispositivosPage() {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  printerName: dispositivo.ip,
+                  conexao: dispositivo.conexao,
+                  destino: dispositivo.ip,
+                  porta: dispositivo.porta,
                   modoTexto: dispositivo.descricao?.includes('[MODO_TEXTO]') ?? false,
                 }),
               })
@@ -770,7 +788,7 @@ export default function DispositivosPage() {
                   <select
                     id="dispositivo-conexao"
                     value={form.conexao}
-                    onChange={(event) => atualizarCampo('conexao', event.target.value as Conexao)}
+                    onChange={(event) => atualizarConexao(event.target.value as Conexao)}
                     className="w-full rounded-lg border border-gray-300 p-2 text-black focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-100"
                   >
                     {CONEXOES.map((conexao) => (
