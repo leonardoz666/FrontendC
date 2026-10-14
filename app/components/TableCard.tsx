@@ -84,7 +84,7 @@ export function TableCard({ mesa, onClick, fallbackUsuarioNome }: TableCardProps
       <div className="relative flex flex-1 flex-col items-start justify-center px-4 py-3">
         <span aria-hidden="true" className={clsx('absolute right-4 top-4 size-3 rounded-full shadow-inner', dotClass)} />
 
-        <span className={clsx('text-4xl font-black leading-none tracking-[-0.055em]', numberColor)}>
+        <span className={clsx('font-sans text-[48px] font-bold leading-none tracking-[-0.045em] tabular-nums', numberColor)}>
           {mesa.numero.toString().padStart(2, '0')}
         </span>
 
