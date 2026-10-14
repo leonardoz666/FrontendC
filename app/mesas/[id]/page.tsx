@@ -143,6 +143,8 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
   const [showTransferModal, setShowTransferModal] = useState(false)
   const [availableTables, setAvailableTables] = useState<{ id: number, numero: number, status: string }[]>([])
   const [targetTableNumber, setTargetTableNumber] = useState('')
+  const [availableWaiters, setAvailableWaiters] = useState<Array<{ id: number; nome: string }>>([])
+  const [selectedWaiterId, setSelectedWaiterId] = useState('')
   const [isTransferring, setIsTransferring] = useState(false)
   const [showItemTransferModal, setShowItemTransferModal] = useState(false)
   const [selectedTransferItemIds, setSelectedTransferItemIds] = useState<number[]>([])
@@ -217,21 +219,37 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
     }
   }, [showTransferModal, showItemTransferModal, mesaId])
 
+  useEffect(() => {
+    if (!showTransferModal) return
+    apiFetch<Array<{ id: number; nome: string }>>('/tables/waiters')
+      .then(setAvailableWaiters)
+      .catch(err => {
+        console.error('Error fetching waiters:', err)
+        setAvailableWaiters([])
+        showToast('Não foi possível carregar os garçons', 'error')
+      })
+  }, [showTransferModal, showToast])
+
   const handleTransferTable = async () => {
     if (!transferTarget.ok) {
       if (targetTableNumber.trim()) showToast(transferTarget.message, 'error')
+      return
+    }
+    const waiterId = Number(selectedWaiterId)
+    if (!Number.isInteger(waiterId) || waiterId <= 0) {
+      showToast('Selecione o garçom responsável pela mesa', 'error')
       return
     }
     const targetNumber = transferTarget.numero
 
     setIsTransferring(true)
     try {
-      const result = await apiFetch<{ targetTableId: number; targetTableNumber: number; created: boolean }>(`/tables/${mesaId}/transfer`, {
+      const result = await apiFetch<{ targetTableId: number; targetTableNumber: number; created: boolean; waiter: { id: number; nome: string } }>(`/tables/${mesaId}/transfer`, {
         method: 'POST',
-        body: { targetTableNumber: targetNumber }
+        body: { targetTableNumber: targetNumber, waiterId }
       })
 
-      showToast(`Mesa ${result.targetTableNumber} aberta e transferência concluída!`, 'success')
+      showToast(`Mesa ${result.targetTableNumber} transferida para ${result.waiter.nome}!`, 'success')
       setShowTransferModal(false)
       router.push(`/mesas/${result.targetTableId}`)
     } catch (error) {
@@ -666,7 +684,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                   {canTransferTable && (
                     <button
                       type="button"
-                      onClick={() => { setTargetTableNumber(''); setShowTransferModal(true) }}
+                      onClick={() => { setTargetTableNumber(''); setSelectedWaiterId(''); setShowTransferModal(true) }}
                       title="Trocar de mesa"
                       aria-label="Trocar de mesa"
                       className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
@@ -1022,7 +1040,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
               <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
+                  <div className="space-y-4">
                     <h3 className="font-semibold text-slate-900">Itens da mesa {mesaNumero}</h3>
                     <p className="text-xs text-slate-500">Selecione um ou vários lançamentos.</p>
                   </div>
@@ -1161,6 +1179,25 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                           : transferTarget.message}
                       </p>
                     )}
+
+                    <div>
+                      <label htmlFor="transfer-table-waiter" className="mb-1.5 block text-sm font-bold text-gray-800">Garçom responsável</label>
+                      <select
+                        id="transfer-table-waiter"
+                        value={selectedWaiterId}
+                        onChange={event => setSelectedWaiterId(event.target.value)}
+                        required
+                        className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-base text-gray-950 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                      >
+                        <option value="">Selecione o garçom</option>
+                        {availableWaiters.map(waiter => (
+                          <option key={waiter.id} value={waiter.id}>{waiter.nome}</option>
+                        ))}
+                      </select>
+                      {availableWaiters.length === 0 && (
+                        <p className="mt-2 text-sm text-red-600">Nenhum garçom ativo disponível.</p>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1174,7 +1211,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                   </button>
                   <button
                     type="submit"
-                    disabled={!transferTarget.ok || isTransferring}
+                    disabled={!transferTarget.ok || !selectedWaiterId || isTransferring}
                     className="flex-1 py-3 px-4 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 disabled:opacity-50"
                   >
                     Confirmar
