@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Check, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban } from 'lucide-react'
+import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Check, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban, Pencil, Copy } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
 import { ProductOptionsModal } from '@/components/ProductOptionsModal'
@@ -20,6 +20,34 @@ const CANCELLATION_REASONS = [
   'Desistência',
   'Falta do produto'
 ] as const
+
+function formatItemDetails(value: string | null) {
+  if (!value) return ''
+  const trimmed = value.trim()
+  const withoutOuterParentheses = trimmed.startsWith('(') && trimmed.endsWith(')')
+    ? trimmed.slice(1, -1).trim()
+    : trimmed
+
+  return withoutOuterParentheses
+    .replace(/\bTamanho:\s*/gi, '')
+    .replace(/\bAdicionais:\s*/gi, '')
+    .replace(/\s*[|,]\s*/g, ' · ')
+}
+
+function formatItemCardContent(name: string, observation: string | null) {
+  const details = formatItemDetails(observation)
+  const parts = details.split(' · ').map(part => part.trim()).filter(Boolean)
+  const sizeIndex = parts.findIndex(part => /^(Pequeno|Grande)\s*\(([PG])\)$/i.test(part))
+
+  if (sizeIndex < 0) return { title: name, details }
+
+  const sizeMatch = parts[sizeIndex].match(/\(([PG])\)$/i)
+  const size = sizeMatch?.[1].toUpperCase()
+  const title = size && !name.endsWith(`(${size})`) ? `${name} (${size})` : name
+  const remainingDetails = parts.filter((_, index) => index !== sizeIndex).join(' · ')
+
+  return { title, details: remainingDetails }
+}
 
 function OrderProductImage({ produto }: { produto: Produto }) {
   const [imageError, setImageError] = useState(false)
@@ -64,12 +92,18 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
   const [userPermissions, setUserPermissions] = useState<string[]>([])
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [reviewError, setReviewError] = useState('')
+  const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null)
+  const [editingCartQuantity, setEditingCartQuantity] = useState(1)
+  const [editingCartObservation, setEditingCartObservation] = useState('')
   const submitInFlight = useRef(false)
   const reviewCloseButton = useRef<HTMLButtonElement>(null)
   const reviewDialog = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!showReviewModal) return
+    if (!showReviewModal) {
+      setEditingCartIndex(null)
+      return
+    }
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     reviewCloseButton.current?.focus()
@@ -82,7 +116,8 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
     if (!showReviewModal) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !submitting && !submitInFlight.current) {
-        setShowReviewModal(false)
+        if (editingCartIndex !== null) setEditingCartIndex(null)
+        else setShowReviewModal(false)
       }
       if (event.key !== 'Tab') return
       const buttons = reviewDialog.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')
@@ -101,7 +136,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
     return () => {
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [showReviewModal, submitting])
+  }, [showReviewModal, submitting, editingCartIndex])
 
   // Transfer Table State
   const [showTransferModal, setShowTransferModal] = useState(false)
@@ -474,7 +509,37 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
   const removeFromCart = (index: number) => {
     setReviewError('')
-    setCart(prev => prev.filter((_, i) => i !== index))
+    setCart(prev => prev.flatMap((item, itemIndex) => {
+      if (itemIndex !== index) return [item]
+      if (item.quantidade === 1) return []
+      return [{ ...item, quantidade: item.quantidade - 1 }]
+    }))
+  }
+
+  const duplicateCartItem = (index: number) => {
+    setReviewError('')
+    setCart(prev => prev.map((item, itemIndex) => itemIndex === index
+      ? { ...item, quantidade: item.quantidade + 1 }
+      : item
+    ))
+  }
+
+  const openCartItemEditor = (index: number) => {
+    const item = cart[index]
+    if (!item) return
+    setEditingCartIndex(index)
+    setEditingCartQuantity(item.quantidade)
+    setEditingCartObservation(item.observacao)
+  }
+
+  const saveCartItemEdits = () => {
+    if (editingCartIndex === null) return
+    setReviewError('')
+    setCart(prev => prev.map((item, index) => index === editingCartIndex
+      ? { ...item, quantidade: editingCartQuantity, observacao: editingCartObservation.trim() }
+      : item
+    ))
+    setEditingCartIndex(null)
   }
 
   const submitOrder = async () => {
@@ -526,27 +591,21 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
     return quantities
   }, [cart])
 
-  const groupedByProduct = useMemo(() => {
-    const products: { [nome: string]: { nome: string, variations: { [key: string]: SubmittedItem & { quantidade: number } } } } = {}
-    
+  const submittedItemCards = useMemo(() => {
+    const cards = new Map<string, SubmittedItem & { quantidade: number }>()
+
     submittedItems.forEach((item) => {
       if (item.status === 'CANCELADO') return
-      
-      if (!products[item.nome]) {
-        products[item.nome] = { nome: item.nome, variations: {} }
-      }
-      
-      const varKey = `${item.observacao || ''}-${item.preco}`
-      if (!products[item.nome].variations[varKey]) {
-        products[item.nome].variations[varKey] = { ...item, quantidade: 0 }
-      }
-      products[item.nome].variations[varKey].quantidade += item.quantidade
+
+      const cardKey = `${item.nome}-${item.observacao || ''}-${item.preco}`
+      const existing = cards.get(cardKey)
+      cards.set(cardKey, existing
+        ? { ...existing, quantidade: existing.quantidade + item.quantidade }
+        : { ...item }
+      )
     })
-    
-    return Object.values(products).map(p => ({
-       nome: p.nome,
-       variations: Object.values(p.variations)
-    }))
+
+    return Array.from(cards.values())
   }, [submittedItems])
 
   if (loading) {
@@ -651,43 +710,36 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
               </div>
               
               <div className="max-h-[500px] overflow-y-auto p-3">
-                {groupedByProduct.length === 0 ? (
+                {submittedItemCards.length === 0 ? (
                   <div className="py-3 text-center text-sm text-gray-500">
                     Nenhum item lançado nesta mesa.
                   </div>
                 ) : (
-                  <div className="flex flex-wrap items-start gap-2.5">
-                    {groupedByProduct.map((productGroup, idx) => {
-                      const originalProduct = allProducts.find(p => p.nome === productGroup.nome)
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {submittedItemCards.map((itemCard, idx) => {
+                      const originalProduct = allProducts.find(p => p.nome === itemCard.nome)
+                      const { title: itemTitle, details: itemDetails } = formatItemCardContent(itemCard.nome, itemCard.observacao)
                       
                       return (
-                        <div key={idx} className="w-[150px] max-w-full bg-white rounded-md border border-gray-200 flex flex-col">
-                          <div className="px-2.5 py-2 border-b border-gray-100 bg-gray-50 flex justify-between items-center gap-1.5">
-                             <h3 className="min-w-0 break-words font-semibold text-sm leading-tight text-gray-900">{productGroup.nome}</h3>
-                             {originalProduct && originalProduct.ativo !== false && (
-                                <button
-                                  onClick={() => addToCart(originalProduct)}
-                                  className="w-6 h-6 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center hover:bg-orange-200 transition-colors"
-                                  title="Adicionar Produto"
-                                  aria-label={`Adicionar ${productGroup.nome}`}
-                                >
-                                  <PlusCircle size={14} />
-                                </button>
-                             )}
+                        <div key={`${itemCard.nome}-${itemCard.observacao || ''}-${itemCard.preco}-${idx}`} className="flex min-h-20 items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+                          <div className="flex h-12 min-w-14 shrink-0 items-center justify-center rounded-lg bg-orange-100 px-2 text-xl font-black text-orange-700">
+                            {itemCard.quantidade}x
                           </div>
-                          <div className="px-2.5 py-1.5 divide-y divide-gray-100">
-                            {productGroup.variations.map((v, vIdx) => {
-                               return (
-                                 <div key={vIdx} className="flex gap-1.5 py-1.5 text-xs leading-tight">
-                                      <span className="shrink-0 font-bold text-orange-700">{v.quantidade}x</span>
-                                      <div className="min-w-0">
-                                        {v.observacao && <span className="block break-words text-gray-700">{v.observacao}</span>}
-                                        <span className="block font-semibold text-gray-600">R$ {(v.preco * v.quantidade).toFixed(2).replace('.', ',')}</span>
-                                      </div>
-                                 </div>
-                               );
-                            })}
+                          <div className="min-w-0 flex-1">
+                            <h3 className="break-words text-base font-bold leading-tight text-slate-950">{itemTitle}</h3>
+                            {itemDetails && <p className="mt-1 break-words text-sm leading-snug text-slate-600">{itemDetails}</p>}
                           </div>
+                          {originalProduct && originalProduct.ativo !== false && (
+                            <button
+                              type="button"
+                              onClick={() => addToCart(originalProduct)}
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-orange-600 shadow-sm transition-colors hover:border-orange-200 hover:bg-orange-50"
+                              title="Adicionar produto"
+                              aria-label={`Adicionar ${itemCard.nome}`}
+                            >
+                              <PlusCircle size={19} />
+                            </button>
+                          )}
                         </div>
                       )
                     })}
@@ -1102,49 +1154,68 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
       {showReviewModal && (
         createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-[2px] sm:p-6">
-            <div ref={reviewDialog} role="dialog" aria-modal="true" aria-labelledby="review-order-title" className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:h-[86dvh] sm:min-h-[36rem] sm:max-h-[54rem]">
-              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-10 sm:py-7">
+            <div ref={reviewDialog} role="dialog" aria-modal="true" aria-labelledby="review-order-title" className="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:h-[70dvh] sm:min-h-[30rem] sm:max-h-[42rem]">
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-7 sm:py-5">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700 sm:h-16 sm:w-16 sm:rounded-2xl">
-                    <Receipt className="h-5 w-5 sm:h-8 sm:w-8" aria-hidden="true" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700 sm:h-12 sm:w-12 sm:rounded-2xl">
+                    <Receipt className="h-5 w-5 sm:h-7 sm:w-7" aria-hidden="true" />
                   </div>
                   <div>
-                    <h2 id="review-order-title" className="text-lg font-bold text-slate-950 sm:text-3xl">Resumo do pedido</h2>
-                    <p className="text-sm text-slate-500 sm:mt-1 sm:text-lg">Mesa {mesaNumero} · Total de itens: {cartItemCount}</p>
+                    <h2 id="review-order-title" className="text-lg font-bold text-slate-950 sm:text-2xl">Resumo do pedido</h2>
+                    <p className="text-sm text-slate-500 sm:text-base">Total de itens: {cartItemCount}</p>
                   </div>
                 </div>
-                <button ref={reviewCloseButton} type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} aria-label="Fechar conferência" className="rounded-full bg-slate-100 p-2.5 text-slate-600 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50 sm:p-4">
-                  <X className="h-[22px] w-[22px] sm:h-8 sm:w-8" />
+                <button ref={reviewCloseButton} type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} aria-label="Fechar conferência" className="rounded-full bg-slate-100 p-2.5 text-slate-600 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50 sm:p-3">
+                  <X className="h-[22px] w-[22px] sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50/70 px-4 py-4 sm:space-y-4 sm:px-10 sm:py-6">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-slate-50/70 px-4 py-4 sm:px-7">
                 {cart.length === 0 ? (
                   <p className="py-10 text-center text-base text-slate-500 sm:text-xl">Nenhum item para lançar.</p>
                 ) : (
                   cart.map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:min-h-24 sm:gap-5 sm:px-6 sm:py-4">
-                      <span className="shrink-0 rounded-lg bg-orange-100 px-2.5 py-1.5 text-sm font-black text-orange-700 sm:px-4 sm:py-2.5 sm:text-lg">
-                        {item.quantidade}x
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="break-words text-base font-bold text-slate-950 sm:text-2xl">{item.nome}</p>
-                        {item.observacao && <p className="mt-1 break-words text-sm leading-5 text-slate-600 sm:mt-2 sm:text-base sm:leading-6">{item.observacao}</p>}
+                    <div key={index} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:min-h-[4.5rem] sm:flex-row sm:items-center sm:px-5">
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                        <p className="break-words text-base font-bold text-slate-950 sm:text-lg">
+                          <span className="mr-2 text-orange-700">{item.quantidade}x</span>
+                          {item.nome}
+                        </p>
+                        {item.observacao && (
+                          <p className="min-w-0 break-words text-base font-normal text-slate-600 sm:text-lg">
+                            {item.observacao}
+                          </p>
+                        )}
                       </div>
-                      <div className="flex shrink-0 items-center gap-2 sm:gap-5">
-                        <span className="text-right text-base font-black text-slate-950 sm:text-2xl">
-                          R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}
-                        </span>
+                      <div className="grid shrink-0 grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openCartItemEditor(index)}
+                          disabled={submitting}
+                          className="flex items-center justify-center gap-1.5 rounded-md bg-blue-600 px-2.5 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          <Pencil size={15} />
+                          <span>Editar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => duplicateCartItem(index)}
+                          disabled={submitting}
+                          className="flex items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                        >
+                          <Copy size={15} />
+                          <span>Duplicar</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => removeFromCart(index)}
                           disabled={submitting}
                           title="Remover item"
                           aria-label={`Remover ${item.nome} do pedido`}
-                          className="flex items-center justify-center gap-2 rounded-lg bg-red-600 p-2.5 font-bold text-white hover:bg-red-700 disabled:opacity-50 sm:min-w-32 sm:px-5 sm:py-3.5"
+                          className="flex items-center justify-center gap-1.5 rounded-md bg-red-600 px-2.5 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                         >
-                          <Trash2 className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
-                          <span className="hidden sm:inline">Excluir</span>
+                          <Trash2 size={15} />
+                          <span>Excluir</span>
                         </button>
                       </div>
                     </div>
@@ -1152,26 +1223,56 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                 )}
               </div>
 
-              <div className="border-t border-slate-200 bg-white p-4 sm:px-10 sm:py-6">
+              <div className="border-t border-slate-200 bg-white p-4 sm:px-7 sm:py-5">
                 {(reviewError || tableStatus === 'FECHAMENTO') && (
                   <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:text-base">
                     {reviewError || 'A conta está em fechamento. Reabra a mesa antes de lançar itens.'}
                   </p>
                 )}
-                <div className="mb-4 flex items-end justify-between gap-3 sm:mb-5">
-                  <span className="text-sm font-semibold text-slate-600 sm:text-lg">Total do pedido</span>
-                  <span className="text-2xl font-black tracking-tight text-slate-950 sm:text-4xl">R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-                  <button type="button" onClick={submitOrder} disabled={cart.length === 0 || submitting || lancamentoBloqueado} className="flex items-center justify-center gap-3 rounded-xl bg-green-600 px-5 py-3.5 text-base font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-xl">
-                    <Check className="h-5 w-5 sm:h-7 sm:w-7" />
-                    {submitting ? 'Lançando...' : 'Lançar pedido'}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} className="rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-50">
+                    Fechar
                   </button>
-                  <button type="button" onClick={() => setShowReviewModal(false)} disabled={submitting} className="rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-base font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-50 sm:py-5 sm:text-xl">
-                    Continuar escolhendo
+                  <button type="button" onClick={submitOrder} disabled={cart.length === 0 || submitting || lancamentoBloqueado} className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3.5 text-base font-bold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    <Check className="h-5 w-5" />
+                    {submitting ? 'Lançando...' : 'Lançar pedido'}
                   </button>
                 </div>
               </div>
+
+              {editingCartIndex !== null && cart[editingCartIndex] && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-slate-950/60 p-4">
+                  <div role="dialog" aria-modal="true" aria-labelledby="edit-cart-item-title" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 id="edit-cart-item-title" className="text-xl font-bold text-slate-950">Editar item</h3>
+                        <p className="mt-1 text-sm text-slate-500">{cart[editingCartIndex].nome}</p>
+                      </div>
+                      <button type="button" onClick={() => setEditingCartIndex(null)} aria-label="Fechar edição" className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200">
+                        <X size={20} />
+                      </button>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <span className="font-semibold text-slate-700">Quantidade</span>
+                      <div className="flex items-center gap-3">
+                        <button type="button" onClick={() => setEditingCartQuantity(value => Math.max(1, value - 1))} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100" aria-label="Diminuir quantidade">
+                          <Minus size={18} />
+                        </button>
+                        <span className="w-8 text-center text-xl font-bold text-slate-950">{editingCartQuantity}</span>
+                        <button type="button" onClick={() => setEditingCartQuantity(value => value + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200" aria-label="Aumentar quantidade">
+                          <PlusCircle size={20} />
+                        </button>
+                      </div>
+                    </div>
+                    <label className="mt-4 block text-sm font-semibold text-slate-700" htmlFor="edit-cart-observation">Observação</label>
+                    <textarea id="edit-cart-observation" value={editingCartObservation} onChange={(event) => setEditingCartObservation(event.target.value)} rows={3} className="mt-2 w-full resize-none rounded-xl border border-slate-300 p-3 text-slate-800 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100" placeholder="Ex.: sem cebola" />
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                      <button type="button" onClick={() => setEditingCartIndex(null)} className="rounded-xl border border-slate-300 px-4 py-3 font-bold text-slate-700 hover:bg-slate-100">Cancelar</button>
+                      <button type="button" onClick={saveCartItemEdits} className="rounded-xl bg-blue-600 px-4 py-3 font-bold text-white hover:bg-blue-700">Salvar</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>,
           document.body
