@@ -31,12 +31,12 @@ function formatItemDetails(value: string | null) {
   return withoutOuterParentheses
     .replace(/\bTamanho:\s*/gi, '')
     .replace(/\bAdicionais:\s*/gi, '')
-    .replace(/\s*[|,]\s*/g, ' · ')
+    .replace(/\s*[|,]\s*/g, ' • ')
 }
 
 function formatItemCardContent(name: string, observation: string | null) {
   const details = formatItemDetails(observation)
-  const parts = details.split(' · ').map(part => part.trim()).filter(Boolean)
+  const parts = details.split(' • ').map(part => part.trim()).filter(Boolean)
   const sizeIndex = parts.findIndex(part => /^(Pequeno|Grande)\s*\(([PG])\)$/i.test(part))
 
   if (sizeIndex < 0) return { title: name, details }
@@ -44,7 +44,7 @@ function formatItemCardContent(name: string, observation: string | null) {
   const sizeMatch = parts[sizeIndex].match(/\(([PG])\)$/i)
   const size = sizeMatch?.[1].toUpperCase()
   const title = size && !name.endsWith(`(${size})`) ? `${name} (${size})` : name
-  const remainingDetails = parts.filter((_, index) => index !== sizeIndex).join(' · ')
+  const remainingDetails = parts.filter((_, index) => index !== sizeIndex).join(' • ')
 
   return { title, details: remainingDetails }
 }
@@ -401,16 +401,20 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
     setIsCancellingItems(true)
     try {
-      await apiFetch('/orders/items/cancel', {
+      const result = await apiFetch<{ cancelledItemIds: number[] }>('/orders/items/cancel', {
         method: 'POST',
         body: { itemIds: selectedCancelItemIds, motivo }
       })
-      showToast(`${selectedCancelItemIds.length} lançamento(s) cancelado(s) e devolvido(s) ao estoque.`, 'success')
+      const cancelledIds = new Set(result.cancelledItemIds)
+      setSubmittedItems(current => current.map(item => cancelledIds.has(item.id)
+        ? { ...item, status: 'CANCELADO' }
+        : item
+      ))
+      showToast(`${result.cancelledItemIds.length} lançamento(s) cancelado(s) e devolvido(s) ao estoque.`, 'success')
       setShowCancelItemsModal(false)
       setSelectedCancelItemIds([])
       setSelectedCancellationReason('')
       setCustomCancellationReason('')
-      await fetchTableData()
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Erro ao cancelar itens', 'error')
     } finally {
@@ -727,7 +731,11 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="break-words text-base font-bold leading-tight text-slate-950">{itemTitle}</h3>
-                            {itemDetails && <p className="mt-1 break-words text-sm leading-snug text-slate-600">{itemDetails}</p>}
+                            {itemDetails && (
+                              <p className="mt-1 inline-flex max-w-full rounded-full bg-orange-100 px-3 py-1 text-sm font-bold leading-snug text-orange-700">
+                                <span className="break-words">{itemDetails}</span>
+                              </p>
+                            )}
                           </div>
                           {originalProduct && originalProduct.ativo !== false && (
                             <button

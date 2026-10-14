@@ -1,5 +1,5 @@
 import type { Produto } from '../components/ProductCard'
-import { apiFetch, ApiError } from './api'
+import { apiFetch } from './api'
 import type { Paginated } from './pagination'
 
 export async function fetchAllProducts(): Promise<Produto[]> {
@@ -26,29 +26,9 @@ export function sectorFromCategory(name: string): { isDrink: boolean; isFood: bo
 }
 
 export async function correctProductSectors(onLoaded?: (total: number) => void): Promise<{ updated: number; failed: number }> {
-  const products = await fetchAllProducts()
-  onLoaded?.(products.length)
-  let updated = 0
-  let failed = 0
-
-  for (const product of products) {
-    if (!product.categoria) continue
-    const sector = sectorFromCategory(product.categoria.nome)
-    if (!sector || (product.isDrink === sector.isDrink && product.isFood === sector.isFood)) continue
-
-    const formData = new FormData()
-    formData.append('nome', product.nome)
-    formData.append('preco', String(product.preco))
-    formData.append('isDrink', String(sector.isDrink))
-    formData.append('isFood', String(sector.isFood))
-    try {
-      await apiFetch(`/products/${product.id}`, { method: 'PUT', body: formData })
-      updated += 1
-    } catch (error) {
-      if (error instanceof ApiError && error.isUnauthorized) throw error
-      failed += 1
-    }
-  }
-
-  return { updated, failed }
+  const result = await apiFetch<{ total: number; updated: number; failed: number }>('/products/corrigir-setores', {
+    method: 'POST'
+  })
+  onLoaded?.(result.total)
+  return { updated: result.updated, failed: result.failed }
 }
