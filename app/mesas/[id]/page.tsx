@@ -7,6 +7,7 @@ import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Check, PlusCircle, Mi
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
 import { ProductOptionsModal } from '@/components/ProductOptionsModal'
+import { resolveTableTransferTarget } from '@/app/lib/table-transfer'
 import { PaymentModal } from '@/components/PaymentModal'
 import { RequestBillModal } from '@/app/components/RequestBillModal'
 import { connectTableSocket } from '@/app/lib/table-socket'
@@ -141,7 +142,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
   // Transfer Table State
   const [showTransferModal, setShowTransferModal] = useState(false)
   const [availableTables, setAvailableTables] = useState<{ id: number, numero: number, status: string }[]>([])
-  const [targetTableId, setTargetTableId] = useState<number | null>(null)
+  const [targetTableNumber, setTargetTableNumber] = useState('')
   const [isTransferring, setIsTransferring] = useState(false)
   const [showItemTransferModal, setShowItemTransferModal] = useState(false)
   const [selectedTransferItemIds, setSelectedTransferItemIds] = useState<number[]>([])
@@ -158,6 +159,12 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
   const [showBillModal, setShowBillModal] = useState(false)
   const [mesaNumero, setMesaNumero] = useState(mesaId)
   const paymentEntryHandled = useRef(false)
+  const transferTarget = resolveTableTransferTarget(
+    availableTables,
+    { id: mesaId, numero: mesaNumero },
+    targetTableNumber
+  )
+  const targetTableId = transferTarget.ok ? transferTarget.table.id : null
 
   const fetchTableData = useCallback(async () => {
     try {
@@ -212,18 +219,22 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
   }, [showTransferModal, showItemTransferModal, mesaId])
 
   const handleTransferTable = async () => {
-    if (!targetTableId) return
+    if (!transferTarget.ok) {
+      if (targetTableNumber.trim()) showToast(transferTarget.message, 'error')
+      return
+    }
+    const target = transferTarget.table
 
     setIsTransferring(true)
     try {
       await apiFetch(`/tables/${mesaId}/transfer`, {
         method: 'POST',
-        body: { targetTableId }
+        body: { targetTableId: target.id }
       })
 
-      showToast('Mesa transferida com sucesso!', 'success')
+      showToast(`Mesa ${target.numero} aberta e transferência concluída!`, 'success')
       setShowTransferModal(false)
-      router.push(`/mesas/${targetTableId}`)
+      router.push(`/mesas/${target.id}`)
     } catch (error) {
       console.error('Error transferring table:', error)
       showToast(error instanceof Error ? error.message : 'Erro ao conectar com o servidor', 'error')
@@ -656,7 +667,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                   {canTransferTable && (
                     <button
                       type="button"
-                      onClick={() => { setTargetTableId(null); setShowTransferModal(true) }}
+                      onClick={() => { setTargetTableNumber(''); setShowTransferModal(true) }}
                       title="Trocar de mesa"
                       aria-label="Trocar de mesa"
                       className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
@@ -1110,52 +1121,65 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
       {showTransferModal && (
         createPortal(
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div role="dialog" aria-modal="true" aria-labelledby="transfer-table-title" className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
               <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-900">Trocar Mesa</h2>
-                <button onClick={() => setShowTransferModal(false)} className="text-gray-600 hover:text-gray-900">
+                <h2 id="transfer-table-title" className="text-xl font-bold text-gray-900">Trocar Mesa</h2>
+                <button type="button" onClick={() => setShowTransferModal(false)} className="text-gray-600 hover:text-gray-900" aria-label="Fechar troca de mesa">
                   <X size={24} />
                 </button>
               </div>
 
-              <div className="p-6">
-                <p className="mb-4 text-gray-600">Selecione a mesa para onde deseja transferir:</p>
+              <form className="p-6" onSubmit={event => { event.preventDefault(); void handleTransferTable() }}>
+                <p className="mb-4 text-gray-600">Digite o número da mesa para onde deseja transferir:</p>
 
                 {isTransferring ? (
                   <PageLoader compact message="Transferindo mesa" detail="Movendo os pedidos com segurança" />
                 ) : (
-                  <div className="grid grid-cols-3 gap-3 max-h-60 overflow-y-auto">
-                    {availableTables.filter(table => table.status === 'LIVRE').map(table => (
-                      <button
-                        key={table.id}
-                        onClick={() => setTargetTableId(table.id)}
-                        className={`p-3 rounded-lg border-2 font-bold transition-all ${targetTableId === table.id
-                          ? 'border-orange-500 bg-orange-50 text-orange-700'
-                          : 'border-gray-200 hover:border-orange-200 text-gray-700'
-                          }`}
-                      >
-                        Mesa {table.numero}
-                      </button>
-                    ))}
+                  <div>
+                    <label htmlFor="transfer-table-number" className="mb-1.5 block text-sm font-bold text-gray-800">Número da mesa de destino</label>
+                    <input
+                      id="transfer-table-number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={3}
+                      value={targetTableNumber}
+                      onChange={event => setTargetTableNumber(event.target.value)}
+                      placeholder="Ex.: 15"
+                      autoFocus
+                      className={`h-12 w-full rounded-xl border px-4 text-lg font-bold text-gray-950 outline-none transition focus:ring-2 ${
+                        targetTableNumber && !transferTarget.ok
+                          ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                          : 'border-gray-300 focus:border-orange-500 focus:ring-orange-100'
+                      }`}
+                    />
+                    {targetTableNumber && (
+                      <p className={`mt-2 text-sm ${transferTarget.ok ? 'font-semibold text-emerald-700' : 'text-red-600'}`}>
+                        {transferTarget.ok
+                          ? `Mesa ${transferTarget.table.numero} está livre e será aberta ao confirmar.`
+                          : transferTarget.message}
+                      </p>
+                    )}
                   </div>
                 )}
 
                 <div className="mt-6 flex gap-3">
                   <button
+                    type="button"
                     onClick={() => setShowTransferModal(false)}
                     className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200"
                   >
                     Cancelar
                   </button>
                   <button
-                    onClick={handleTransferTable}
+                    type="submit"
                     disabled={!targetTableId || isTransferring}
                     className="flex-1 py-3 px-4 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 disabled:opacity-50"
                   >
                     Confirmar
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>,
           document.body

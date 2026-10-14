@@ -7,6 +7,7 @@
     "test:product-catalog": "node scripts/verify-product-catalog.cjs",
     "test:product-form": "node scripts/verify-product-form.cjs",
     "test:flavor-size-pricing": "ts-node --project scripts/tsconfig.json scripts/verify-flavor-size-pricing.ts",
+    "test:table-transfer": "ts-node --project scripts/tsconfig.json scripts/verify-table-transfer.ts",
     "test:category-printer": "node scripts/verify-category-printer.cjs",
     "test:data-sync": "node scripts/verify-data-sync.cjs",
     "test:menu-json-import": "ts-node --project scripts/tsconfig.json scripts/verify-menu-json-import.ts",
