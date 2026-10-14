@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Check, ChevronDown, Printer, RotateCcw, Save, SlidersHorizontal } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Printer, RotateCcw, Save, Send, SlidersHorizontal } from 'lucide-react'
 import Link from 'next/link'
 import { apiFetch } from '@/app/lib/api'
 import {
@@ -18,6 +18,7 @@ import { useToast } from '@/contexts/ToastContext'
 
 type Tab = 'geral' | 'pedido' | 'parcial' | 'fechamento'
 type Paper = 58 | 80
+type PrintDevice = { id: number; nome: string; larguraMm: number; conexao: string; ip: string | null }
 
 const tabs: Array<{ id: Tab; label: string; detail: string }> = [
   { id: 'geral', label: 'Geral', detail: 'Identificação e papel' },
@@ -140,6 +141,9 @@ export default function ComandasPage() {
   const [paper, setPaper] = useState<Paper>(58)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [printing, setPrinting] = useState(false)
+  const [printers, setPrinters] = useState<PrintDevice[]>([])
+  const [printerId, setPrinterId] = useState<number | null>(null)
   const [resetArmed, setResetArmed] = useState(false)
   const dirty = useMemo(() => JSON.stringify(config) !== JSON.stringify(original), [config, original])
 
@@ -149,6 +153,16 @@ export default function ComandasPage() {
       .catch(error => showToast(error instanceof Error ? error.message : 'Falha ao carregar configurações', 'error'))
       .finally(() => setLoading(false))
   }, [showToast])
+
+  useEffect(() => {
+    apiFetch<{ data: PrintDevice[] }>('/dispositivos?tipo=IMPRESSORA&ativo=true&pageSize=100')
+      .then(result => {
+        const available = result.data.filter(device => device.ip && ['TCP', 'USB'].includes(device.conexao))
+        setPrinters(available)
+        setPrinterId(current => current ?? available[0]?.id ?? null)
+      })
+      .catch(() => setPrinters([]))
+  }, [])
 
   useEffect(() => {
     if (!dirty) return
@@ -185,6 +199,26 @@ export default function ComandasPage() {
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Não foi possível restaurar', 'error')
     } finally { setSaving(false) }
+  }
+
+  const printTest = async () => {
+    if (!printerId) {
+      showToast('Escolha uma impressora ativa para o teste', 'warning')
+      return
+    }
+    const tipo = (tab === 'geral' ? 'PEDIDO' : tab.toLocaleUpperCase('pt-BR')) as 'PEDIDO' | 'PARCIAL' | 'FECHAMENTO'
+    setPrinting(true)
+    try {
+      const result = await apiFetch<{ message: string }>('/comandas/configuracao/testar', {
+        method: 'POST',
+        body: { dispositivoId: printerId, tipo, configuracao: config }
+      })
+      showToast(result.message || 'Teste enviado para a impressora', 'success')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível imprimir o teste', 'error')
+    } finally {
+      setPrinting(false)
+    }
   }
 
   if (loading) return <PageLoader compact message="Carregando comandas" detail="Preparando configurações e prévia" />
@@ -248,6 +282,34 @@ export default function ComandasPage() {
               </div>
             </div>
             <Preview config={config} tab={tab} paper={paper} />
+            <div className="border-t border-slate-800 bg-slate-900 px-4 py-4">
+              <label className="block text-xs font-bold text-slate-200" htmlFor="test-printer">Impressora para teste</label>
+              <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-1">
+                <span className="relative block">
+                  <select
+                    id="test-printer"
+                    value={printerId ?? ''}
+                    onChange={event => setPrinterId(event.target.value ? Number(event.target.value) : null)}
+                    className="h-11 w-full appearance-none rounded-lg border border-slate-600 bg-slate-950 px-3 pr-10 text-sm font-semibold text-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={printers.length === 0 || printing}
+                  >
+                    {printers.length === 0 && <option value="">Nenhuma impressora disponível</option>}
+                    {printers.map(device => <option key={device.id} value={device.id}>{device.nome} · {device.larguraMm} mm</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-3 h-5 w-5 text-slate-400" />
+                </span>
+                <Button
+                  type="button"
+                  onClick={() => void printTest()}
+                  disabled={!printerId}
+                  isLoading={printing}
+                  className="h-11 w-full xl:w-full"
+                >
+                  <Send size={16} />Imprimir teste de {tab === 'geral' ? 'pedido' : tab}
+                </Button>
+              </div>
+              <p className="mt-2 text-[11px] leading-5 text-slate-400">Usa as alterações visíveis agora, mesmo antes de salvar.</p>
+            </div>
             <div className="flex gap-2 border-t border-slate-800 px-4 py-3 text-xs leading-5 text-slate-300"><SlidersHorizontal className="mt-0.5 h-4 w-4 shrink-0" /><p>A largura final vem da impressora cadastrada. A prévia serve para conferir conteúdo e destaque.</p></div>
           </div>
           {!dirty && <p className="mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-emerald-700"><Check size={14} />Configuração sincronizada</p>}
