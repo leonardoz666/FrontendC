@@ -382,7 +382,7 @@ export default function MesasPage() {
           {mesas.length === 0 ? (
             <p className="text-gray-500">Nenhuma mesa aberta no momento.</p>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(136px,145px))] justify-start gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,155px),1fr))] gap-3 text-left">
               {mesas.map((mesa) => (
                 <TableCard
                   key={mesa.id}
