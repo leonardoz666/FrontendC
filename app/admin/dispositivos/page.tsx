@@ -410,6 +410,7 @@ export default function DispositivosPage() {
                   conexao: dispositivo.conexao,
                   destino: dispositivo.ip,
                   porta: dispositivo.porta,
+                  larguraMm: dispositivo.larguraMm,
                   modoTexto: dispositivo.descricao?.includes('[MODO_TEXTO]') ?? false,
                 }),
               })
