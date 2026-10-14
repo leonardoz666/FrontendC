@@ -52,6 +52,8 @@ export type CartItem = {
   quantidade: number
   observacao: string
   tamanhoId?: number
+  tamanhoNome?: string
+  sabor?: string
   complementos?: Array<{ complementoId: number }>
   setor: string
 }

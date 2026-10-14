@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Check, Minus, Plus, Snowflake, Citrus } from 'lucide-react'
 import { Produto } from '@/types'
+import { parseFlavorSizeConfig, priceForFlavorSize } from '@/app/lib/flavor-size-pricing'
 
 interface ProductOptionsModalProps {
   isOpen: boolean
@@ -12,7 +13,7 @@ interface ProductOptionsModalProps {
     selectedOptions: string[],
     finalPrice: number,
     extraItems?: Array<{quantity: number, observation: string, preco: number}>,
-    escolhas?: { tamanhoId?: number; complementos?: Array<{ complementoId: number }> }
+    escolhas?: { tamanhoId?: number; tamanhoNome?: string; sabor?: string; complementos?: Array<{ complementoId: number }> }
   ) => void
 }
 
@@ -55,12 +56,15 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
     }
   }
 
-  const options = parseList(product.sabores)
+  const configuracaoSabores = parseFlavorSizeConfig(product.sabores)
+  const options = configuracaoSabores.sabores
   const commonTags = parseList(product.observacoes)
   const tamanhos = product.tipo === 'POR_TAMANHO' ? (product.tipoTamanho?.tamanhos ?? []) : []
   const gruposComplemento = product.gruposComplemento ?? []
   const tamanhoSelecionado = tamanhos.find(tamanho => tamanho.id === selectedTamanhoId)
-  const precoBase = tamanhoSelecionado ? Number(tamanhoSelecionado.valor) : Number(product.valorPromo ?? product.preco)
+  const saborSelecionado = options.find(option => selectedOptions.includes(option))
+  const precoBaseTamanho = tamanhoSelecionado ? Number(tamanhoSelecionado.valor) : Number(product.valorPromo ?? product.preco)
+  const precoBase = priceForFlavorSize(configuracaoSabores, selectedTamanhoId, saborSelecionado, precoBaseTamanho)
   const complementosSelecionados = gruposComplemento
     .flatMap(vinculo => vinculo.grupo.complementos)
     .filter(complemento => selectedComplementos.includes(complemento.id))
@@ -123,9 +127,9 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
     }
 
     // Construct final observation with options
-    const tamanhoText = tamanhoSelecionado ? `Tamanho: ${tamanhoSelecionado.nome}` : ''
     const complementosText = complementosSelecionados.length > 0 ? `Adicionais: ${complementosSelecionados.map(c => c.nome).join(', ')}` : ''
-    const optionsText = [...(selectedOptions.length > 0 ? [`( ${selectedOptions.join(', ')} )`] : []), tamanhoText, complementosText]
+    const opcoesNaObservacao = configuracaoSabores.precos.length > 0 ? [] : selectedOptions
+    const optionsText = [...(opcoesNaObservacao.length > 0 ? [`( ${opcoesNaObservacao.join(', ')} )`] : []), complementosText]
       .filter(Boolean)
       .join(' | ')
     
@@ -137,6 +141,8 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
     
     onConfirm(quantity, finalObs, selectedOptions, precoUnitario, undefined, {
       tamanhoId: selectedTamanhoId,
+      tamanhoNome: tamanhoSelecionado?.nome,
+      sabor: configuracaoSabores.precos.length > 0 ? saborSelecionado : undefined,
       complementos: selectedComplementos.map(complementoId => ({ complementoId }))
     })
   }
@@ -329,7 +335,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
         )
 
       case 'sabores_com_tamanho':
-        const sizes = ['Pequeno (P)', 'Grande (G)']
+        const legacySizes = ['Pequeno (P)', 'Grande (G)']
 
         return (
           <div className="space-y-6">
@@ -337,12 +343,23 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
             <div className="space-y-3">
               <h3 className="font-bold text-gray-700">1. Escolha o tamanho</h3>
               <div className="grid grid-cols-2 gap-3">
-                {sizes.map(size => (
+                {tamanhos.length > 0 ? tamanhos.map(tamanho => (
+                  <button
+                    key={tamanho.id}
+                    onClick={() => setSelectedTamanhoId(tamanho.id)}
+                    className={`p-4 rounded-xl border-2 text-center transition-all ${
+                      selectedTamanhoId === tamanho.id
+                        ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
+                        : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
+                    }`}
+                  >
+                    {tamanho.nome}
+                  </button>
+                )) : legacySizes.map(size => (
                   <button
                     key={size}
                     onClick={() => {
-                      // Remove other sizes, keep flavor
-                      const newOptions = selectedOptions.filter(o => !sizes.includes(o))
+                      const newOptions = selectedOptions.filter(o => !legacySizes.includes(o))
                       setSelectedOptions([...newOptions, size])
                     }}
                     className={`p-4 rounded-xl border-2 text-center transition-all ${
@@ -365,8 +382,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                   <button
                     key={flavor}
                     onClick={() => {
-                      // Remove other flavors (non-sizes), keep size
-                      const newOptions = selectedOptions.filter(o => sizes.includes(o))
+                      const newOptions = selectedOptions.filter(o => legacySizes.includes(o))
                       setSelectedOptions([...newOptions, flavor])
                     }}
                     className={`p-3 rounded-xl border-2 text-left transition-all ${
@@ -418,7 +434,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {renderContent()}
 
-          {tamanhos.length > 0 && (
+          {tamanhos.length > 0 && product.tipoOpcao !== 'sabores_com_tamanho' && (
             <div className="space-y-3">
               <h3 className="font-bold text-gray-700">Tamanho</h3>
               <div className="grid grid-cols-2 gap-3">
@@ -568,7 +584,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
               (product.tipoOpcao === 'refrigerante' && Object.keys(optionQuantities).length === 0) ||
               (product.tipoOpcao === 'sabores' && selectedOptions.length === 0) ||
               (product.tipoOpcao === 'tamanho_pg' && selectedOptions.length === 0) ||
-              (product.tipoOpcao === 'sabores_com_tamanho' && selectedOptions.length < 2) ||
+              (product.tipoOpcao === 'sabores_com_tamanho' && selectedOptions.filter(option => options.includes(option)).length === 0) ||
               (tamanhos.length > 0 && !selectedTamanhoId) ||
               complementoInvalido
             }

@@ -1,3 +1,5 @@
+import { serializeFlavorSizeConfig, type FlavorSizePrice } from './flavor-size-pricing'
+
 export type ProductFormValues = {
   nome: string
   codigo: string
@@ -14,6 +16,7 @@ export type ProductFormValues = {
   file: File | null
   tipoOpcao: string
   sabores: string[]
+  precosSaborTamanho?: FlavorSizePrice[]
   observacoes: string[]
   isDrink: boolean
   isFood: boolean
@@ -49,7 +52,7 @@ export function buildProductFormData(values: ProductFormValues): FormData {
   form.append('ativo', String(values.ativo))
   if (values.file) form.append('foto', values.file)
   form.append('tipoOpcao', values.tipoOpcao)
-  form.append('sabores', JSON.stringify(values.sabores))
+  form.append('sabores', serializeFlavorSizeConfig(values.sabores, values.precosSaborTamanho ?? []))
   form.append('observacoes', JSON.stringify(values.observacoes))
   for (const field of ['isDrink', 'isFood', 'favorito', 'destaque', 'controlaEstoque', 'autoatendimento', 'fiscal', 'permitirObservacao', 'permiteGeloLimao'] as const) {
     form.append(field, String(values[field]))

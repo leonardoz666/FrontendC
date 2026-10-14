@@ -441,7 +441,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
     _options: string[],
     finalPrice: number,
     extraItems?: Array<{ quantity: number, observation: string, preco: number }>,
-    escolhas?: { tamanhoId?: number; complementos?: Array<{ complementoId: number }> }
+    escolhas?: { tamanhoId?: number; tamanhoNome?: string; sabor?: string; complementos?: Array<{ complementoId: number }> }
   ) => {
     if (!selectedProduct) return
 
@@ -465,6 +465,8 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
           quantidade: quantity,
           observacao: observation,
           tamanhoId: escolhas?.tamanhoId,
+          tamanhoNome: escolhas?.tamanhoNome,
+          sabor: escolhas?.sabor,
           complementos: escolhas?.complementos,
           setor
         })
@@ -491,6 +493,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
           item.produtoId === newItem.produtoId &&
           item.observacao === newItem.observacao &&
           item.tamanhoId === newItem.tamanhoId &&
+          item.sabor === newItem.sabor &&
           JSON.stringify(item.complementos ?? []) === complementoKey
         )
 
@@ -564,6 +567,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
             produtoId: item.produtoId,
             quantidade: item.quantidade,
             tamanhoId: item.tamanhoId,
+            sabor: item.sabor,
             complementos: item.complementos,
             observacao: item.observacao
           }))
@@ -1189,6 +1193,11 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                           <span className="mr-2 text-orange-700">{item.quantidade}x</span>
                           {item.nome}
                         </p>
+                        {(item.tamanhoNome || item.sabor) && (
+                          <p className="min-w-0 break-words text-sm font-semibold text-orange-700 sm:text-base">
+                            {[item.tamanhoNome, item.sabor].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
                         {item.observacao && (
                           <p className="min-w-0 break-words text-base font-normal text-slate-600 sm:text-lg">
                             {item.observacao}

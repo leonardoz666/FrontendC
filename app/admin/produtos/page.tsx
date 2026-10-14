@@ -12,6 +12,7 @@ import { apiFetch, apiRequest, ApiError, fetchAllList, fetchList } from '@/app/l
 import { PAGE_SIZE_OPTIONS, usePagedQuery, type PageSize, type SortOrder } from '@/app/lib/pagination'
 import { correctProductSectors, fetchAllProducts } from '@/app/lib/product-catalog'
 import { buildProductFormData } from '@/app/lib/product-form'
+import { parseFlavorSizeConfig, type FlavorSizePrice } from '@/app/lib/flavor-size-pricing'
 import { InlineLoader, PageLoader } from '@/app/components/ui/PageLoader'
 import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-import'
 import { 
@@ -33,6 +34,7 @@ import { clsx } from 'clsx'
 type TipoTamanho = {
   id: number
   nome: string
+  tamanhos?: Array<{ id: number; nome: string; valor: number | string; ordem: number }>
 }
 
 type Dispositivo = {
@@ -191,6 +193,8 @@ export default function ProdutosPage() {
   const [file, setFile] = useState<File | null>(null)
   const [tipoOpcao, setTipoOpcao] = useState<'padrao' | 'tamanho_pg' | 'refrigerante' | 'sabores' | 'sabores_com_tamanho' | 'combinado'>('padrao')
   const [sabores, setSabores] = useState<string[]>([])
+  const [usarPrecosSaborTamanho, setUsarPrecosSaborTamanho] = useState(false)
+  const [precosSaborTamanho, setPrecosSaborTamanho] = useState<Record<string, string>>({})
   const [newSabor, setNewSabor] = useState('')
   const [observacoes, setObservacoes] = useState<string[]>([])
   const [newObservacao, setNewObservacao] = useState('')
@@ -268,6 +272,19 @@ export default function ProdutosPage() {
     setError('')
     if (!nome) return
 
+    const tamanhosDaTabela = tiposTamanho.find(item => String(item.id) === tipoTamanhoId)?.tamanhos ?? []
+    const usaMatriz = tipo === 'POR_TAMANHO' && tipoOpcao === 'sabores_com_tamanho' && usarPrecosSaborTamanho
+    const matriz: FlavorSizePrice[] = usaMatriz
+      ? tamanhosDaTabela.flatMap(tamanho => sabores.flatMap(sabor => {
+          const valor = Number((precosSaborTamanho[`${tamanho.id}:${sabor}`] ?? '').replace(',', '.'))
+          return Number.isFinite(valor) && valor > 0 ? [{ tamanhoId: tamanho.id, sabor, valor }] : []
+        }))
+      : []
+    if (usaMatriz && (tamanhosDaTabela.length === 0 || matriz.length !== tamanhosDaTabela.length * sabores.length)) {
+      showToast('Preencha um preço maior que zero para cada combinação de tamanho e sabor.', 'warning')
+      return
+    }
+
     try {
       const url = editingId ? `/products/${editingId}` : '/products'
       const method = editingId ? 'PUT' : 'POST'
@@ -275,7 +292,7 @@ export default function ProdutosPage() {
       const formData = buildProductFormData({
         nome, codigo, descricao, preco, valorPromo, custo, categoriaId, tipo,
         tipoTamanhoId, dispositivoIds, ordemProduto, ativo, file, tipoOpcao,
-        sabores, observacoes, isDrink, isFood, favorito, destaque, controlaEstoque,
+        sabores, precosSaborTamanho: matriz, observacoes, isDrink, isFood, favorito, destaque, controlaEstoque,
         autoatendimento, fiscal, ncm, cfop, cstCsosn, aliquotaIcms,
         permitirObservacao, permiteGeloLimao, gruposComplementoIds,
       })
@@ -315,6 +332,8 @@ export default function ProdutosPage() {
     setFile(null)
     setTipoOpcao('padrao')
     setSabores([])
+    setUsarPrecosSaborTamanho(false)
+    setPrecosSaborTamanho({})
     setNewSabor('')
     setObservacoes([])
     setNewObservacao('')
@@ -375,7 +394,12 @@ export default function ProdutosPage() {
     setFoto(prod.foto)
     setTipoOpcao((prod.tipoOpcao as Produto['tipoOpcao']) || 'padrao')
     
-    setSabores(parseStringList(prod.sabores))
+    const configuracaoSabores = parseFlavorSizeConfig(prod.sabores)
+    setSabores(configuracaoSabores.sabores)
+    setUsarPrecosSaborTamanho(configuracaoSabores.precos.length > 0)
+    setPrecosSaborTamanho(Object.fromEntries(
+      configuracaoSabores.precos.map(item => [`${item.tamanhoId}:${item.sabor}`, String(item.valor)])
+    ))
     setObservacoes(parseStringList(prod.observacoes))
     setNewObservacao('')
     
@@ -428,11 +452,16 @@ export default function ProdutosPage() {
       const payload = {
         version: 1,
         exportedAt: new Date().toISOString(),
-        items: allProducts.map(p => ({
-          ...p,
-          sabores: parseStringList(p.sabores),
-          observacoes: parseStringList(p.observacoes),
-        }))
+        items: allProducts.map(p => {
+          const configuracao = parseFlavorSizeConfig(p.sabores)
+          return {
+            ...p,
+            sabores: configuracao.precos.length > 0
+              ? { versao: 2, sabores: configuracao.sabores, precos: configuracao.precos }
+              : configuracao.sabores,
+            observacoes: parseStringList(p.observacoes),
+          }
+        })
       }
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -534,10 +563,14 @@ export default function ProdutosPage() {
 
           formData.append('categoriaId', String(importedCategoryId))
           formData.append('ativo', 'true')
+          formData.append('tipo', i.tipo || 'COMUM')
+          if (i.tipoTamanhoId) formData.append('tipoTamanhoId', String(i.tipoTamanhoId))
           if (i.foto) formData.append('foto', i.foto) // Note: Base64 might need handling on server if direct string
           formData.append('tipoOpcao', i.tipoOpcao || (i.temOpcaoTamanho ? 'tamanho_pg' : 'padrao'))
           
-          const saboresJson = i.sabores ? JSON.stringify(i.sabores) : '[]'
+          const saboresJson = typeof i.sabores === 'string'
+            ? i.sabores
+            : JSON.stringify(i.sabores ?? [])
           formData.append('sabores', saboresJson)
           const observacoesJson = i.observacoes
             ? JSON.stringify(Array.isArray(i.observacoes) ? i.observacoes : parseStringList(i.observacoes))
@@ -1111,7 +1144,11 @@ export default function ProdutosPage() {
                   <label className="text-xs font-bold text-gray-500 block mb-1 uppercase tracking-wider">Tipo de Opção</label>
                   <select
                     value={tipoOpcao}
-                    onChange={e => setTipoOpcao(e.target.value as Exclude<Produto['tipoOpcao'], undefined>)}
+                    onChange={e => {
+                      const proximoTipo = e.target.value as Exclude<Produto['tipoOpcao'], undefined>
+                      setTipoOpcao(proximoTipo)
+                      if (proximoTipo === 'sabores_com_tamanho') setTipo('POR_TAMANHO')
+                    }}
                     className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 text-sm"
                   >
                     <option value="padrao">Padrão (Sem variações)</option>
@@ -1380,6 +1417,69 @@ export default function ProdutosPage() {
                         <p className="w-full py-1 text-center text-xs italic text-gray-600">Nenhuma variação</p>
                       )}
                     </div>
+
+                    {tipoOpcao === 'sabores_com_tamanho' && tipo === 'POR_TAMANHO' && sabores.length > 0 && (
+                      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-3">
+                        <input
+                          type="checkbox"
+                          checked={usarPrecosSaborTamanho}
+                          onChange={event => setUsarPrecosSaborTamanho(event.target.checked)}
+                          className="mt-0.5 h-4 w-4 accent-orange-600"
+                        />
+                        <span>
+                          <span className="block text-sm font-bold text-gray-800">Preços diferentes por sabor e tamanho</span>
+                          <span className="block text-xs text-gray-600">Ative para preencher o valor de cada combinação, como Pirão P de Frango e Pirão G de Carne de Sol.</span>
+                        </span>
+                      </label>
+                    )}
+
+                    {tipoOpcao === 'sabores_com_tamanho' && tipo === 'POR_TAMANHO' && usarPrecosSaborTamanho && sabores.length > 0 && (
+                      <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                        {(() => {
+                          const tamanhos = tiposTamanho.find(item => String(item.id) === tipoTamanhoId)?.tamanhos ?? []
+                          if (tamanhos.length === 0) {
+                            return <p className="p-3 text-xs text-amber-700">Selecione uma tabela que possua tamanhos cadastrados.</p>
+                          }
+                          return (
+                            <table className="min-w-full text-sm">
+                              <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                                <tr>
+                                  <th className="px-3 py-2 text-left">Sabor</th>
+                                  {tamanhos.map(tamanho => <th key={tamanho.id} className="px-3 py-2 text-left">{tamanho.nome}</th>)}
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {sabores.map(sabor => (
+                                  <tr key={sabor}>
+                                    <th className="whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-gray-700">{sabor}</th>
+                                    {tamanhos.map(tamanho => {
+                                      const chave = `${tamanho.id}:${sabor}`
+                                      return (
+                                        <td key={tamanho.id} className="px-2 py-2">
+                                          <label className="flex min-w-28 items-center gap-1 rounded-md border border-gray-200 bg-white px-2 focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100">
+                                            <span className="text-xs text-gray-500">R$</span>
+                                            <input
+                                              type="number"
+                                              min="0.01"
+                                              step="0.01"
+                                              value={precosSaborTamanho[chave] ?? ''}
+                                              onChange={event => setPrecosSaborTamanho(current => ({ ...current, [chave]: event.target.value }))}
+                                              aria-label={`Preço de ${sabor} no tamanho ${tamanho.nome}`}
+                                              className="w-20 bg-transparent py-2 text-sm text-gray-900 outline-none"
+                                              placeholder="0,00"
+                                            />
+                                          </label>
+                                        </td>
+                                      )
+                                    })}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )
+                        })()}
+                      </div>
+                    )}
                   </div>
                 )}
               </form>
