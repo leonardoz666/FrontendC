@@ -13,6 +13,7 @@ import {
   Users, 
   Tags, 
   Printer,
+  ClipboardList,
   Eye,
   History,
   LockKeyhole,
@@ -60,6 +61,13 @@ export default function AdminDashboard() {
       description: 'Configurar impressão de pedidos',
       icon: Printer,
       color: 'bg-purple-500'
+    },
+    {
+      href: '/admin/comandas',
+      label: 'Comandas',
+      description: 'Personalizar pedidos, parciais e fechamentos',
+      icon: ClipboardList,
+      color: 'bg-orange-600'
     },
     {
       href: '/admin/visibilidade',

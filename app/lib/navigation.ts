@@ -268,6 +268,13 @@ export const NAV_GROUPS: NavGroup[] = [
         permission: 'cadastros.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
       },
+      {
+        href: '/admin/comandas',
+        label: 'Comandas',
+        icon: 'ClipboardList',
+        permission: 'cadastros.visualizar',
+        roles: ['ADMIN', 'DONO', 'GERENTE'],
+      },
     ],
   },
   {
