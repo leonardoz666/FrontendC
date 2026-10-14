@@ -12,6 +12,12 @@ import { PaymentModal } from '@/components/PaymentModal'
 import { RequestBillModal } from '@/app/components/RequestBillModal'
 import { connectTableSocket } from '@/app/lib/table-socket'
 import { apiFetch, fetchAllList, redirectToLogin } from '@/app/lib/api'
+import {
+  isOfflineQueuedResult,
+  listOfflineOrderItems,
+  OFFLINE_SYNC_EVENT,
+  type OfflineQueuedResult,
+} from '@/app/lib/offline'
 import { Produto, Categoria, CartItem, SubmittedItem, APIPedido } from '@/types'
 import { LoadingMark, PageLoader } from '@/app/components/ui/PageLoader'
 
@@ -172,9 +178,9 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
       const data = await apiFetch<{ status: string; numero: number; comandas?: Array<{ pedidos: APIPedido[] }> }>(`/tables/${mesaId}`)
         setTableStatus(data.status)
         setMesaNumero(data.numero || mesaId)
+        const items: SubmittedItem[] = []
         if (data.comandas && data.comandas.length > 0) {
           const comanda = data.comandas[0]
-          const items: SubmittedItem[] = []
           comanda.pedidos.forEach((pedido: APIPedido) => {
             pedido.itens.forEach((item) => {
               items.push({
@@ -190,14 +196,19 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
               })
             })
           })
-          setSubmittedItems(items)
-        } else {
-          setSubmittedItems([])
         }
+        const pendingItems = await listOfflineOrderItems(Number(mesaId)).catch(() => [])
+        setSubmittedItems([...items, ...pendingItems])
     } catch (error) {
       console.error(`Erro ao carregar mesa ${mesaId}:`, error)
     }
   }, [mesaId])
+
+  useEffect(() => {
+    const refreshAfterSync = () => void fetchTableData()
+    window.addEventListener(OFFLINE_SYNC_EVENT, refreshAfterSync)
+    return () => window.removeEventListener(OFFLINE_SYNC_EVENT, refreshAfterSync)
+  }, [fetchTableData])
 
   const fetchEstadoCaixa = useCallback(async () => {
     try {
@@ -587,7 +598,8 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
     submitInFlight.current = true
     setSubmitting(true)
     try {
-      await apiFetch('/orders', {
+      const submittedAt = new Date()
+      const result = await apiFetch<{ success: true } | OfflineQueuedResult>('/orders', {
         method: 'POST',
         body: {
           mesaId,
@@ -600,12 +612,29 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
             observacao: item.observacao
           }))
         },
+        offlineMetadata: {
+          mesaId: Number(mesaId),
+          itens: cart.map((item, index) => ({
+            id: -(submittedAt.getTime() + index),
+            nome: item.nome,
+            quantidade: item.quantidade,
+            preco: item.preco,
+            observacao: item.observacao || null,
+            status: 'AGUARDANDO SINCRONIZAÇÃO',
+            horario: submittedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          })),
+        },
       })
       setCart([])
       setReviewError('')
       setShowReviewModal(false)
-      showToast('Pedido enviado com sucesso!', 'success')
-      void fetchTableData()
+      if (isOfflineQueuedResult(result)) {
+        showToast('Pedido salvo no aparelho. Será enviado quando a conexão voltar.', 'warning')
+        void fetchTableData()
+      } else {
+        showToast('Pedido enviado com sucesso!', 'success')
+        void fetchTableData()
+      }
     } catch (error) {
       console.error(error)
       setReviewError(error instanceof Error ? error.message : 'Erro ao lançar pedido')

@@ -9,6 +9,8 @@ import { apiFetch, redirectToLogin } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 import { initializeUiPreferences } from '@/app/lib/uiPreferences'
 import { ThemeToggle } from './ui/ThemeToggle'
+import OfflineStatus from './OfflineStatus'
+import { clearOfflineData, getOfflineStatus } from '@/app/lib/offline'
 import {
   ROUTE_SHORTCUTS,
   readStoredCollapsed,
@@ -127,11 +129,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }, [isLoginPage, isStockkeeper, router, showToast])
 
   const handleLogout = async () => {
+    const offlineStatus = await getOfflineStatus().catch(() => ({ pending: 0 }))
+    if (offlineStatus.pending > 0) {
+      showToast('Sincronize as operações pendentes antes de sair da conta.', 'warning')
+      return
+    }
     setUser(null)
     try {
       await apiFetch('/auth/logout', { method: 'POST' })
     } finally {
-      redirectToLogin()
+      try {
+        await clearOfflineData()
+      } finally {
+        redirectToLogin()
+      }
     }
   }
 
@@ -142,6 +153,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       )}
       {!isLoginPage && user && (
         <>
+          <OfflineStatus />
           {isSimplifiedStockkeeper ? (
             <header className="sticky top-0 z-50 flex min-h-14 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2 shadow-sm sm:px-6">
               <div className="min-w-0">
@@ -205,7 +217,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     onClick={handleLogout}
                     title="Sair"
                     aria-label="Sair"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 shadow-sm transition-colors hover:border-red-300 hover:bg-red-100 sm:h-9 sm:w-9 sm:border-transparent sm:bg-transparent sm:text-slate-600 sm:shadow-none sm:hover:bg-red-50 sm:hover:text-red-700"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 shadow-sm transition-colors hover:border-red-300 hover:bg-red-100 sm:h-9 sm:w-9 sm:border-transparent sm:bg-transparent sm:text-red-700 sm:shadow-none sm:hover:bg-red-50 sm:hover:text-red-800"
                   >
                     <LogOut size={17} />
                   </button>

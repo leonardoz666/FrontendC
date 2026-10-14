@@ -1,5 +1,15 @@
 import { unwrapList } from './legacyArray'
 import { publishLocalDataChange, shouldPublishApiMutation } from './data-sync'
+import {
+  cacheApiPayload,
+  createIdempotencyKey,
+  isCacheableApiGet,
+  isQueueableApiMutation,
+  isTransientOfflineFailure,
+  markBackendReachable,
+  queueApiMutation,
+  readCachedApiPayload,
+} from './offline'
 
 /**
  * Cliente HTTP do frontend.
@@ -52,6 +62,8 @@ export type ApiRequestOptions = Omit<RequestInit, 'body' | 'credentials'> & {
   redirectOn401?: boolean
   /** Em GET/HEAD, envia `cache: 'no-store'` (o cache de dados é do react-query). Default: `true`. */
   noStore?: boolean
+  /** Metadados locais persistidos junto da fila; nunca são enviados à API. */
+  offlineMetadata?: unknown
 }
 
 /**
@@ -176,11 +188,13 @@ export async function apiRequest(path: string, options: ApiRequestOptions = {}):
     body,
     redirectOn401 = true,
     noStore = true,
+    offlineMetadata: _offlineMetadata,
     headers,
     method = 'GET',
     cache,
     ...rest
   } = options
+  void _offlineMetadata
 
   const url = toApiPath(path)
   const upperMethod = method.toUpperCase()
@@ -252,6 +266,11 @@ export async function apiFetch<T = unknown>(
   const method = (options.method ?? 'GET').toUpperCase()
   const apiPath = toApiPath(path)
   const isAuthMe = method === 'GET' && apiPath === '/api/auth/me'
+  const requestHeaders = new Headers(options.headers)
+  if (isQueueableApiMutation(method, apiPath) && !requestHeaders.has('Idempotency-Key')) {
+    requestHeaders.set('Idempotency-Key', createIdempotencyKey())
+  }
+  const requestOptions: ApiRequestOptions = { ...options, headers: requestHeaders }
 
   if (isAuthMe && authMeCache && authMeCache.expiresAt > Date.now()) {
     return authMeCache.value as T
@@ -259,18 +278,54 @@ export async function apiFetch<T = unknown>(
   if (isAuthMe && authMeInFlight) return authMeInFlight as Promise<T>
 
   const execute = async (): Promise<T> => {
+    const resolveOfflineFallback = async (error: unknown): Promise<T> => {
+      if ((method === 'GET' || method === 'HEAD') && isCacheableApiGet(apiPath)) {
+        const cached = await readCachedApiPayload(apiPath)
+        if (cached !== undefined) {
+          markBackendReachable(false)
+          return cached as T
+        }
+      }
+      if (isQueueableApiMutation(method, apiPath)) {
+        const queued = await queueApiMutation({
+          path: apiPath,
+          method,
+          body: options.body,
+          headers: requestHeaders,
+          metadata: options.offlineMetadata,
+        })
+        if (typeof window !== 'undefined') {
+          publishLocalDataChange(window, { method, path: apiPath })
+        }
+        return queued as T
+      }
+      throw error
+    }
+
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && !navigator.onLine) {
+      return resolveOfflineFallback(new TypeError('Sem conexão com a internet'))
+    }
+
     let response: Response
     try {
-      response = await apiRequest(path, options)
+      response = await apiRequest(path, requestOptions)
     } catch (error) {
       // Consultar a sessão sem cookie é um estado esperado, não uma falha da
       // aplicação. O apiRequest já cuida do redirecionamento quando habilitado;
       // aqui normalizamos o retorno para evitar erros no console e overlays do Next.
       if (isAuthMe && error instanceof ApiError && error.isUnauthorized) {
+        markBackendReachable(true)
         return { user: null } as T
       }
+      if (isTransientOfflineFailure(error)) {
+        markBackendReachable(false)
+        return resolveOfflineFallback(error)
+      }
+      if (error instanceof ApiError) markBackendReachable(true)
       throw error
     }
+
+    markBackendReachable(true)
 
     if (response.status === 204 || response.status === 205) {
       return undefined as T
@@ -281,11 +336,16 @@ export async function apiFetch<T = unknown>(
       return undefined as T
     }
 
+    let result: T
     try {
-      return JSON.parse(text) as T
+      result = JSON.parse(text) as T
     } catch {
       return text as unknown as T
     }
+    if (method === 'GET' || method === 'HEAD') {
+      await cacheApiPayload(apiPath, result)
+    }
+    return result
   }
 
   if (!isAuthMe) {
