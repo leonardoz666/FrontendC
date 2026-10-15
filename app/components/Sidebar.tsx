@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @next/next/no-img-element -- a marca do tenant pode ser uma data URL */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -26,6 +27,7 @@ import {
   MapPin,
   Package,
   PackageSearch,
+  Palette,
   PanelLeftClose,
   PanelLeftOpen,
   Pencil,
@@ -59,6 +61,7 @@ import {
   type NavItem,
   type NavUser,
 } from '@/app/lib/navigation'
+import { useBranding } from '@/app/contexts/BrandingContext'
 
 const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   LayoutDashboard,
@@ -95,6 +98,7 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   HardDrive,
   QrCode,
   Eye,
+  Palette,
 }
 
 interface SidebarProps {
@@ -116,6 +120,7 @@ export default function Sidebar({
   collapsed: collapsedProp,
   onToggleCollapse,
 }: SidebarProps) {
+  const { branding } = useBranding()
   const pathname = usePathname()
   const [fetchedUser, setFetchedUser] = useState<NavUser | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -352,12 +357,12 @@ export default function Sidebar({
           {!visibility.hideBrand && (
           <div className={`flex h-[54px] items-center gap-3 ${isCollapsed ? 'md:justify-center' : ''}`}>
             <div className={`flex min-w-0 items-center gap-3 ${isCollapsed ? 'md:justify-center' : ''}`}>
-              <div className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-[#f4510b] text-[22px] font-bold text-white ${isCollapsed ? 'md:h-14 md:w-14 md:rounded-[14px] md:text-2xl' : ''}`}>
-                R
+              <div className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-orange-600 text-[22px] font-bold text-white ${isCollapsed ? 'md:h-14 md:w-14 md:rounded-[14px] md:text-2xl' : ''}`}>
+                {branding.logoUrl ? <img src={branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : branding.nomeExibicao.charAt(0).toUpperCase()}
               </div>
               <div className={`min-w-0 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <span className="block truncate text-base font-bold leading-tight text-slate-950">
-                  {establishmentName}
+                  {branding.nomeExibicao || establishmentName}
                 </span>
                 <span className="block truncate text-xs font-medium text-slate-500">Operação do salão</span>
               </div>

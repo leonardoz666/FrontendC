@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @next/next/no-img-element -- a marca do tenant pode ser uma data URL */
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -17,6 +18,7 @@ import {
   writeStoredCollapsed,
   type NavUser,
 } from '@/app/lib/navigation'
+import { useBranding } from '@/app/contexts/BrandingContext'
 
 /**
  * Suporte (RF-UI-04): `NEXT_PUBLIC_SUPORTE_WHATSAPP` aceita a URL completa do WhatsApp
@@ -31,6 +33,7 @@ function resolveSupportHref(raw: string | undefined): string | null {
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
+  const { branding } = useBranding()
   const pathname = usePathname()
   const router = useRouter()
   const { showToast } = useToast()
@@ -38,7 +41,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [user, setUser] = useState<NavUser | null>(null)
-  const [establishmentName, setEstablishmentName] = useState('Rei do Pirão')
+  const establishmentName = branding.nomeExibicao
 
   const isWaiter = user?.role === 'GARCOM'
   const isStockkeeper = user?.role === 'ESTOQUISTA'
@@ -71,8 +74,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     let cancelled = false
     const loadUser = async () => {
       try {
-        const tenant = await apiFetch<{ estabelecimento?: { nome?: string } }>('/tenant/current', { redirectOn401: false })
-        if (!cancelled && tenant.estabelecimento?.nome) setEstablishmentName(tenant.estabelecimento.nome)
         const data = await apiFetch<{ user?: NavUser }>('/auth/me', { redirectOn401: false })
         if (!cancelled && data.user) {
           const preferences = data.user.id === undefined
@@ -174,7 +175,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           ) : isWaiter ? (
             <header className="sticky top-0 z-30 grid min-h-[60px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-200 bg-white px-3 py-2 shadow-sm sm:px-5 md:px-8 xl:min-h-[76px] xl:grid-cols-[1fr_auto_1fr] xl:gap-6 xl:py-0">
               <div className="hidden shrink-0 items-center gap-3 xl:flex">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-600 text-xl font-bold text-white">R</div>
+                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-orange-600 text-xl font-bold text-white">
+                  {branding.logoUrl ? <img src={branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : establishmentName.charAt(0).toUpperCase()}
+                </div>
                 <div className="hidden sm:block">
                   <p className="text-base font-bold leading-tight text-slate-900">{establishmentName}</p>
                   <p className="text-xs font-medium text-slate-500">Operação do salão</p>

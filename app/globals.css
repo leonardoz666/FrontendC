@@ -3,6 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --brand-primary: #ea580c;
+  --brand-secondary: #0f172a;
+  --brand-accent: #f97316;
+  accent-color: var(--brand-accent);
+  caret-color: var(--brand-primary);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--brand-primary) 28%, white);
+  color: var(--brand-secondary);
+}
+
+:where(.bg-orange-500, .bg-orange-600, .bg-orange-700).text-white {
+  color: var(--brand-on-primary);
 }
 
 @theme inline {

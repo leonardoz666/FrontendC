@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @next/next/no-img-element -- a marca do tenant pode ser uma data URL */
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ChefHat } from 'lucide-react'
 import { ApiError, apiFetch } from '@/app/lib/api'
 import { InlineLoader } from '@/app/components/ui/PageLoader'
+import { useBranding } from '@/app/contexts/BrandingContext'
 
 type LoginResponse = { user?: { role?: string } }
 
@@ -56,12 +58,13 @@ function paginaInicial(role?: string): string {
 }
 
 export default function LoginPage() {
+  const { branding } = useBranding()
   const [login, setLogin] = useState('')
   const [senha, setSenha] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [locationStatus, setLocationStatus] = useState('')
-  const [establishmentName, setEstablishmentName] = useState('Rei do Pirão')
+  const establishmentName = branding.nomeExibicao
   const router = useRouter()
 
   useEffect(() => {
@@ -73,13 +76,6 @@ export default function LoginPage() {
       const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
 
       try {
-        const tenant = await apiFetch<{ estabelecimento?: { nome?: string } }>('/tenant/current', {
-          signal: controller.signal,
-          redirectOn401: false,
-        })
-        if (!cancelled && tenant.estabelecimento?.nome) {
-          setEstablishmentName(tenant.estabelecimento.nome)
-        }
         const data = await apiFetch<{ user?: { role?: string } }>('/auth/me', {
           signal: controller.signal,
           redirectOn401: false,
@@ -139,17 +135,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex w-full bg-gray-50">
       {/* Left Side - Hero / Brand */}
-      <div className="hidden lg:flex lg:w-1/2 bg-orange-600 relative overflow-hidden items-center justify-center">
+      <div className="relative hidden items-center justify-center overflow-hidden bg-orange-600 lg:flex lg:w-1/2">
         <div className="absolute inset-0 bg-black/10 z-10" />
         <div className="relative z-20 text-white text-center p-12">
           <div className="mb-8 flex justify-center">
-            <div className="w-32 h-32 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-              <ChefHat size={64} className="text-white" />
+            <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white/15 p-3">
+              {branding.logoUrl ? <img src={branding.logoUrl} alt={`Logo ${establishmentName}`} className="h-full w-full object-contain" /> : <ChefHat size={64} className="text-white" />}
             </div>
           </div>
           <h1 className="text-5xl font-bold mb-6">{establishmentName}</h1>
-          <p className="text-xl text-orange-100 max-w-md mx-auto">
-            Operação, atendimento e gestão em um só lugar.
+          <p className="mx-auto max-w-md text-xl opacity-80">
+            {branding.slogan}
           </p>
         </div>
         {/* Decorative circles */}
@@ -162,7 +158,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md border-0 shadow-none lg:border lg:shadow-sm">
           <CardHeader className="space-y-1 text-center lg:text-left">
             <div className="flex justify-center lg:hidden mb-4">
-               <ChefHat size={48} className="text-orange-600" />
+               {branding.logoUrl ? <img src={branding.logoUrl} alt={`Logo ${establishmentName}`} className="h-14 w-28 object-contain" /> : <ChefHat size={48} className="text-orange-600" />}
             </div>
             <CardTitle className="text-2xl font-bold text-center lg:text-left">Bem-vindo de volta</CardTitle>
             <p className="text-gray-500 text-sm text-center lg:text-left">
