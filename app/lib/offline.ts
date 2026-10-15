@@ -152,18 +152,6 @@ async function deleteRecord(storeName: string, key: IDBValidKey): Promise<void> 
   }
 }
 
-async function clearStore(storeName: string): Promise<void> {
-  const database = await openDatabase()
-  if (!database) return
-  try {
-    const transaction = database.transaction(storeName, 'readwrite')
-    transaction.objectStore(storeName).clear()
-    await transactionDone(transaction)
-  } finally {
-    database.close()
-  }
-}
-
 function dispatch(name: string): void {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(name))
 }
@@ -329,7 +317,14 @@ export async function discardOfflineMutation(id: string): Promise<void> {
 }
 
 export async function clearOfflineData(): Promise<void> {
-  await Promise.all([clearStore(RESPONSE_STORE), clearStore(MUTATION_STORE)])
+  const [responses, mutations] = await Promise.all([
+    getAllRecords<CachedResponse>(RESPONSE_STORE),
+    getAllRecords<OfflineMutation>(MUTATION_STORE)
+  ])
+  await Promise.all([
+    ...responses.filter(belongsToCurrentTenant).map(record => deleteRecord(RESPONSE_STORE, record.key)),
+    ...mutations.filter(belongsToCurrentTenant).map(record => deleteRecord(MUTATION_STORE, record.id))
+  ])
   backendReachable = true
   await notifyStatus()
 }

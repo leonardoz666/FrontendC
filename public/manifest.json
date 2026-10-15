@@ -1,7 +1,7 @@
 {
-  "name": "Rei do Pirão",
-  "short_name": "Rei do Pirão",
-  "description": "Sistema de Pedidos Rei do Pirão",
+  "name": "Sistema de Gestão",
+  "short_name": "Gestão",
+  "description": "Operação e gestão do estabelecimento",
   "id": "/",
   "start_url": "/",
   "scope": "/",

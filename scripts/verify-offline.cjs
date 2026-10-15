@@ -95,7 +95,20 @@ async function main() {
   assert.equal((await offline.getOfflineStatus()).pending, 0)
 
   await offline.clearOfflineData()
-  console.log('24 verificações do modo offline passaram')
+  global.document = { cookie: 'rei_tenant_slug=tenant-a' }
+  await offline.cacheApiPayload('/api/tables', [{ id: 31 }])
+  await offline.queueApiMutation({ path: '/api/orders', method: 'POST', body: { mesaId: 31 }, headers: new Headers() })
+  global.document.cookie = 'rei_tenant_slug=tenant-b'
+  await offline.cacheApiPayload('/api/tables', [{ id: 41 }])
+  await offline.queueApiMutation({ path: '/api/orders', method: 'POST', body: { mesaId: 41 }, headers: new Headers() })
+  await offline.clearOfflineData()
+  assert.equal(await offline.readCachedApiPayload('/api/tables'), undefined, 'logout deve limpar somente o cache do tenant atual')
+  assert.equal((await offline.listOfflineMutations()).length, 0, 'logout deve limpar somente a fila do tenant atual')
+  global.document.cookie = 'rei_tenant_slug=tenant-a'
+  assert.deepEqual(await offline.readCachedApiPayload('/api/tables'), [{ id: 31 }], 'cache de outro tenant deve permanecer')
+  assert.equal((await offline.listOfflineMutations()).length, 1, 'fila de outro tenant deve permanecer')
+  await offline.clearOfflineData()
+  console.log('28 verificações do modo offline passaram')
 }
 
 main()

@@ -29,8 +29,8 @@ const themeInitScript = `
 `;
 
 export const metadata: Metadata = {
-  title: "Rei do Pirão",
-  description: "Sistema de Gerenciamento de Pedidos",
+  title: "Sistema de Gestão",
+  description: "Operação e gestão do estabelecimento",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Rei do Pirão",
+    title: "Sistema de Gestão",
   },
 };
 
