@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Braces, CheckCircle2, CircleAlert, RotateCcw, Server, Wifi } from 'lucide-react'
+import { Braces, CheckCircle2, CircleAlert, Eye, EyeOff, RotateCcw, Server, Wifi } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import {
   clearBackendBoundBrowserState,
@@ -52,6 +52,7 @@ export default function ApiSettingsPage() {
   const queryClient = useQueryClient()
   const [configuredUrl, setConfiguredUrl] = useState<string | null>(null)
   const [url, setUrl] = useState('')
+  const [showUrl, setShowUrl] = useState(false)
   const [testing, setTesting] = useState(false)
   const [saving, setSaving] = useState(false)
   const [restoring, setRestoring] = useState(false)
@@ -168,23 +169,34 @@ export default function ApiSettingsPage() {
         </div>
 
         <div className="space-y-5 px-5 py-5 sm:px-6 sm:py-6">
-          <label htmlFor="backend-url" className="block">
-            <span className="block text-sm font-bold text-slate-900">Endereço do backend</span>
+          <div>
+            <label htmlFor="backend-url" className="block text-sm font-bold text-slate-900">Endereço do backend</label>
             <span className="mt-1 block text-xs leading-5 text-slate-500">Use a URL principal do servidor, sem adicionar caminhos como /api ou /auth.</span>
-            <input
-              id="backend-url"
-              type="url"
-              value={url}
-              onChange={event => {
-                setUrl(event.target.value)
-                setConnection({ kind: 'idle', message: 'Teste o endereço antes de salvar para confirmar que o backend está acessível.' })
-              }}
-              placeholder="https://seu-backend.exemplo.com"
-              autoComplete="url"
-              spellCheck={false}
-              className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
-            />
-          </label>
+            <div className="relative mt-2">
+              <input
+                id="backend-url"
+                type={showUrl ? 'url' : 'password'}
+                value={url}
+                onChange={event => {
+                  setUrl(event.target.value)
+                  setConnection({ kind: 'idle', message: 'Teste o endereço antes de salvar para confirmar que o backend está acessível.' })
+                }}
+                placeholder="https://seu-backend.exemplo.com"
+                autoComplete="off"
+                spellCheck={false}
+                className="h-12 w-full rounded-lg border border-slate-300 bg-white px-3 pr-12 text-sm text-slate-950 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+              />
+              <button
+                type="button"
+                onClick={() => setShowUrl(value => !value)}
+                aria-label={showUrl ? 'Ocultar endereço do backend' : 'Mostrar endereço do backend'}
+                aria-pressed={showUrl}
+                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-lg text-slate-500 transition hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-orange-500"
+              >
+                {showUrl ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+              </button>
+            </div>
+          </div>
 
           <div
             role="status"
