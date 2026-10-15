@@ -5,6 +5,21 @@ const originalFetch = global.fetch
 
 async function main() {
   const { apiFetch, ApiError, invalidateAuthMeCache } = require('../app/lib/api')
+  const { normalizeBackendUrl, BACKEND_URL_COOKIE } = require('../app/lib/backend-config')
+  const { isQueueableApiMutation } = require('../app/lib/offline')
+
+  assert.equal(normalizeBackendUrl('https://api.exemplo.com/'), 'https://api.exemplo.com')
+  assert.throws(() => normalizeBackendUrl('api.exemplo.com'), /URL completa/)
+  assert.throws(() => normalizeBackendUrl('ftp://api.exemplo.com'), /http/)
+  assert.equal(BACKEND_URL_COOKIE, 'rei_backend_url')
+  assert.equal(isQueueableApiMutation('POST', '/api/orders'), true)
+  assert.equal(isQueueableApiMutation('POST', '/api/tables/10/open'), true)
+  assert.equal(isQueueableApiMutation('POST', '/api/tables/10/reopen'), true)
+  assert.equal(isQueueableApiMutation('POST', '/api/tables/10/request-bill'), true)
+  assert.equal(isQueueableApiMutation('POST', '/api/tables/10/print-partial'), true)
+  assert.equal(isQueueableApiMutation('POST', '/api/tables/10/payment'), false)
+  assert.equal(isQueueableApiMutation('POST', '/api/caixa/movimentos'), false)
+  assert.equal(isQueueableApiMutation('DELETE', '/api/orders/1'), false)
 
   let calls = 0
   global.fetch = async () => {
@@ -56,7 +71,7 @@ async function main() {
   assert.deepEqual(expiredSession, { user: null }, 'sessão expirada em /auth/me deve ser um estado normal')
   assert.equal(calls, 1, '401 de /auth/me não deve repetir nem lançar ApiError')
 
-  console.log('10 verificações de resiliência da API passaram')
+  console.log('22 verificações da API passaram')
 }
 
 main()

@@ -6,6 +6,7 @@ import {
   Armchair,
   Bike,
   Boxes,
+  Braces,
   CalendarDays,
   Camera,
   ChartColumn,
@@ -95,6 +96,7 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   HardDrive,
   QrCode,
   Eye,
+  Braces,
 }
 
 interface SidebarProps {

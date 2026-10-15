@@ -169,7 +169,8 @@ export function isCacheableApiGet(path: string): boolean {
 export function isQueueableApiMutation(method: string, path: string): boolean {
   if (method.toUpperCase() !== 'POST') return false
   const pathname = path.split('?')[0]
-  return pathname === '/api/orders' || /^\/api\/tables\/\d+\/(open|reopen)$/.test(pathname)
+  return pathname === '/api/orders'
+    || /^\/api\/tables\/\d+\/(open|reopen|request-bill|print-partial)$/.test(pathname)
 }
 
 export function isTransientOfflineFailure(error: unknown): boolean {

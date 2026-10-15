@@ -90,7 +90,7 @@ function Preview({ config, tab, paper }: { config: ComandaConfig; tab: Tab; pape
   const bill = doc !== 'pedido'
   const billStyle = bill ? style as BillTicketStyle : null
   const orderStyle = !bill ? style as OrderTicketStyle : null
-  const divider = config.geral.separador.repeat(paper === 58 ? 32 : 42)
+  const divider = config.geral.separador.repeat(paper === 58 ? 32 : 48)
   const itemName = style.itensMaiusculos ? 'ABARÁ DO REI' : 'Abará do Rei'
   const date = [style.mostrarData && '14/10/2026', style.mostrarHora && '19:46'].filter(Boolean).join(' ')
   const pad = config.geral.margemEsquerda * (paper === 58 ? 2 : 2.3)

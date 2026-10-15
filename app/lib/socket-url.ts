@@ -1,5 +1,8 @@
+import { runtimeBackendUrl } from './backend-config'
+
 export function getSocketUrl(): string | undefined {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL
+  const configured = runtimeBackendUrl()
+  if (configured) return configured
   if (typeof window === 'undefined') return undefined
 
   const host = window.location.hostname
