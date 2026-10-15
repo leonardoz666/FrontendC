@@ -43,10 +43,13 @@ function BooleanGrid({ values, onChange, bill = false }: {
   bill?: boolean
 }) {
   const common: Array<[keyof TicketStyle, string, string]> = [
+    ['mostrarTitulo', 'Mostrar título', 'Exibe o nome do documento antes dos dados.'],
     ['tituloGrande', 'Título grande', 'Destaca o tipo do documento sem aumentar sua largura.'],
     ['itensGrandes', 'Itens grandes', 'Aumenta a altura das letras para leitura à distância.'],
     ['itensEmNegrito', 'Itens em negrito', 'Reforça nomes e quantidades.'],
     ['itensMaiusculos', 'Itens em maiúsculas', 'Padroniza os nomes impressos.'],
+    ['mostrarItens', 'Mostrar itens', 'Exibe os produtos e suas quantidades.'],
+    ['mostrarSeparadores', 'Linhas separadoras', 'Divide visualmente as seções do documento.'],
     ['mostrarData', 'Mostrar data', 'Exibe a data da emissão.'],
     ['mostrarHora', 'Mostrar hora', 'Exibe hora e minuto da emissão.']
   ]
@@ -61,12 +64,14 @@ function BooleanGrid({ values, onChange, bill = false }: {
     ['mostrarEstabelecimento', 'Nome do estabelecimento', 'Cabeçalho da conta.'],
     ['mostrarEndereco', 'Endereço', 'Usa o endereço definido em Geral.'],
     ['mostrarDocumento', 'CNPJ ou documento', 'Usa o documento definido em Geral.'],
+    ['mostrarMesa', 'Número da mesa', 'Identifica a mesa desta conta.'],
     ['mostrarPrecoUnitario', 'Preço unitário', 'Detalha quantidade vezes preço.'],
     ['mostrarSubtotal', 'Subtotal', 'Mostra o valor antes dos adicionais.'],
     ['mostrarServico', 'Taxa de serviço', 'Mostra a taxa quando houver.'],
     ['mostrarDesconto', 'Desconto', 'Mostra o abatimento quando houver.'],
     ['mostrarPagamento', 'Forma de pagamento', 'Forma, valor pago e troco.'],
     ['mostrarSaldo', 'Saldo restante', 'Útil para parciais e pagamentos incompletos.'],
+    ['mostrarTotal', 'Total da conta', 'Exibe o valor total em destaque.'],
     ['mostrarRodape', 'Mensagem de rodapé', 'Usa o texto definido em Geral.']
   ]
   const options = [...common, ...(bill ? account : order)]
@@ -99,30 +104,34 @@ function Preview({ config, tab, paper }: { config: ComandaConfig; tab: Tab; pape
       {bill && billStyle?.mostrarEstabelecimento && <p className="text-center text-sm font-bold">{config.geral.nomeEstabelecimento}</p>}
       {bill && billStyle?.mostrarEndereco && config.geral.endereco && <p className="text-center text-[10px]">{config.geral.endereco}</p>}
       {bill && billStyle?.mostrarDocumento && config.geral.documento && <p className="text-center text-[10px]">{config.geral.documento}</p>}
-      <p className={`mt-2 break-words text-center font-bold leading-tight ${style.tituloGrande ? 'text-xl' : 'text-sm'}`}>
+      {style.mostrarTitulo && <p className={`mt-2 break-words text-center font-bold leading-tight ${style.tituloGrande ? 'text-xl' : 'text-sm'}`}>
         {style.titulo}{orderStyle?.mostrarNumeroComanda ? ' #0005' : ''}
-      </p>
-      <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>
+      </p>}
+      {style.mostrarSeparadores && style.mostrarTitulo && <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>}
       <div style={{ paddingLeft: `${pad}px` }}>
-        {(orderStyle?.mostrarMesa || bill) && <p className={orderStyle ? 'text-lg font-bold' : 'text-xs'}>MESA: 10</p>}
+        {(orderStyle?.mostrarMesa || billStyle?.mostrarMesa) && <p className={orderStyle ? 'text-lg font-bold' : 'text-xs'}>MESA: 10</p>}
         {orderStyle?.mostrarGarcom && <p className="text-lg font-bold">GARÇOM: DONO</p>}
         {orderStyle?.mostrarNumeroPedido && <p className="text-sm font-bold">PEDIDO: #108</p>}
-        {date && <p className="mt-1 text-[10px]">{date}</p>}
+        {date && <p className="mt-1 text-[10px]">DATA: {date}</p>}
       </div>
-      <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>
-      <div style={{ paddingLeft: `${pad}px` }}>
+      {style.mostrarSeparadores && ((orderStyle?.mostrarMesa || orderStyle?.mostrarGarcom || orderStyle?.mostrarNumeroPedido || billStyle?.mostrarMesa || date) && style.mostrarItens) && <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>}
+      {style.mostrarItens && (doc === 'parcial' ? <div className={`grid ${billStyle?.mostrarPrecoUnitario ? 'grid-cols-[2rem_minmax(0,1fr)_3rem_3.5rem]' : 'grid-cols-[2rem_minmax(0,1fr)_3.5rem]'} gap-x-1 text-[10px] leading-5`} style={{ paddingLeft: `${pad}px` }}>
+        <span className="font-bold">QTD</span><span className="font-bold">ITEM</span>{billStyle?.mostrarPrecoUnitario && <span className="text-right font-bold">R$</span>}<span className="text-right font-bold">TOT</span>
+        <span>1</span><span className="truncate">{itemName}</span>{billStyle?.mostrarPrecoUnitario && <span className="text-right">18,00</span>}<span className="text-right">18,00</span>
+        <span>2</span><span className="truncate">Suco</span>{billStyle?.mostrarPrecoUnitario && <span className="text-right">8,00</span>}<span className="text-right">16,00</span>
+      </div> : <div style={{ paddingLeft: `${pad}px` }}>
         <p className={`${style.itensGrandes ? 'text-lg' : 'text-xs'} ${style.itensEmNegrito ? 'font-bold' : ''}`}>01X&nbsp; {itemName}</p>
         {billStyle?.mostrarPrecoUnitario && <p className="mt-1 text-[10px]">1 x R$ 18,00</p>}
         {bill && <p className="text-right text-xs">R$ 18,00</p>}
         {orderStyle?.mostrarObservacoes && <p className="mt-3 text-[10px]">OBS: SEM PIMENTA</p>}
-      </div>
+      </div>)}
       {bill && <>
-        <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>
+        {style.mostrarSeparadores && style.mostrarItens && <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>}
         <div className="space-y-1 text-right text-xs">
           {billStyle?.mostrarSubtotal && <p>SUBTOTAL: R$ 18,00</p>}
           {billStyle?.mostrarServico && <p>SERVIÇO: R$ 1,80</p>}
           {billStyle?.mostrarDesconto && <p>DESCONTO: -R$ 2,00</p>}
-          <p className="font-bold">TOTAL: R$ 19,80</p>
+          {billStyle?.mostrarTotal && <p className="font-bold">TOTAL: R$ 19,80</p>}
         </div>
         {billStyle?.mostrarPagamento && <div className="mt-4 text-xs"><p>FORMA PAGTO: PIX</p><p>VALOR PAGO: R$ 19,80</p></div>}
         {billStyle?.mostrarSaldo && <p className="mt-4 text-xs font-bold">SALDO RESTANTE: R$ 19,80</p>}
