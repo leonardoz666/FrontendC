@@ -176,7 +176,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <header className="sticky top-0 z-30 grid min-h-[60px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-200 bg-white px-3 py-2 shadow-sm sm:px-5 md:px-8 xl:min-h-[76px] xl:grid-cols-[1fr_auto_1fr] xl:gap-6 xl:py-0">
               <div className="hidden shrink-0 items-center gap-3 xl:flex">
                 <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-orange-600 text-xl font-bold text-white">
-                  {branding.logoUrl ? <img src={branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : establishmentName.charAt(0).toUpperCase()}
+                  {branding.logoCompactaUrl || branding.logoUrl ? <img src={branding.logoCompactaUrl || branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : establishmentName.charAt(0).toUpperCase()}
                 </div>
                 <div className="hidden sm:block">
                   <p className="text-base font-bold leading-tight text-slate-900">{establishmentName}</p>

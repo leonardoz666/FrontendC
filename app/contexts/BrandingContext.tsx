@@ -11,9 +11,14 @@ export type RestaurantBranding = {
   nomeExibicao: string
   slogan: string
   logoUrl: string
+  logoCompactaUrl: string
+  faviconUrl: string
+  imagemLoginUrl: string
   corPrimaria: string
   corSecundaria: string
   corDestaque: string
+  fonteInterface: 'MODERNA' | 'SISTEMA' | 'CLASSICA'
+  temaPadrao: 'CLARO' | 'ESCURO' | 'SISTEMA'
 }
 
 export const DEFAULT_BRANDING: RestaurantBranding = {
@@ -21,9 +26,14 @@ export const DEFAULT_BRANDING: RestaurantBranding = {
   nomeExibicao: 'Rei do Pirão',
   slogan: 'Operação, atendimento e gestão em um só lugar.',
   logoUrl: '',
+  logoCompactaUrl: '',
+  faviconUrl: '',
+  imagemLoginUrl: '',
   corPrimaria: '#ea580c',
   corSecundaria: '#0f172a',
   corDestaque: '#f97316',
+  fonteInterface: 'MODERNA',
+  temaPadrao: 'SISTEMA',
 }
 
 const NEUTRAL_BRANDING: RestaurantBranding = {
@@ -31,9 +41,14 @@ const NEUTRAL_BRANDING: RestaurantBranding = {
   nomeExibicao: 'Sistema de Gestão',
   slogan: 'Carregando estabelecimento...',
   logoUrl: '',
+  logoCompactaUrl: '',
+  faviconUrl: '',
+  imagemLoginUrl: '',
   corPrimaria: '#475569',
   corSecundaria: '#0f172a',
   corDestaque: '#64748b',
+  fonteInterface: 'MODERNA',
+  temaPadrao: 'SISTEMA',
 }
 
 type BrandingPayload = Partial<RestaurantBranding> & { nome?: string }
@@ -49,14 +64,25 @@ const BrandingContext = createContext<BrandingContextValue | null>(null)
 
 function normalizedBranding(value?: BrandingPayload): RestaurantBranding {
   const nome = value?.nome?.trim() || DEFAULT_BRANDING.nome
+  const fonteInterface = value?.fonteInterface
+  const temaPadrao = value?.temaPadrao
   return {
     nome,
     nomeExibicao: value?.nomeExibicao?.trim() || nome,
     slogan: value?.slogan?.trim() || DEFAULT_BRANDING.slogan,
     logoUrl: value?.logoUrl?.trim() || '',
+    logoCompactaUrl: value?.logoCompactaUrl?.trim() || '',
+    faviconUrl: value?.faviconUrl?.trim() || '',
+    imagemLoginUrl: value?.imagemLoginUrl?.trim() || '',
     corPrimaria: value?.corPrimaria || DEFAULT_BRANDING.corPrimaria,
     corSecundaria: value?.corSecundaria || DEFAULT_BRANDING.corSecundaria,
     corDestaque: value?.corDestaque || DEFAULT_BRANDING.corDestaque,
+    fonteInterface: fonteInterface && ['MODERNA', 'SISTEMA', 'CLASSICA'].includes(fonteInterface)
+      ? fonteInterface
+      : DEFAULT_BRANDING.fonteInterface,
+    temaPadrao: temaPadrao && ['CLARO', 'ESCURO', 'SISTEMA'].includes(temaPadrao)
+      ? temaPadrao
+      : DEFAULT_BRANDING.temaPadrao,
   }
 }
 
@@ -82,10 +108,16 @@ export function readableTextColor(hex: string): '#ffffff' | '#0f172a' {
 
 function applyBranding(branding: RestaurantBranding): void {
   const root = document.documentElement
+  const fontFamilies = {
+    MODERNA: 'var(--font-geist-sans), "Segoe UI", sans-serif',
+    SISTEMA: '"Segoe UI", Arial, sans-serif',
+    CLASSICA: 'Georgia, "Times New Roman", serif',
+  } as const
   root.style.setProperty('--brand-primary', branding.corPrimaria)
   root.style.setProperty('--brand-secondary', branding.corSecundaria)
   root.style.setProperty('--brand-accent', branding.corDestaque)
   root.style.setProperty('--brand-on-primary', readableTextColor(branding.corPrimaria))
+  root.style.setProperty('--brand-font-family', fontFamilies[branding.fonteInterface])
   root.style.setProperty('--color-slate-950', mix(branding.corSecundaria, '#000000', .16))
   root.style.setProperty('--color-slate-900', branding.corSecundaria)
   root.style.setProperty('--color-slate-800', mix(branding.corSecundaria, '#ffffff', .12))
@@ -105,6 +137,15 @@ function applyBranding(branding: RestaurantBranding): void {
   }
   Object.entries(palette).forEach(([shade, color]) => root.style.setProperty(`--color-orange-${shade}`, color))
   document.title = `${branding.nomeExibicao} | Sistema de Gestão`
+  let favicon = document.querySelector<HTMLLinkElement>('link[data-tenant-branding="favicon"]')
+  if (!favicon) {
+    favicon = document.createElement('link')
+    favicon.rel = 'icon'
+    favicon.dataset.tenantBranding = 'favicon'
+    document.head.appendChild(favicon)
+  }
+  favicon.href = branding.faviconUrl || '/icon-192x192.png'
+  window.dispatchEvent(new CustomEvent('rei-branding-theme', { detail: branding.temaPadrao }))
 }
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {

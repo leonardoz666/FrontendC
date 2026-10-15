@@ -356,7 +356,7 @@ export default function Sidebar({
           <div className={`flex h-[54px] items-center gap-3 ${isCollapsed ? 'md:justify-center' : ''}`}>
             <div className={`flex min-w-0 items-center gap-3 ${isCollapsed ? 'md:justify-center' : ''}`}>
               <div className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-orange-600 text-[22px] font-bold text-white ${isCollapsed ? 'md:h-14 md:w-14 md:rounded-[14px] md:text-2xl' : ''}`}>
-                {branding.logoUrl ? <img src={branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : branding.nomeExibicao.charAt(0).toUpperCase()}
+                {branding.logoCompactaUrl || branding.logoUrl ? <img src={branding.logoCompactaUrl || branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : branding.nomeExibicao.charAt(0).toUpperCase()}
               </div>
               <div className={`min-w-0 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <span className="block truncate text-base font-bold leading-tight text-slate-950">

@@ -135,7 +135,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex w-full bg-gray-50">
       {/* Left Side - Hero / Brand */}
-      <div className="relative hidden items-center justify-center overflow-hidden bg-orange-600 lg:flex lg:w-1/2">
+      <div
+        className="relative hidden items-center justify-center overflow-hidden bg-orange-600 lg:flex lg:w-1/2"
+        style={branding.imagemLoginUrl ? { backgroundImage: `url(${branding.imagemLoginUrl})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
+      >
         <div className="absolute inset-0 bg-black/10 z-10" />
         <div className="relative z-20 text-white text-center p-12">
           <div className="mb-8 flex justify-center">

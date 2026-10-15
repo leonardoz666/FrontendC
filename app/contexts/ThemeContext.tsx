@@ -12,8 +12,25 @@ type ThemeContextValue = {
 }
 
 const STORAGE_KEY = 'rei-color-theme'
+type BrandTheme = 'CLARO' | 'ESCURO' | 'SISTEMA'
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
+
+function tenantThemeStorageKey(): string {
+  const match = document.cookie.match(/(?:^|;\s*)rei_tenant_slug=([^;]+)/)
+  const tenant = match ? decodeURIComponent(match[1]) : 'tenant-unresolved'
+  return `${STORAGE_KEY}:${tenant}`
+}
+
+function systemTheme(): ColorTheme {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function resolveBrandTheme(preference: BrandTheme): ColorTheme {
+  if (preference === 'CLARO') return 'light'
+  if (preference === 'ESCURO') return 'dark'
+  return systemTheme()
+}
 
 function applyTheme(theme: ColorTheme) {
   const root = document.documentElement
@@ -31,26 +48,39 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY)
+    const stored = window.localStorage.getItem(tenantThemeStorageKey())
     const initialTheme: ColorTheme = stored === 'light' || stored === 'dark'
       ? stored
-      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      : systemTheme()
 
     setThemeState(initialTheme)
     applyTheme(initialTheme)
     setMounted(true)
+
+    const applyBrandPreference = (event: Event) => {
+      const preference = (event as CustomEvent<BrandTheme>).detail
+      if (!['CLARO', 'ESCURO', 'SISTEMA'].includes(preference)) return
+      const storedTheme = window.localStorage.getItem(tenantThemeStorageKey())
+      const brandedTheme: ColorTheme = storedTheme === 'light' || storedTheme === 'dark'
+        ? storedTheme
+        : resolveBrandTheme(preference)
+      setThemeState(brandedTheme)
+      applyTheme(brandedTheme)
+    }
+    window.addEventListener('rei-branding-theme', applyBrandPreference)
+    return () => window.removeEventListener('rei-branding-theme', applyBrandPreference)
   }, [])
 
   const setTheme = useCallback((nextTheme: ColorTheme) => {
     setThemeState(nextTheme)
-    window.localStorage.setItem(STORAGE_KEY, nextTheme)
+    window.localStorage.setItem(tenantThemeStorageKey(), nextTheme)
     applyTheme(nextTheme)
   }, [])
 
   const toggleTheme = useCallback(() => {
     setThemeState(themeAtual => {
       const nextTheme = themeAtual === 'dark' ? 'light' : 'dark'
-      window.localStorage.setItem(STORAGE_KEY, nextTheme)
+      window.localStorage.setItem(tenantThemeStorageKey(), nextTheme)
       applyTheme(nextTheme)
       return nextTheme
     })

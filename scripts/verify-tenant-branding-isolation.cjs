@@ -6,6 +6,9 @@ const provider = fs.readFileSync(path.join(root, 'app/contexts/BrandingContext.t
 const offline = fs.readFileSync(path.join(root, 'app/lib/offline.ts'), 'utf8')
 const api = fs.readFileSync(path.join(root, 'app/lib/api.ts'), 'utf8')
 const proxy = fs.readFileSync(path.join(root, 'app/lib/backend-proxy.ts'), 'utf8')
+const login = fs.readFileSync(path.join(root, 'app/login/page.tsx'), 'utf8')
+const sidebar = fs.readFileSync(path.join(root, 'app/components/Sidebar.tsx'), 'utf8')
+const theme = fs.readFileSync(path.join(root, 'app/contexts/ThemeContext.tsx'), 'utf8')
 
 const checks = [
   {
@@ -43,6 +46,22 @@ const checks = [
   {
     name: 'não aceita tenant injetado pelo navegador no proxy',
     pass: /headers\.delete\(['"]x-tenant-slug['"]\)/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*tenantSlug\)/.test(proxy),
+  },
+  {
+    name: 'aplica favicon, tipografia e tema da identidade do estabelecimento',
+    pass: /faviconUrl/.test(provider) && /--brand-font-family/.test(provider) && /rei-branding-theme/.test(provider),
+  },
+  {
+    name: 'usa imagem personalizada na tela de login',
+    pass: /branding\.imagemLoginUrl/.test(login) && /backgroundImage/.test(login),
+  },
+  {
+    name: 'usa a logo compacta na navegação',
+    pass: /branding\.logoCompactaUrl\s*\|\|\s*branding\.logoUrl/.test(sidebar),
+  },
+  {
+    name: 'isola a preferência de tema por estabelecimento',
+    pass: /rei_tenant_slug/.test(theme) && /tenantThemeStorageKey/.test(theme),
   },
 ]
 

@@ -6,6 +6,7 @@
   --brand-primary: #ea580c;
   --brand-secondary: #0f172a;
   --brand-accent: #f97316;
+  --brand-font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
   accent-color: var(--brand-accent);
   caret-color: var(--brand-primary);
 }
@@ -22,14 +23,14 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--brand-font-family);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+  font-family: var(--brand-font-family);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
