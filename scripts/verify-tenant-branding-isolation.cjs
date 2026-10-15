@@ -1,0 +1,59 @@
+const fs = require('node:fs')
+const path = require('node:path')
+
+const root = path.resolve(__dirname, '..')
+const provider = fs.readFileSync(path.join(root, 'app/contexts/BrandingContext.tsx'), 'utf8')
+const offline = fs.readFileSync(path.join(root, 'app/lib/offline.ts'), 'utf8')
+const api = fs.readFileSync(path.join(root, 'app/lib/api.ts'), 'utf8')
+const proxy = fs.readFileSync(path.join(root, 'app/lib/backend-proxy.ts'), 'utf8')
+
+const checks = [
+  {
+    name: 'não inicializa com a marca de um restaurante específico',
+    pass: /useState<RestaurantBranding\s*\|\s*null>\(null\)/.test(provider),
+  },
+  {
+    name: 'bloqueia a interface enquanto o tenant está sendo resolvido',
+    pass: /if\s*\(carregando\s*\|\|\s*!branding\s*\|\|\s*resolvedTenant\s*!==\s*tenantHint\)/.test(provider),
+  },
+  {
+    name: 'revalida a marca quando o link do estabelecimento muda',
+    pass: /useSearchParams/.test(provider) && /tenantHint/.test(provider),
+  },
+  {
+    name: 'não usa Rei do Pirão como fallback universal',
+    pass: !/useState\(DEFAULT_BRANDING\)/.test(provider),
+  },
+  {
+    name: 'não atribui cache sem tenant ao Rei do Pirão',
+    pass: /__tenant-unresolved__/.test(offline) && !/record\.tenantSlug\s*\|\|\s*['"]rei-do-pirao/.test(offline),
+  },
+  {
+    name: 'isola o cache de sessão pelo tenant atual',
+    pass: /authMeCache:\s*\{ tenantSlug: string/.test(api) && /authMeCache\?\.tenantSlug === tenantSlug/.test(api),
+  },
+  {
+    name: 'limpa o cache das telas ao trocar de estabelecimento',
+    pass: /queryClient\.clear\(\)/.test(provider) && /resolvedTenant\s*!==\s*tenantHint/.test(provider),
+  },
+  {
+    name: 'impede cache compartilhado nas respostas da API',
+    pass: /cache-control['"],\s*['"]private, no-store, max-age=0/.test(proxy) && /vary['"],\s*['"]Cookie, x-tenant-slug/.test(proxy),
+  },
+]
+
+let failed = 0
+for (const check of checks) {
+  if (check.pass) console.log(`OK  ${check.name}`)
+  else {
+    failed += 1
+    console.error(`FALHA  ${check.name}`)
+  }
+}
+
+if (failed > 0) {
+  console.error(`\n${failed} proteção(ões) contra mistura visual de tenant ausente(s).`)
+  process.exit(1)
+}
+
+console.log('\nIsolamento visual de tenant verificado.')

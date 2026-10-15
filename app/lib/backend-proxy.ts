@@ -43,6 +43,8 @@ export async function proxyBackendRequest(request: NextRequest, pathname: string
     responseHeaders.delete('content-length')
     responseHeaders.delete('content-encoding')
     responseHeaders.delete('transfer-encoding')
+    responseHeaders.set('cache-control', 'private, no-store, max-age=0')
+    responseHeaders.set('vary', 'Cookie, x-tenant-slug')
     return new Response(response.body, { status: response.status, headers: responseHeaders })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Falha desconhecida'

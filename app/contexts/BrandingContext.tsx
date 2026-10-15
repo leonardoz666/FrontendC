@@ -1,7 +1,10 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { apiFetch } from '@/app/lib/api'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+import { apiFetch, invalidateAuthMeCache } from '@/app/lib/api'
+import { currentTenantSlug } from '@/app/lib/offline'
 
 export type RestaurantBranding = {
   nome: string
@@ -21,6 +24,16 @@ export const DEFAULT_BRANDING: RestaurantBranding = {
   corPrimaria: '#ea580c',
   corSecundaria: '#0f172a',
   corDestaque: '#f97316',
+}
+
+const NEUTRAL_BRANDING: RestaurantBranding = {
+  nome: 'Sistema de Gestão',
+  nomeExibicao: 'Sistema de Gestão',
+  slogan: 'Carregando estabelecimento...',
+  logoUrl: '',
+  corPrimaria: '#475569',
+  corSecundaria: '#0f172a',
+  corDestaque: '#64748b',
 }
 
 type BrandingPayload = Partial<RestaurantBranding> & { nome?: string }
@@ -95,8 +108,13 @@ function applyBranding(branding: RestaurantBranding): void {
 }
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {
-  const [branding, setBrandingState] = useState(DEFAULT_BRANDING)
+  const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
+  const tenantHint = searchParams.get('estabelecimento') || currentTenantSlug()
+  const [branding, setBrandingState] = useState<RestaurantBranding | null>(null)
+  const [resolvedTenant, setResolvedTenant] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
+  const requestVersion = useRef(0)
 
   const setBranding = useCallback((value: BrandingPayload) => {
     const normalized = normalizedBranding(value)
@@ -105,19 +123,42 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const refreshBranding = useCallback(async () => {
+    const requestId = ++requestVersion.current
+    setCarregando(true)
+    setBrandingState(null)
+    applyBranding(NEUTRAL_BRANDING)
     try {
       const response = await apiFetch<{ estabelecimento?: BrandingPayload }>('/tenant/current', { redirectOn401: false })
+      if (requestId !== requestVersion.current) return
       if (response.estabelecimento) setBranding(response.estabelecimento)
+      else setBranding(NEUTRAL_BRANDING)
+      setResolvedTenant(tenantHint)
     } catch {
-      setBranding(DEFAULT_BRANDING)
+      if (requestId === requestVersion.current) {
+        setBranding(NEUTRAL_BRANDING)
+        setResolvedTenant(tenantHint)
+      }
     } finally {
-      setCarregando(false)
+      if (requestId === requestVersion.current) setCarregando(false)
     }
-  }, [setBranding])
+  }, [setBranding, tenantHint])
 
   useEffect(() => {
+    queryClient.clear()
+    invalidateAuthMeCache()
     void refreshBranding()
-  }, [refreshBranding])
+  }, [queryClient, refreshBranding])
+
+  if (carregando || !branding || resolvedTenant !== tenantHint) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50" role="status" aria-label="Carregando estabelecimento">
+        <div className="flex items-center gap-3 text-sm font-semibold text-slate-600">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" aria-hidden="true" />
+          Carregando estabelecimento...
+        </div>
+      </div>
+    )
+  }
 
   return (
     <BrandingContext.Provider value={{ branding, carregando, refreshBranding, setBranding }}>

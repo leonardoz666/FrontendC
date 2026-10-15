@@ -17,7 +17,6 @@ import {
   Eye,
   History,
   LockKeyhole,
-  Palette,
   Trash2,
 } from 'lucide-react'
 
@@ -69,13 +68,6 @@ export default function AdminDashboard() {
       description: 'Personalizar pedidos, parciais e fechamentos',
       icon: ClipboardList,
       color: 'bg-orange-600'
-    },
-    {
-      href: '/admin/personalizacao',
-      label: 'Personalização',
-      description: 'Cores, logo e identidade do restaurante',
-      icon: Palette,
-      color: 'bg-orange-500'
     },
     {
       href: '/admin/visibilidade',

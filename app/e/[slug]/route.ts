@@ -25,5 +25,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     path: '/'
   })
   response.cookies.set('rei_backend_url', '', { maxAge: 0, path: '/' })
+  response.headers.set('cache-control', 'private, no-store, max-age=0')
+  response.headers.set('vary', 'Cookie')
   return response
 }

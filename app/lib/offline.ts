@@ -61,14 +61,16 @@ function browserAvailable(): boolean {
   return typeof window !== 'undefined' && typeof indexedDB !== 'undefined'
 }
 
-function currentTenantSlug(): string {
-  if (typeof document === 'undefined') return 'rei-do-pirao'
+const UNRESOLVED_TENANT = '__tenant-unresolved__'
+
+export function currentTenantSlug(): string {
+  if (typeof document === 'undefined') return UNRESOLVED_TENANT
   const match = document.cookie.match(/(?:^|;\s*)rei_tenant_slug=([^;]+)/)
-  return match ? decodeURIComponent(match[1]) : 'rei-do-pirao'
+  return match ? decodeURIComponent(match[1]) : UNRESOLVED_TENANT
 }
 
 function belongsToCurrentTenant(record: { tenantSlug?: string }): boolean {
-  return (record.tenantSlug || 'rei-do-pirao') === currentTenantSlug()
+  return record.tenantSlug === currentTenantSlug()
 }
 
 function cacheKey(path: string): string {

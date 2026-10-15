@@ -1,7 +1,7 @@
 'use client'
 
 import { QueryClientProvider } from '@tanstack/react-query'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { ToastProvider } from './contexts/ToastContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { createQueryClient } from './lib/queryClient'
@@ -14,12 +14,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <BrandingProvider>
-          <DataSyncBridge />
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </BrandingProvider>
+        <Suspense fallback={null}>
+          <BrandingProvider>
+            <DataSyncBridge />
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </BrandingProvider>
+        </Suspense>
       </QueryClientProvider>
     </ThemeProvider>
   )

@@ -115,7 +115,6 @@ export type NavIconName =
   | 'HardDrive'
   | 'QrCode'
   | 'Eye'
-  | 'Palette'
 
 export type NavShortcut = 'F8'
 
@@ -491,12 +490,6 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/admin/visibilidade',
         label: 'Visibilidade',
         icon: 'Eye',
-        roles: ['ADMIN', 'DONO'],
-      },
-      {
-        href: '/admin/personalizacao',
-        label: 'Personalização',
-        icon: 'Palette',
         roles: ['ADMIN', 'DONO'],
       },
       {

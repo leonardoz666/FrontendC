@@ -27,7 +27,6 @@ import {
   MapPin,
   Package,
   PackageSearch,
-  Palette,
   PanelLeftClose,
   PanelLeftOpen,
   Pencil,
@@ -98,7 +97,6 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   HardDrive,
   QrCode,
   Eye,
-  Palette,
 }
 
 interface SidebarProps {

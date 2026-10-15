@@ -3,6 +3,7 @@ import { publishLocalDataChange, shouldPublishApiMutation } from './data-sync'
 import {
   cacheApiPayload,
   createIdempotencyKey,
+  currentTenantSlug,
   isCacheableApiGet,
   isQueueableApiMutation,
   isTransientOfflineFailure,
@@ -29,8 +30,8 @@ const TRANSIENT_GET_STATUSES = new Set([429, 502, 503, 504])
 const TRANSIENT_GET_DELAYS_MS = [1000, 3000, 6000]
 const AUTH_ME_CACHE_MS = 15_000
 
-let authMeCache: { expiresAt: number; value: unknown } | null = null
-let authMeInFlight: Promise<unknown> | null = null
+let authMeCache: { tenantSlug: string; expiresAt: number; value: unknown } | null = null
+let authMeInFlight: { tenantSlug: string; promise: Promise<unknown> } | null = null
 
 export class ApiError extends Error {
   readonly status: number
@@ -266,16 +267,17 @@ export async function apiFetch<T = unknown>(
   const method = (options.method ?? 'GET').toUpperCase()
   const apiPath = toApiPath(path)
   const isAuthMe = method === 'GET' && apiPath === '/api/auth/me'
+  const tenantSlug = currentTenantSlug()
   const requestHeaders = new Headers(options.headers)
   if (isQueueableApiMutation(method, apiPath) && !requestHeaders.has('Idempotency-Key')) {
     requestHeaders.set('Idempotency-Key', createIdempotencyKey())
   }
   const requestOptions: ApiRequestOptions = { ...options, headers: requestHeaders }
 
-  if (isAuthMe && authMeCache && authMeCache.expiresAt > Date.now()) {
+  if (isAuthMe && authMeCache?.tenantSlug === tenantSlug && authMeCache.expiresAt > Date.now()) {
     return authMeCache.value as T
   }
-  if (isAuthMe && authMeInFlight) return authMeInFlight as Promise<T>
+  if (isAuthMe && authMeInFlight?.tenantSlug === tenantSlug) return authMeInFlight.promise as Promise<T>
 
   const execute = async (): Promise<T> => {
     const resolveOfflineFallback = async (error: unknown): Promise<T> => {
@@ -351,22 +353,25 @@ export async function apiFetch<T = unknown>(
   if (!isAuthMe) {
     const result = await execute()
     if (apiPath === '/api/auth/login' && method === 'POST') {
-      authMeCache = { expiresAt: Date.now() + AUTH_ME_CACHE_MS, value: result }
+      authMeCache = { tenantSlug, expiresAt: Date.now() + AUTH_ME_CACHE_MS, value: result }
     } else if (apiPath === '/api/auth/logout' && method === 'POST') {
       authMeCache = null
     }
     return result
   }
 
-  authMeInFlight = execute()
+  const promise = execute()
     .then(result => {
-      authMeCache = { expiresAt: Date.now() + AUTH_ME_CACHE_MS, value: result }
+      if (currentTenantSlug() === tenantSlug) {
+        authMeCache = { tenantSlug, expiresAt: Date.now() + AUTH_ME_CACHE_MS, value: result }
+      }
       return result
     })
     .finally(() => {
-      authMeInFlight = null
+      if (authMeInFlight?.promise === promise) authMeInFlight = null
     })
-  return authMeInFlight as Promise<T>
+  authMeInFlight = { tenantSlug, promise }
+  return promise as Promise<T>
 }
 
 export function invalidateAuthMeCache(): void {
