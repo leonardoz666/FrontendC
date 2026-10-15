@@ -9,12 +9,14 @@ const TRANSIENT_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504])
 
 type CachedResponse = {
   key: string
+  tenantSlug?: string
   payload: unknown
   updatedAt: number
 }
 
 export type OfflineMutation = {
   id: string
+  tenantSlug?: string
   path: string
   method: string
   body: unknown
@@ -57,6 +59,20 @@ let syncInFlight: Promise<void> | null = null
 
 function browserAvailable(): boolean {
   return typeof window !== 'undefined' && typeof indexedDB !== 'undefined'
+}
+
+function currentTenantSlug(): string {
+  if (typeof document === 'undefined') return 'rei-do-pirao'
+  const match = document.cookie.match(/(?:^|;\s*)rei_tenant_slug=([^;]+)/)
+  return match ? decodeURIComponent(match[1]) : 'rei-do-pirao'
+}
+
+function belongsToCurrentTenant(record: { tenantSlug?: string }): boolean {
+  return (record.tenantSlug || 'rei-do-pirao') === currentTenantSlug()
+}
+
+function cacheKey(path: string): string {
+  return `${currentTenantSlug()}:${path}`
 }
 
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
@@ -204,7 +220,12 @@ export function markBackendReachable(reachable: boolean): void {
 export async function cacheApiPayload(path: string, payload: unknown): Promise<void> {
   if (!isCacheableApiGet(path)) return
   try {
-    await putRecord(RESPONSE_STORE, { key: path, payload, updatedAt: Date.now() } satisfies CachedResponse)
+    await putRecord(RESPONSE_STORE, {
+      key: cacheKey(path),
+      tenantSlug: currentTenantSlug(),
+      payload,
+      updatedAt: Date.now()
+    } satisfies CachedResponse)
   } catch (error) {
     console.warn('[OFFLINE CACHE] Não foi possível armazenar a resposta localmente.', error)
   }
@@ -213,14 +234,14 @@ export async function cacheApiPayload(path: string, payload: unknown): Promise<v
 export async function readCachedApiPayload(path: string): Promise<unknown | undefined> {
   if (!isCacheableApiGet(path)) return undefined
   try {
-    const exact = await getRecord<CachedResponse>(RESPONSE_STORE, path)
+    const exact = await getRecord<CachedResponse>(RESPONSE_STORE, cacheKey(path))
     if (exact) return exact.payload
 
     const tableMatch = path.split('?')[0].match(/^\/api\/tables\/(\d+)$/)
     if (tableMatch) {
       const tableId = Number(tableMatch[1])
-      const cached = await getAllRecords<CachedResponse>(RESPONSE_STORE)
-      const tableList = cached.find(record => record.key.split('?')[0] === '/api/tables')?.payload
+      const cached = (await getAllRecords<CachedResponse>(RESPONSE_STORE)).filter(belongsToCurrentTenant)
+      const tableList = cached.find(record => record.key.endsWith('/api/tables'))?.payload
       if (Array.isArray(tableList)) {
         const table = tableList.find(item => item && typeof item === 'object' && Number((item as { id?: unknown }).id) === tableId)
         if (table) return { ...table, comandas: [] }
@@ -250,6 +271,7 @@ export async function queueApiMutation(input: {
   }
   const mutation: OfflineMutation = {
     id,
+    tenantSlug: currentTenantSlug(),
     path: input.path,
     method: input.method.toUpperCase(),
     body: input.body,
@@ -266,7 +288,7 @@ export async function queueApiMutation(input: {
 
 export async function listOfflineMutations(): Promise<OfflineMutation[]> {
   const mutations = await getAllRecords<OfflineMutation>(MUTATION_STORE)
-  return mutations.sort((a, b) => a.createdAt - b.createdAt)
+  return mutations.filter(belongsToCurrentTenant).sort((a, b) => a.createdAt - b.createdAt)
 }
 
 export async function listOfflineOrderItems(mesaId: number): Promise<OfflineOrderItemMetadata[]> {
@@ -314,10 +336,11 @@ export async function clearOfflineData(): Promise<void> {
 
 async function invalidateOperationalCache(path: string): Promise<void> {
   const tableId = path.match(/^\/api\/tables\/(\d+)/)?.[1]
-  const records = await getAllRecords<CachedResponse>(RESPONSE_STORE)
+  const records = (await getAllRecords<CachedResponse>(RESPONSE_STORE)).filter(belongsToCurrentTenant)
   const keys = records
     .filter(record => {
-      const pathname = record.key.split('?')[0]
+      const storedPath = record.key.slice(record.key.indexOf(':') + 1)
+      const pathname = storedPath.split('?')[0]
       return pathname === '/api/tables'
         || pathname === '/api/caixa/operacional'
         || (tableId !== undefined && pathname === `/api/tables/${tableId}`)
@@ -349,7 +372,7 @@ export async function syncOfflineQueue(options: { retryBlocked?: boolean } = {})
         try {
           const response = await fetch(mutation.path, {
             method: mutation.method,
-            headers: mutation.headers,
+            headers: { ...mutation.headers, 'x-tenant-slug': mutation.tenantSlug || 'rei-do-pirao' },
             credentials: 'include',
             body: mutation.body === undefined || mutation.body === null
               ? null

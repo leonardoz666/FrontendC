@@ -6,7 +6,6 @@ import {
   Armchair,
   Bike,
   Boxes,
-  Braces,
   CalendarDays,
   Camera,
   ChartColumn,
@@ -96,7 +95,6 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   HardDrive,
   QrCode,
   Eye,
-  Braces,
 }
 
 interface SidebarProps {
@@ -104,6 +102,7 @@ interface SidebarProps {
   onClose: () => void
   /** Usuário já carregado pelo MainLayout (evita uma segunda chamada a `/api/auth/me`). */
   user?: NavUser | null
+  establishmentName?: string
   /** Estado recolhido (rail de ícones) controlado pelo MainLayout. */
   collapsed?: boolean
   onToggleCollapse?: () => void
@@ -113,6 +112,7 @@ export default function Sidebar({
   isOpen,
   onClose,
   user: userProp,
+  establishmentName = 'Rei do Pirão',
   collapsed: collapsedProp,
   onToggleCollapse,
 }: SidebarProps) {
@@ -357,7 +357,7 @@ export default function Sidebar({
               </div>
               <div className={`min-w-0 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <span className="block truncate text-base font-bold leading-tight text-slate-950">
-                  Rei do Pirão
+                  {establishmentName}
                 </span>
                 <span className="block truncate text-xs font-medium text-slate-500">Operação do salão</span>
               </div>

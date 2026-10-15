@@ -8,7 +8,6 @@ import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { useToast } from '@/contexts/ToastContext'
 import { 
   AlertTriangle,
-  Braces,
   Database,
   UtensilsCrossed, 
   Users, 
@@ -69,13 +68,6 @@ export default function AdminDashboard() {
       description: 'Personalizar pedidos, parciais e fechamentos',
       icon: ClipboardList,
       color: 'bg-orange-600'
-    },
-    {
-      href: '/admin/api',
-      label: 'API',
-      description: 'Conectar o programa ao backend',
-      icon: Braces,
-      color: 'bg-slate-800'
     },
     {
       href: '/admin/visibilidade',

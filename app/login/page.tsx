@@ -61,6 +61,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [locationStatus, setLocationStatus] = useState('')
+  const [establishmentName, setEstablishmentName] = useState('Rei do Pirão')
   const router = useRouter()
 
   useEffect(() => {
@@ -72,6 +73,13 @@ export default function LoginPage() {
       const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
 
       try {
+        const tenant = await apiFetch<{ estabelecimento?: { nome?: string } }>('/tenant/current', {
+          signal: controller.signal,
+          redirectOn401: false,
+        })
+        if (!cancelled && tenant.estabelecimento?.nome) {
+          setEstablishmentName(tenant.estabelecimento.nome)
+        }
         const data = await apiFetch<{ user?: { role?: string } }>('/auth/me', {
           signal: controller.signal,
           redirectOn401: false,
@@ -139,9 +147,9 @@ export default function LoginPage() {
               <ChefHat size={64} className="text-white" />
             </div>
           </div>
-          <h1 className="text-5xl font-bold mb-6">Rei do Pirão</h1>
+          <h1 className="text-5xl font-bold mb-6">{establishmentName}</h1>
           <p className="text-xl text-orange-100 max-w-md mx-auto">
-            O melhor sabor da região, agora com um sistema de gestão à altura.
+            Operação, atendimento e gestão em um só lugar.
           </p>
         </div>
         {/* Decorative circles */}
@@ -197,7 +205,7 @@ export default function LoginPage() {
             </form>
             
             <div className="mt-6 text-center text-xs text-gray-600">
-              &copy; {new Date().getFullYear()} Rei do Pirão. Todos os direitos reservados.
+              &copy; {new Date().getFullYear()} {establishmentName}. Todos os direitos reservados.
             </div>
           </CardContent>
         </Card>

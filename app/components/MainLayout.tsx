@@ -38,6 +38,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [user, setUser] = useState<NavUser | null>(null)
+  const [establishmentName, setEstablishmentName] = useState('Rei do Pirão')
 
   const isWaiter = user?.role === 'GARCOM'
   const isStockkeeper = user?.role === 'ESTOQUISTA'
@@ -70,6 +71,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     let cancelled = false
     const loadUser = async () => {
       try {
+        const tenant = await apiFetch<{ estabelecimento?: { nome?: string } }>('/tenant/current', { redirectOn401: false })
+        if (!cancelled && tenant.estabelecimento?.nome) setEstablishmentName(tenant.estabelecimento.nome)
         const data = await apiFetch<{ user?: NavUser }>('/auth/me', { redirectOn401: false })
         if (!cancelled && data.user) {
           const preferences = data.user.id === undefined
@@ -157,7 +160,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           {isSimplifiedStockkeeper ? (
             <header className="sticky top-0 z-50 flex min-h-14 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-2 shadow-sm sm:px-6">
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-slate-950">Rei do Pirão</p>
+                <p className="truncate text-sm font-bold text-slate-950">{establishmentName}</p>
                 <p className="truncate text-xs font-medium text-slate-500">Registro simplificado de estoque</p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
@@ -173,7 +176,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <div className="hidden shrink-0 items-center gap-3 xl:flex">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-600 text-xl font-bold text-white">R</div>
                 <div className="hidden sm:block">
-                  <p className="text-base font-bold leading-tight text-slate-900">Rei do Pirão</p>
+                  <p className="text-base font-bold leading-tight text-slate-900">{establishmentName}</p>
                   <p className="text-xs font-medium text-slate-500">Operação do salão</p>
                 </div>
               </div>
@@ -237,7 +240,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   <Menu size={21} />
                 </button>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-slate-950">Rei do Pirão</p>
+                  <p className="truncate text-sm font-bold text-slate-950">{establishmentName}</p>
                   <p className="truncate text-xs font-medium text-slate-500">{isStockkeeper ? 'Estoque' : 'Menu do sistema'}</p>
                 </div>
                 <ThemeToggle compact className="ml-auto" />
@@ -246,6 +249,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 user={user}
+                establishmentName={establishmentName}
                 collapsed={isStockkeeper ? false : isCollapsed}
                 onToggleCollapse={isStockkeeper ? undefined : toggleCollapsed}
               />

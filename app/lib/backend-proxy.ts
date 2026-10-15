@@ -1,26 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { BACKEND_URL_COOKIE, normalizeBackendUrl } from './backend-config'
 
 const FALLBACK_BACKEND_URL = 'https://backendrei.onrender.com'
 const HOP_BY_HOP_HEADERS = ['connection', 'content-length', 'host', 'transfer-encoding']
+const TENANT_COOKIE = 'rei_tenant_slug'
 
-function configuredBackend(request: NextRequest): string {
-  const cookieValue = request.cookies.get(BACKEND_URL_COOKIE)?.value
-  const raw = cookieValue ? decodeURIComponent(cookieValue) : process.env.NEXT_PUBLIC_API_URL || FALLBACK_BACKEND_URL
-  return normalizeBackendUrl(raw)
+function configuredBackend(): string {
+  return (process.env.NEXT_PUBLIC_API_URL || FALLBACK_BACKEND_URL).replace(/\/$/, '')
 }
 
 function forwardedCookie(request: NextRequest): string {
   return request.cookies
     .getAll()
-    .filter(cookie => cookie.name !== BACKEND_URL_COOKIE)
     .map(cookie => `${cookie.name}=${cookie.value}`)
     .join('; ')
 }
 
 export async function proxyBackendRequest(request: NextRequest, pathname: string): Promise<Response> {
   try {
-    const backend = configuredBackend(request)
+    const backend = configuredBackend()
     const incomingUrl = new URL(request.url)
     const target = new URL(pathname.replace(/^\/+/, ''), `${backend}/`)
     target.search = incomingUrl.search
@@ -30,6 +27,8 @@ export async function proxyBackendRequest(request: NextRequest, pathname: string
     const cookie = forwardedCookie(request)
     if (cookie) headers.set('cookie', cookie)
     else headers.delete('cookie')
+    const tenantSlug = request.cookies.get(TENANT_COOKIE)?.value
+    if (tenantSlug) headers.set('x-tenant-slug', tenantSlug)
 
     const method = request.method.toUpperCase()
     const response = await fetch(target, {
