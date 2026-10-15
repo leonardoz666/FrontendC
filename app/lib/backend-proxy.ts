@@ -24,6 +24,9 @@ export async function proxyBackendRequest(request: NextRequest, pathname: string
 
     const headers = new Headers(request.headers)
     for (const name of HOP_BY_HOP_HEADERS) headers.delete(name)
+    // O navegador não escolhe o tenant por cabeçalho; somente o cookie emitido
+    // pelo link /e/:slug pode definir o estabelecimento encaminhado ao backend.
+    headers.delete('x-tenant-slug')
     const cookie = forwardedCookie(request)
     if (cookie) headers.set('cookie', cookie)
     else headers.delete('cookie')

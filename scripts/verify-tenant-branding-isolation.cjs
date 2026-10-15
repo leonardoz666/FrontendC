@@ -40,6 +40,10 @@ const checks = [
     name: 'impede cache compartilhado nas respostas da API',
     pass: /cache-control['"],\s*['"]private, no-store, max-age=0/.test(proxy) && /vary['"],\s*['"]Cookie, x-tenant-slug/.test(proxy),
   },
+  {
+    name: 'não aceita tenant injetado pelo navegador no proxy',
+    pass: /headers\.delete\(['"]x-tenant-slug['"]\)/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*tenantSlug\)/.test(proxy),
+  },
 ]
 
 let failed = 0
