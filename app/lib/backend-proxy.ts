@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { installationBindingForTenant } from './installation-binding'
+import { configuredTimeout, fetchWithTimeout } from './fetch-timeout'
 import { TENANT_HEADER, authCookieName, isTenantSlug, requestedTenantSlug } from './tenant-navigation'
 
 const HOP_BY_HOP_HEADERS = ['connection', 'content-length', 'host', 'transfer-encoding']
@@ -47,13 +48,13 @@ export async function proxyBackendRequest(request: NextRequest, pathname: string
     headers.set('x-controlae-installation', binding.installationToken)
 
     const method = request.method.toUpperCase()
-    const response = await fetch(target, {
+    const response = await fetchWithTimeout(target, {
       method,
       headers,
       body: method === 'GET' || method === 'HEAD' ? undefined : await request.arrayBuffer(),
       redirect: 'manual',
       cache: 'no-store',
-    })
+    }, configuredTimeout(process.env.BACKEND_PROXY_TIMEOUT_MS))
 
     const responseHeaders = new Headers(response.headers)
     responseHeaders.delete('content-length')
@@ -64,10 +65,10 @@ export async function proxyBackendRequest(request: NextRequest, pathname: string
     responseHeaders.set('vary', 'Cookie, x-tenant-slug')
     return new Response(response.body, { status: response.status, headers: responseHeaders })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Falha desconhecida'
+    const timedOut = error instanceof Error && error.name === 'AbortError'
     return NextResponse.json(
-      { error: `Não foi possível conectar ao backend configurado: ${message}` },
-      { status: 502 },
+      { error: timedOut ? 'A API configurada não respondeu a tempo' : 'Não foi possível conectar à API configurada' },
+      { status: timedOut ? 504 : 502 },
     )
   }
 }

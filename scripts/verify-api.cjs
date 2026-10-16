@@ -5,6 +5,7 @@ const originalFetch = global.fetch
 
 async function main() {
   const { apiFetch, ApiError, invalidateAuthMeCache } = require('../app/lib/api')
+  const { configuredTimeout, fetchWithTimeout } = require('../app/lib/fetch-timeout')
   const { isQueueableApiMutation } = require('../app/lib/offline')
 
   assert.equal(isQueueableApiMutation('POST', '/api/orders'), true)
@@ -66,7 +67,20 @@ async function main() {
   assert.deepEqual(expiredSession, { user: null }, 'sessão expirada em /auth/me deve ser um estado normal')
   assert.equal(calls, 1, '401 de /auth/me não deve repetir nem lançar ApiError')
 
-  console.log('18 verificações da API passaram')
+  assert.equal(configuredTimeout('inválido', 7000), 7000)
+  const hangingFetch = (_input, init) => new Promise((_resolve, reject) => {
+    init.signal.addEventListener('abort', () => {
+      const error = new Error('aborted')
+      error.name = 'AbortError'
+      reject(error)
+    }, { once: true })
+  })
+  await assert.rejects(
+    fetchWithTimeout('https://backend.invalid/api', {}, 10, hangingFetch),
+    error => error.name === 'AbortError',
+  )
+
+  console.log('20 verificações da API passaram')
 }
 
 main()
