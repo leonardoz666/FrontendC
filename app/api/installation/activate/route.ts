@@ -6,6 +6,7 @@ import {
   TENANT_COOKIE,
   createInstallationGate,
   normalizeApiUrl,
+  normalizeEstablishmentUrl,
   sealInstallationBinding,
 } from '@/app/lib/installation-binding'
 
@@ -17,11 +18,12 @@ type ActivationResponse = {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as { apiUrl?: unknown; code?: unknown }
-    if (typeof body.apiUrl !== 'string' || typeof body.code !== 'string' || !body.code.trim()) {
-      return NextResponse.json({ error: 'Informe a URL da API e o código de ativação' }, { status: 400 })
+    const body = await request.json() as { establishmentUrl?: unknown; code?: unknown }
+    if (typeof body.establishmentUrl !== 'string' || typeof body.code !== 'string' || !body.code.trim()) {
+      return NextResponse.json({ error: 'Informe o link do estabelecimento e o código de ativação' }, { status: 400 })
     }
-    const apiUrl = normalizeApiUrl(body.apiUrl)
+    const establishment = normalizeEstablishmentUrl(body.establishmentUrl)
+    const apiUrl = normalizeApiUrl(process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://backendrei.onrender.com')
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 10_000)
     let backendResponse: Response
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
       backendResponse = await fetch(`${apiUrl}/installation/activate`, {
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: body.code.trim() }),
+        body: JSON.stringify({ code: body.code.trim(), slug: establishment.slug }),
         cache: 'no-store',
         redirect: 'error',
         signal: controller.signal,
@@ -48,6 +50,9 @@ export async function POST(request: NextRequest) {
     if (typeof token !== 'string' || typeof slug !== 'string' || typeof name !== 'string') {
       return NextResponse.json({ error: 'A API respondeu com um vínculo inválido' }, { status: 502 })
     }
+    if (slug !== establishment.slug) {
+      return NextResponse.json({ error: 'O código não pertence ao link informado' }, { status: 401 })
+    }
 
     const maxAge = 365 * 24 * 60 * 60
     const secure = request.nextUrl.protocol === 'https:' || request.headers.get('x-forwarded-proto') === 'https'
@@ -55,6 +60,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = Date.now() + maxAge * 1000
     const bindingValue = sealInstallationBinding({
       apiUrl,
+      establishmentUrl: establishment.url,
       installationToken: token,
       tenantSlug: slug,
       establishmentName: name,
@@ -68,7 +74,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error && error.name !== 'AbortError'
       ? error.message
-      : 'A API não respondeu a tempo. Confirme o endereço e tente novamente.'
+      : 'O servidor não respondeu a tempo. Tente novamente em alguns instantes.'
     return NextResponse.json({ error: message }, { status: 502 })
   }
 }

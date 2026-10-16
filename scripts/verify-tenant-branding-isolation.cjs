@@ -11,6 +11,9 @@ const sidebar = fs.readFileSync(path.join(root, 'app/components/Sidebar.tsx'), '
 const theme = fs.readFileSync(path.join(root, 'app/contexts/ThemeContext.tsx'), 'utf8')
 const middleware = fs.readFileSync(path.join(root, 'middleware.ts'), 'utf8')
 const installationActivation = fs.readFileSync(path.join(root, 'app/api/installation/activate/route.ts'), 'utf8')
+const installationPage = fs.readFileSync(path.join(root, 'app/instalacao/page.tsx'), 'utf8')
+const tenantLinkPath = path.join(root, 'app/e/[slug]/route.ts')
+const tenantLinkRoute = fs.existsSync(tenantLinkPath) ? fs.readFileSync(tenantLinkPath, 'utf8') : ''
 
 const checks = [
   {
@@ -52,6 +55,14 @@ const checks = [
   {
     name: 'não libera telas operacionais apenas pela presença de um cookie',
     pass: /hasValidInstallationGate/.test(middleware) && /crypto\.subtle\.sign/.test(middleware) && /createInstallationGate\(bindingValue, expiresAt\)/.test(installationActivation),
+  },
+  {
+    name: 'ativa pelo link do estabelecimento sem pedir URL da API',
+    pass: /Link do estabelecimento/.test(installationPage) && !/URL da API/.test(installationPage) && /establishmentUrl/.test(installationActivation) && /BACKEND_URL/.test(installationActivation),
+  },
+  {
+    name: 'mantém a rota individual de cada estabelecimento',
+    pass: /SLUG_PATTERN/.test(tenantLinkRoute) && /new URL\(['"]\/instalacao['"]/.test(tenantLinkRoute) && /searchParams\.set\(['"]link['"]/.test(tenantLinkRoute),
   },
   {
     name: 'aplica favicon, tipografia e tema da identidade do estabelecimento',

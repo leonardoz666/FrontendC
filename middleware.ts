@@ -35,7 +35,7 @@ async function hasValidInstallationGate(request: NextRequest): Promise<boolean> 
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const installationRoute = pathname === '/instalacao' || pathname.startsWith('/api/installation/')
+  const installationRoute = pathname === '/instalacao' || pathname.startsWith('/api/installation/') || pathname.startsWith('/e/')
   if (installationRoute || await hasValidInstallationGate(request)) return NextResponse.next()
   if (pathname.startsWith('/api/') || pathname.startsWith('/uploads/')) {
     return NextResponse.json({ code: 'INSTALLATION_REQUIRED', error: 'Ative este aplicativo antes de continuar' }, { status: 428 })

@@ -7,6 +7,7 @@ export const TENANT_COOKIE = 'controlae_tenant_slug'
 
 export type InstallationBinding = {
   apiUrl: string
+  establishmentUrl: string
   installationToken: string
   tenantSlug: string
   establishmentName: string
@@ -52,6 +53,25 @@ export function normalizeApiUrl(value: string): string {
   return url.toString().replace(/\/$/, '')
 }
 
+export function normalizeEstablishmentUrl(value: string): { url: string; slug: string } {
+  let url: URL
+  try {
+    url = new URL(value.trim())
+  } catch {
+    throw new Error('Informe um link válido, como https://sistema.controlae.com/e/restaurante-exemplo')
+  }
+  if (url.username || url.password || url.search || url.hash) {
+    throw new Error('O link do estabelecimento não pode conter credenciais, parâmetros ou fragmentos')
+  }
+  const isLocal = ['localhost', '127.0.0.1', '::1'].includes(url.hostname)
+  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && isLocal)) {
+    throw new Error('Use um link HTTPS. HTTP é permitido somente no desenvolvimento local.')
+  }
+  const match = url.pathname.replace(/\/+$/, '').match(/^\/e\/([a-z0-9]+(?:-[a-z0-9]+)*)$/)
+  if (!match) throw new Error('Use o link completo do estabelecimento, terminado em /e/nome-do-restaurante')
+  return { url: `${url.origin}/e/${match[1]}`, slug: match[1] }
+}
+
 export function sealInstallationBinding(binding: InstallationBinding): string {
   const iv = crypto.randomBytes(12)
   const cipher = crypto.createCipheriv('aes-256-gcm', key(), iv)
@@ -72,10 +92,12 @@ export function openInstallationBinding(value: string | undefined): Installation
       decipher.update(Buffer.from(encryptedValue, 'base64url')),
       decipher.final(),
     ]).toString('utf8')) as Partial<InstallationBinding>
-    if (typeof result.apiUrl !== 'string' || typeof result.installationToken !== 'string' ||
+    if (typeof result.apiUrl !== 'string' || typeof result.establishmentUrl !== 'string' || typeof result.installationToken !== 'string' ||
         typeof result.tenantSlug !== 'string' || typeof result.establishmentName !== 'string' ||
         typeof result.expiresAt !== 'number' || result.expiresAt <= Date.now()) return null
-    return { ...result, apiUrl: normalizeApiUrl(result.apiUrl) } as InstallationBinding
+    const establishment = normalizeEstablishmentUrl(result.establishmentUrl)
+    if (establishment.slug !== result.tenantSlug) return null
+    return { ...result, apiUrl: normalizeApiUrl(result.apiUrl), establishmentUrl: establishment.url } as InstallationBinding
   } catch {
     return null
   }

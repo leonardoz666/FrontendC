@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   if (!binding) return NextResponse.json({ active: false }, { status: 404 })
   return NextResponse.json({
     active: true,
-    apiUrl: binding.apiUrl,
+    establishmentUrl: binding.establishmentUrl,
     tenantSlug: binding.tenantSlug,
     establishmentName: binding.establishmentName,
   })
