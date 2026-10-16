@@ -16,8 +16,8 @@ import {
  * Cliente HTTP do frontend.
  *
  * Regras (PRD 3.2 / 3.3):
- *  - todo caminho é RELATIVO e passa por `/api/*` (o rewrite do `next.config.js`
- *    encaminha para `NEXT_PUBLIC_API_URL`). Nunca hardcode host do backend.
+ *  - todo caminho é RELATIVO e passa por `/api/*`; o proxy usa a API vinculada
+ *    durante a ativação deste computador. Nunca hardcode host do backend.
  *  - `credentials: 'include'` sempre: a auth é JWT em cookie httpOnly.
  *  - erro sempre tipado: `ApiError` com `status` e mensagem do corpo.
  *  - 401 -> redireciona para `/login`.

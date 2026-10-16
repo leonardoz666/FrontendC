@@ -35,6 +35,20 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* A ativação acontece antes de existir um tema de estabelecimento. Ela usa uma
+   superfície neutra e legível mesmo quando o computador estava em modo escuro. */
+html.dark .controlae-installation__form {
+  background: #f4f1ea;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+html.dark .controlae-installation__form :where(.text-slate-950, .text-slate-900, .text-slate-800) { color: #172033; }
+html.dark .controlae-installation__form :where(.text-slate-700, .text-slate-600) { color: #475569; }
+html.dark .controlae-installation__form :where(.text-slate-500) { color: #64748b; }
+html.dark .controlae-installation__form :where(.bg-white) { background-color: #ffffff; }
+html.dark .controlae-installation__form :where(input) { color: #0f172a; background-color: #ffffff; }
+
 /* Espaçamento mínimo entre conteúdos distribuídos nas extremidades.
    Evita que textos e ações encostem quando a largura fica apertada. */
 :where(.flex.justify-between):not([class*="gap-"]) {

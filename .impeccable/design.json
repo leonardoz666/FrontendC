@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T00:00:00-03:00",
+  "title": "Design System: ControlaÊ",
+  "extensions": {
+    "colorMeta": {
+      "controlae-orange": { "role": "primary", "displayName": "Laranja ControlaÊ", "canonical": "#ea580c", "tonalRamp": ["#431407", "#7c2d12", "#c2410c", "#ea580c", "#f97316", "#fdba74", "#ffedd5", "#fff7ed"] },
+      "operational-navy": { "role": "secondary", "displayName": "Azul Operacional", "canonical": "#0f172a", "tonalRamp": ["#020617", "#0f172a", "#1e293b", "#334155", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"] },
+      "warm-canvas": { "role": "neutral", "displayName": "Tela Quente", "canonical": "#f4f1ea", "tonalRamp": ["#292721", "#4d4940", "#777166", "#a49d90", "#cac4b9", "#e2ddd4", "#f4f1ea", "#fcfbf8"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Promessas e estados de primeira ordem." },
+      "headline": { "displayName": "Headline", "purpose": "Títulos de páginas, painéis e modais." },
+      "body": { "displayName": "Body", "purpose": "Conteúdo e instruções operacionais." },
+      "label": { "displayName": "Label", "purpose": "Rótulos, ações e navegação." }
+    },
+    "shadows": [
+      { "name": "surface-low", "value": "0 2px 8px rgba(23,32,51,0.04)", "purpose": "Separar campos e cartões do plano de fundo." },
+      { "name": "action", "value": "0 12px 28px rgba(234,88,12,0.22)", "purpose": "Destacar a ação primária quando habilitada." }
+    ],
+    "motion": [
+      { "name": "state", "value": "160ms ease", "purpose": "Mudanças de cor e estado sem atrasar a operação." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "A ação dominante de um bloco de decisão.",
+      "html": "<button class=\"ds-btn-primary\">VALIDAR E ATIVAR →</button>",
+      "css": ".ds-btn-primary{min-height:56px;padding:0 24px;border:0;border-radius:12px;background:#ea580c;color:#fff;font:800 15px Geist,Segoe UI,sans-serif;transition:background-color 160ms ease,transform 160ms ease,box-shadow 160ms ease}.ds-btn-primary:hover{background:#c2410c;transform:translateY(-2px);box-shadow:0 16px 34px rgba(234,88,12,.26)}.ds-btn-primary:focus-visible{outline:2px solid #f97316;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "description": "Ação alternativa sem disputar com a principal.",
+      "html": "<button class=\"ds-btn-secondary\">CONFIGURAR NOVAMENTE</button>",
+      "css": ".ds-btn-secondary{min-height:48px;padding:0 20px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;color:#334155;font:700 14px Geist,Segoe UI,sans-serif;transition:background-color 160ms ease,border-color 160ms ease}.ds-btn-secondary:hover{background:#f8fafc;border-color:#94a3b8}.ds-btn-secondary:focus-visible{outline:2px solid #64748b;outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo rotulado, amplo e legível para entrada operacional.",
+      "html": "<label class=\"ds-field\"><span>URL DA API</span><input placeholder=\"https://api.seurestaurante.com.br\"></label>",
+      "css": ".ds-field{display:grid;gap:8px;color:#1e293b;font:700 14px Geist,Segoe UI,sans-serif}.ds-field input{height:56px;padding:0 16px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;color:#0f172a;font:400 15px Geist,Segoe UI,sans-serif;box-shadow:0 2px 8px rgba(23,32,51,.04)}.ds-field input::placeholder{color:#475569}.ds-field input:focus{outline:4px solid #ffedd5;border-color:#f97316}"
+    },
+    {
+      "name": "Surface Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Superfície de decisão ou confirmação.",
+      "html": "<section class=\"ds-card\"><strong>Aplicativo conectado</strong><p>O computador está vinculado ao estabelecimento.</p></section>",
+      "css": ".ds-card{padding:24px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;color:#0f172a;box-shadow:0 8px 24px rgba(15,23,42,.08);font-family:Geist,Segoe UI,sans-serif}.ds-card strong{font-size:22px}.ds-card p{margin:8px 0 0;color:#475569;line-height:1.6}"
+    },
+    {
+      "name": "Active Navigation Item",
+      "kind": "nav",
+      "description": "Destino operacional atualmente selecionado.",
+      "html": "<a class=\"ds-nav-active\" href=\"#\">MESAS</a>",
+      "css": ".ds-nav-active{display:inline-flex;min-height:40px;align-items:center;justify-content:center;padding:8px 16px;border:1px solid #c2410c;border-radius:8px;background:#ea580c;color:#fff;text-decoration:none;font:700 14px Geist,Segoe UI,sans-serif;box-shadow:0 3px 7px rgba(194,65,12,.3)}.ds-nav-active:hover{background:#c2410c}.ds-nav-active:focus-visible{outline:2px solid #f97316;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Confiança operacional acolhedora",
+    "overview": "O ControlaÊ combina a precisão exigida por uma operação de restaurante com uma presença humana e direta. A base é clara e funcional; a personalidade aparece no contraste entre azul-marinho e laranja, na tipografia firme e em detalhes de profundidade contidos. A marca do estabelecimento pode substituir os tokens de identidade dentro da aplicação operacional. As telas anteriores à resolução do tenant usam exclusivamente a identidade neutra ControlaÊ.",
+    "keyCharacteristics": ["Hierarquia forte e leitura rápida em ambientes de trabalho.", "Laranja reservado a ação, seleção e foco.", "Superfícies claras, controles generosos e estados explícitos.", "Cantos suavemente arredondados, sem aparência infantil."],
+    "rules": [
+      { "name": "One Orange", "body": "O laranja indica ação, seleção ou foco; não deve virar preenchimento decorativo dominante.", "section": "colors" },
+      { "name": "Functional Floor", "body": "Texto funcional nunca fica abaixo de 11px; instruções e metadados preferem 13px ou mais.", "section": "typography" },
+      { "name": "Flat-by-Default", "body": "Sombra comunica camada ou resposta de interação, nunca enfeite permanente.", "section": "elevation" }
+    ],
+    "dos": ["Do manter uma única ação primária clara por bloco de decisão.", "Do mostrar carregamento, erro, confirmação e sucesso como estados distintos.", "Do usar a marca neutra ControlaÊ antes de qualquer tenant ser validado.", "Do preservar contraste e alvos confortáveis em computadores e celulares operacionais."],
+    "donts": ["Don't usar a identidade de um restaurante como fallback universal.", "Don't liberar tela operacional enquanto a instalação ou o tenant não estiverem validados.", "Don't usar texto funcional minúsculo, placeholder pálido ou cor como único indicador de estado.", "Don't empilhar cartões, gradientes e sombras sem necessidade funcional."]
+  }
+}

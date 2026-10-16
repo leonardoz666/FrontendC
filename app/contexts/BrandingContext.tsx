@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiFetch, invalidateAuthMeCache } from '@/app/lib/api'
 import { currentTenantSlug } from '@/app/lib/offline'
@@ -150,11 +150,13 @@ function applyBranding(branding: RestaurantBranding): void {
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const isInstallationPage = pathname === '/instalacao'
   const queryClient = useQueryClient()
   const tenantHint = searchParams.get('estabelecimento') || currentTenantSlug()
-  const [branding, setBrandingState] = useState<RestaurantBranding | null>(null)
-  const [resolvedTenant, setResolvedTenant] = useState<string | null>(null)
-  const [carregando, setCarregando] = useState(true)
+  const [branding, setBrandingState] = useState<RestaurantBranding | null>(isInstallationPage ? DEFAULT_BRANDING : null)
+  const [resolvedTenant, setResolvedTenant] = useState<string | null>(isInstallationPage ? tenantHint : null)
+  const [carregando, setCarregando] = useState(!isInstallationPage)
   const requestVersion = useRef(0)
 
   const setBranding = useCallback((value: BrandingPayload) => {
@@ -164,6 +166,13 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const refreshBranding = useCallback(async () => {
+    if (isInstallationPage) {
+      setBrandingState(DEFAULT_BRANDING)
+      setResolvedTenant(tenantHint)
+      setCarregando(false)
+      applyBranding(DEFAULT_BRANDING)
+      return
+    }
     const requestId = ++requestVersion.current
     setCarregando(true)
     setBrandingState(null)
@@ -182,7 +191,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     } finally {
       if (requestId === requestVersion.current) setCarregando(false)
     }
-  }, [setBranding, tenantHint])
+  }, [isInstallationPage, setBranding, tenantHint])
 
   useEffect(() => {
     queryClient.clear()

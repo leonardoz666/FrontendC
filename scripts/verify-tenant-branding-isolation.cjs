@@ -9,11 +9,13 @@ const proxy = fs.readFileSync(path.join(root, 'app/lib/backend-proxy.ts'), 'utf8
 const login = fs.readFileSync(path.join(root, 'app/login/page.tsx'), 'utf8')
 const sidebar = fs.readFileSync(path.join(root, 'app/components/Sidebar.tsx'), 'utf8')
 const theme = fs.readFileSync(path.join(root, 'app/contexts/ThemeContext.tsx'), 'utf8')
+const middleware = fs.readFileSync(path.join(root, 'middleware.ts'), 'utf8')
+const installationActivation = fs.readFileSync(path.join(root, 'app/api/installation/activate/route.ts'), 'utf8')
 
 const checks = [
   {
-    name: 'não inicializa com a marca de um restaurante específico',
-    pass: /useState<RestaurantBranding\s*\|\s*null>\(null\)/.test(provider),
+    name: 'usa apenas a marca neutra ControlaÊ durante a instalação',
+    pass: /isInstallationPage\s*\?\s*DEFAULT_BRANDING\s*:\s*null/.test(provider) && /nome:\s*['"]ControlaÊ['"]/.test(provider),
   },
   {
     name: 'bloqueia a interface enquanto o tenant está sendo resolvido',
@@ -45,7 +47,11 @@ const checks = [
   },
   {
     name: 'não aceita tenant injetado pelo navegador no proxy',
-    pass: /headers\.delete\(['"]x-tenant-slug['"]\)/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*tenantSlug\)/.test(proxy),
+    pass: /headers\.delete\(['"]x-tenant-slug['"]\)/.test(proxy) && /openInstallationBinding/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*binding\.tenantSlug\)/.test(proxy),
+  },
+  {
+    name: 'não libera telas operacionais apenas pela presença de um cookie',
+    pass: /hasValidInstallationGate/.test(middleware) && /crypto\.subtle\.sign/.test(middleware) && /createInstallationGate\(bindingValue, expiresAt\)/.test(installationActivation),
   },
   {
     name: 'aplica favicon, tipografia e tema da identidade do estabelecimento',

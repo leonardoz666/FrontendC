@@ -35,18 +35,6 @@ const nextConfig = {
       },
     ],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://backendrei.onrender.com'}/:path*`,
-      },
-      {
-        source: '/uploads/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://backendrei.onrender.com'}/uploads/:path*`,
-      },
-    ]
-  },
 };
 
 module.exports = withPWA(nextConfig);

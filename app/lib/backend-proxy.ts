@@ -1,37 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { INSTALLATION_COOKIE, openInstallationBinding } from './installation-binding'
 
-const FALLBACK_BACKEND_URL = 'https://controlae-backend.onrender.com'
 const HOP_BY_HOP_HEADERS = ['connection', 'content-length', 'host', 'transfer-encoding']
-const TENANT_COOKIE = 'controlae_tenant_slug'
-
-function configuredBackend(): string {
-  return (process.env.NEXT_PUBLIC_API_URL || FALLBACK_BACKEND_URL).replace(/\/$/, '')
-}
 
 function forwardedCookie(request: NextRequest): string {
   return request.cookies
     .getAll()
+    .filter(cookie => cookie.name === 'token')
     .map(cookie => `${cookie.name}=${cookie.value}`)
     .join('; ')
 }
 
 export async function proxyBackendRequest(request: NextRequest, pathname: string): Promise<Response> {
   try {
-    const backend = configuredBackend()
+    const binding = openInstallationBinding(request.cookies.get(INSTALLATION_COOKIE)?.value)
+    if (!binding) return NextResponse.json({ code: 'INSTALLATION_REQUIRED', error: 'Ative este aplicativo antes de continuar' }, { status: 428 })
+    const backend = binding.apiUrl
     const incomingUrl = new URL(request.url)
     const target = new URL(pathname.replace(/^\/+/, ''), `${backend}/`)
     target.search = incomingUrl.search
 
     const headers = new Headers(request.headers)
     for (const name of HOP_BY_HOP_HEADERS) headers.delete(name)
-    // O navegador não escolhe o tenant por cabeçalho; somente o cookie emitido
-    // pelo link /e/:slug pode definir o estabelecimento encaminhado ao backend.
+    // O navegador não escolhe o tenant por cabeçalho. O vínculo criptografado
+    // da instalação define a API e o estabelecimento encaminhados ao backend.
     headers.delete('x-tenant-slug')
     const cookie = forwardedCookie(request)
     if (cookie) headers.set('cookie', cookie)
     else headers.delete('cookie')
-    const tenantSlug = request.cookies.get(TENANT_COOKIE)?.value
-    if (tenantSlug) headers.set('x-tenant-slug', tenantSlug)
+    headers.set('x-tenant-slug', binding.tenantSlug)
+    headers.set('x-controlae-installation', binding.installationToken)
 
     const method = request.method.toUpperCase()
     const response = await fetch(target, {

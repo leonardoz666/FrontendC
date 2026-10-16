@@ -256,7 +256,7 @@ export async function queueApiMutation(input: {
   }
   const tenantSlug = currentTenantSlug()
   if (tenantSlug === UNRESOLVED_TENANT) {
-    throw new Error('Acesse o sistema pelo link do estabelecimento antes de trabalhar offline.')
+    throw new Error('Ative este aplicativo para o estabelecimento antes de trabalhar offline.')
   }
   const id = input.headers.get('Idempotency-Key') ?? createIdempotencyKey()
   const headers: Record<string, string> = {}

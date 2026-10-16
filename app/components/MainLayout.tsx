@@ -38,6 +38,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const { showToast } = useToast()
   const isLoginPage = pathname === '/login'
+  const isInstallationPage = pathname === '/instalacao'
+  const isPublicPage = isLoginPage || isInstallationPage
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [user, setUser] = useState<NavUser | null>(null)
@@ -48,9 +50,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isSimplifiedStockkeeper = isStockkeeper && user?.modoEstoque === 'SIMPLIFICADO'
   const isStockRoute = pathname === '/admin/estoque' || pathname.startsWith('/admin/estoque/')
   const simplifiedStockRoute = pathname === '/admin/estoque/registro'
-  const isStockRouteBlocked = !isLoginPage && isStockkeeper && (isSimplifiedStockkeeper ? !simplifiedStockRoute : !isStockRoute)
-  const sidebarOffset = isLoginPage || !user || isWaiter || isSimplifiedStockkeeper ? '' : isStockkeeper || !isCollapsed ? 'md:ml-72' : 'md:ml-[88px]'
-  const supportHref = isLoginPage || !user ? null : resolveSupportHref(process.env.NEXT_PUBLIC_SUPORTE_WHATSAPP)
+  const isStockRouteBlocked = !isPublicPage && isStockkeeper && (isSimplifiedStockkeeper ? !simplifiedStockRoute : !isStockRoute)
+  const sidebarOffset = isPublicPage || !user || isWaiter || isSimplifiedStockkeeper ? '' : isStockkeeper || !isCollapsed ? 'md:ml-72' : 'md:ml-[88px]'
+  const supportHref = isPublicPage || !user ? null : resolveSupportHref(process.env.NEXT_PUBLIC_SUPORTE_WHATSAPP)
 
   // Estado recolhido persistido: lido após a montagem para não divergir do SSR.
   useEffect(() => {
@@ -67,7 +69,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // Usuário logado: alimenta o cabeçalho e a Sidebar (uma única chamada a /api/auth/me).
   useEffect(() => {
-    if (isLoginPage) {
+    if (isPublicPage) {
       setUser(null)
       return
     }
@@ -95,7 +97,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     return () => {
       cancelled = true
     }
-  }, [isLoginPage])
+  }, [isPublicPage])
 
   // O cargo de estoquista é operacional e permanece restrito ao módulo de estoque,
   // inclusive quando alguém tenta abrir outra URL diretamente.
@@ -105,7 +107,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // Atalho global (PRD seção 13): F8 abre o mapa de mesas.
   useEffect(() => {
-    if (isLoginPage || isStockkeeper) return
+    if (isPublicPage || isStockkeeper) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return
@@ -130,7 +132,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isLoginPage, isStockkeeper, router, showToast])
+  }, [isPublicPage, isStockkeeper, router, showToast])
 
   const handleLogout = async () => {
     const offlineStatus = await getOfflineStatus().catch(() => ({ pending: 0 }))
@@ -152,10 +154,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {(isLoginPage || !user) && (
+      {!isInstallationPage && (isLoginPage || !user) && (
         <ThemeToggle compact className="fixed right-4 top-4 z-[80] sm:right-6 sm:top-6" />
       )}
-      {!isLoginPage && user && (
+      {!isPublicPage && user && (
         <>
           <OfflineStatus />
           {isSimplifiedStockkeeper ? (
