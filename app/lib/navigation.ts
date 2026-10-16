@@ -19,7 +19,7 @@ import {
  *    `/minhas-mesas`, `/admin`, `/admin/produtos`, `/admin/categorias`, `/admin/usuarios`
  *    e `/admin/impressoras`.
  *
- * Os ids de permissão são o espelho de `Backendrei/src/lib/permissions.ts` (fonte da verdade).
+ * Os ids de permissão são o espelho de `BackendC/src/lib/permissions.ts` (fonte da verdade).
  */
 
 /** Ids de permissão conhecidos (mantidos em sincronia com o backend). */

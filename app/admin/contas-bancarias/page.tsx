@@ -29,7 +29,7 @@ import { useToast } from '@/contexts/ToastContext'
  * número ou string e rejeita negativo com 400).
  *
  * Atenção ao ler a API: `Decimal` chega ao JSON já normalizado para `number`
- * por `Backendrei/src/lib/serialize.ts` — por isso nunca chamamos `.toFixed()`
+ * por `BackendC/src/lib/serialize.ts` — por isso nunca chamamos `.toFixed()`
  * nem `.toNumber()` no cliente (o teste `verify-serialize.ts` cobre essa borda).
  */
 
