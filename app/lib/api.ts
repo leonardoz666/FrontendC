@@ -33,6 +33,7 @@ const AUTH_ME_CACHE_MS = 15_000
 
 let authMeCache: { tenantSlug: string; expiresAt: number; value: unknown } | null = null
 let authMeInFlight: { tenantSlug: string; promise: Promise<unknown> } | null = null
+let authSessionGeneration = 0
 
 export class ApiError extends Error {
   readonly status: number
@@ -270,6 +271,10 @@ export async function apiFetch<T = unknown>(
   const method = (options.method ?? 'GET').toUpperCase()
   const apiPath = toApiPath(path)
   const isAuthMe = method === 'GET' && apiPath === '/api/auth/me'
+  const isAuthMutation = method === 'POST'
+    && (apiPath === '/api/auth/login' || apiPath === '/api/auth/logout')
+  if (isAuthMutation) invalidateAuthMeCache()
+  const requestAuthGeneration = authSessionGeneration
   const tenantSlug = currentTenantSlug()
   const requestHeaders = new Headers(options.headers)
   if (isQueueableApiMutation(method, apiPath) && !requestHeaders.has('Idempotency-Key')) {
@@ -356,16 +361,16 @@ export async function apiFetch<T = unknown>(
   if (!isAuthMe) {
     const result = await execute()
     if (apiPath === '/api/auth/login' && method === 'POST') {
-      authMeCache = { tenantSlug, expiresAt: Date.now() + AUTH_ME_CACHE_MS, value: result }
-    } else if (apiPath === '/api/auth/logout' && method === 'POST') {
-      authMeCache = null
+      if (requestAuthGeneration === authSessionGeneration) {
+        authMeCache = { tenantSlug, expiresAt: Date.now() + AUTH_ME_CACHE_MS, value: result }
+      }
     }
     return result
   }
 
   const promise = execute()
     .then(result => {
-      if (currentTenantSlug() === tenantSlug) {
+      if (requestAuthGeneration === authSessionGeneration && currentTenantSlug() === tenantSlug) {
         authMeCache = { tenantSlug, expiresAt: Date.now() + AUTH_ME_CACHE_MS, value: result }
       }
       return result
@@ -378,6 +383,7 @@ export async function apiFetch<T = unknown>(
 }
 
 export function invalidateAuthMeCache(): void {
+  authSessionGeneration += 1
   authMeCache = null
   authMeInFlight = null
 }
