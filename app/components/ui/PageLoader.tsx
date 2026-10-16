@@ -25,7 +25,7 @@ export function PageLoader({
           <span className="rei-page-loader__glow" />
           <span className="rei-page-loader__orbit rei-page-loader__orbit--outer" />
           <span className="rei-page-loader__orbit rei-page-loader__orbit--inner" />
-          <span className="rei-page-loader__mark">R</span>
+          <span className="rei-page-loader__mark">C</span>
         </div>
         <div className="rei-page-loader__copy">
           <strong>{message}</strong>

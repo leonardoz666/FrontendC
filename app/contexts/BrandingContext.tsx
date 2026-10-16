@@ -37,8 +37,8 @@ export const DEFAULT_BRANDING: RestaurantBranding = {
 }
 
 const NEUTRAL_BRANDING: RestaurantBranding = {
-  nome: 'Sistema de Gestão',
-  nomeExibicao: 'Sistema de Gestão',
+  nome: 'ControlaÊ',
+  nomeExibicao: 'ControlaÊ',
   slogan: 'Carregando estabelecimento...',
   logoUrl: '',
   logoCompactaUrl: '',
@@ -136,7 +136,7 @@ function applyBranding(branding: RestaurantBranding): void {
     '950': mix(branding.corPrimaria, '#000000', .62),
   }
   Object.entries(palette).forEach(([shade, color]) => root.style.setProperty(`--color-orange-${shade}`, color))
-  document.title = `${branding.nomeExibicao} | Sistema de Gestão`
+  document.title = `${branding.nomeExibicao} | ControlaÊ`
   let favicon = document.querySelector<HTMLLinkElement>('link[data-tenant-branding="favicon"]')
   if (!favicon) {
     favicon = document.createElement('link')

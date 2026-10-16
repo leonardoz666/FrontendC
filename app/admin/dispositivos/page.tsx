@@ -65,9 +65,9 @@ function deveUsarAgenteLocal(manual = false): boolean {
 
 function erroDoAgente(error: unknown): Error {
   if (error instanceof TypeError) {
-    return new Error('Não foi possível acessar o Rei Printer Agent. Confirme que ele está Online e permita o acesso à rede local no navegador.')
+    return new Error('Não foi possível acessar o ControlaÊ Printer Agent. Confirme que ele está Online e permita o acesso à rede local no navegador.')
   }
-  return error instanceof Error ? error : new Error('Erro ao comunicar com o Rei Printer Agent')
+  return error instanceof Error ? error : new Error('Erro ao comunicar com o ControlaÊ Printer Agent')
 }
 
 const CONEXOES = ['TCP', 'USB'] as const
@@ -198,7 +198,7 @@ export default function DispositivosPage() {
       printerAgentFetchOptions(connection.url, { ...options, headers, cache: 'no-store' }),
     )
     const data = await response.json().catch(() => ({}))
-    if (!response.ok) throw new Error(data.error || 'Erro ao comunicar com o Rei Printer Agent')
+    if (!response.ok) throw new Error(data.error || 'Erro ao comunicar com o ControlaÊ Printer Agent')
     return data as T
   }
 

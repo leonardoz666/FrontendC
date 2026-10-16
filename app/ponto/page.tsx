@@ -346,7 +346,7 @@ export default function PontoPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'afd-rei.txt'
+      a.download = 'afd-controlae.txt'
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -370,7 +370,7 @@ export default function PontoPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `aej-rei.${aejFormato}`
+      a.download = `aej-controlae.${aejFormato}`
       document.body.appendChild(a)
       a.click()
       a.remove()

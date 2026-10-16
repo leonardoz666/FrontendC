@@ -31,8 +31,8 @@ const themeInitScript = `
 `;
 
 export const metadata: Metadata = {
-  title: "Sistema de Gestão",
-  description: "Operação e gestão do estabelecimento",
+  title: "ControlaÊ | Sistema de Gestão",
+  description: "Operação e gestão do estabelecimento com o ControlaÊ",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Sistema de Gestão",
+    title: "ControlaÊ",
   },
 };
 

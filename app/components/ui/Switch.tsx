@@ -24,7 +24,7 @@ export interface SwitchProps {
 }
 
 /**
- * Controle booleano único do Rei.
+ * Controle booleano único do ControlaÊ.
  *
  * A interface esconde semântica, teclado, foco, estado pendente e atualização
  * otimista. Promessas rejeitadas — ou handlers que retornem `false`/`null` —

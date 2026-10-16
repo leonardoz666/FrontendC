@@ -184,7 +184,7 @@ export default function HistoricoPedidosPage() {
       const url = URL.createObjectURL(new Blob([conteudo], { type: 'application/json' }))
       const link = document.createElement('a')
       link.href = url
-      link.download = `historico-rei-${inicio}-a-${fim}.json`
+      link.download = `historico-controlae-${inicio}-a-${fim}.json`
       link.click()
       URL.revokeObjectURL(url)
       showToast(`${eventos.length} registro(s) exportado(s).`, 'success')
@@ -202,7 +202,7 @@ export default function HistoricoPedidosPage() {
       if (!documento || typeof documento !== 'object' || Array.isArray(documento)) throw new Error('Arquivo de histórico inválido')
       const registro = documento as { schema?: unknown; events?: unknown }
       if (registro.schema !== 'rei-historico-v1' || !Array.isArray(registro.events) || registro.events.length === 0) {
-        throw new Error('Selecione um arquivo exportado pelo Histórico do Rei')
+        throw new Error('Selecione um arquivo exportado pelo Histórico do ControlaÊ')
       }
       let importados = 0
       let restaurados = 0

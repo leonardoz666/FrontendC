@@ -1,7 +1,7 @@
 {
-  "name": "Sistema de Gestão",
-  "short_name": "Gestão",
-  "description": "Operação e gestão do estabelecimento",
+  "name": "ControlaÊ",
+  "short_name": "ControlaÊ",
+  "description": "Operação e gestão do estabelecimento com o ControlaÊ",
   "id": "/",
   "start_url": "/",
   "scope": "/",
