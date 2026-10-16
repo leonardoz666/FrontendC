@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  API_ORIGIN_COOKIE,
-  INSTALLATION_COOKIE,
-  INSTALLATION_GATE_COOKIE,
   TENANT_COOKIE,
+  apiOriginCookieName,
   createInstallationGate,
+  installationCookieName,
+  installationGateCookieName,
   normalizeApiUrl,
   normalizeEstablishmentUrl,
+  openInstallationBinding,
   sealInstallationBinding,
-} from '@/app/lib/installation-binding'
+  INSTALLATION_COOKIE,
+} from '../../../lib/installation-binding'
+import { authCookieName } from '../../../lib/tenant-navigation'
 
 type ActivationResponse = {
   installationToken?: unknown
@@ -58,6 +61,16 @@ export async function POST(request: NextRequest) {
     const secure = request.nextUrl.protocol === 'https:' || request.headers.get('x-forwarded-proto') === 'https'
     const response = NextResponse.json({ success: true, estabelecimento: { slug, nome: name } })
     const expiresAt = Date.now() + maxAge * 1000
+    const legacyBindingValue = request.cookies.get(INSTALLATION_COOKIE)?.value
+    const legacyBinding = openInstallationBinding(legacyBindingValue)
+    if (legacyBinding && legacyBindingValue && legacyBinding.tenantSlug !== slug) {
+      const legacyMaxAge = Math.max(1, Math.floor((legacyBinding.expiresAt - Date.now()) / 1000))
+      response.cookies.set(installationCookieName(legacyBinding.tenantSlug), legacyBindingValue, { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge: legacyMaxAge, priority: 'high' })
+      response.cookies.set(installationGateCookieName(legacyBinding.tenantSlug), createInstallationGate(legacyBindingValue, legacyBinding.expiresAt), { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge: legacyMaxAge, priority: 'high' })
+      response.cookies.set(apiOriginCookieName(legacyBinding.tenantSlug), legacyBinding.apiUrl, { httpOnly: false, secure, sameSite: 'strict', path: '/', maxAge: legacyMaxAge })
+      const legacyAuthToken = request.cookies.get('token')?.value
+      if (legacyAuthToken) response.cookies.set(authCookieName(legacyBinding.tenantSlug), legacyAuthToken, { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge: legacyMaxAge, priority: 'high' })
+    }
     const bindingValue = sealInstallationBinding({
       apiUrl,
       establishmentUrl: establishment.url,
@@ -66,10 +79,10 @@ export async function POST(request: NextRequest) {
       establishmentName: name,
       expiresAt,
     })
-    response.cookies.set(INSTALLATION_COOKIE, bindingValue, { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge, priority: 'high' })
-    response.cookies.set(INSTALLATION_GATE_COOKIE, createInstallationGate(bindingValue, expiresAt), { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge, priority: 'high' })
+    response.cookies.set(installationCookieName(slug), bindingValue, { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge, priority: 'high' })
+    response.cookies.set(installationGateCookieName(slug), createInstallationGate(bindingValue, expiresAt), { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge, priority: 'high' })
     response.cookies.set(TENANT_COOKIE, slug, { httpOnly: true, secure, sameSite: 'strict', path: '/', maxAge, priority: 'high' })
-    response.cookies.set(API_ORIGIN_COOKIE, apiUrl, { httpOnly: false, secure, sameSite: 'strict', path: '/', maxAge })
+    response.cookies.set(apiOriginCookieName(slug), apiUrl, { httpOnly: false, secure, sameSite: 'strict', path: '/', maxAge })
     return response
   } catch (error) {
     const message = error instanceof Error && error.name !== 'AbortError'

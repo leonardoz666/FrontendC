@@ -1,3 +1,5 @@
+import { TENANT_HEADER, tenantForCurrentTab } from './tenant-navigation'
+
 export const OFFLINE_STATUS_EVENT = 'controlae:offline-status'
 export const OFFLINE_SYNC_EVENT = 'controlae:offline-synced'
 
@@ -64,9 +66,7 @@ function browserAvailable(): boolean {
 const UNRESOLVED_TENANT = '__tenant-unresolved__'
 
 export function currentTenantSlug(): string {
-  if (typeof document === 'undefined') return UNRESOLVED_TENANT
-  const match = document.cookie.match(/(?:^|;\s*)controlae_tenant_slug=([^;]+)/)
-  return match ? decodeURIComponent(match[1]) : UNRESOLVED_TENANT
+  return tenantForCurrentTab() || UNRESOLVED_TENANT
 }
 
 function belongsToCurrentTenant(record: { tenantSlug?: string }): boolean {
@@ -378,7 +378,7 @@ export async function syncOfflineQueue(options: { retryBlocked?: boolean } = {})
         try {
           const response = await fetch(mutation.path, {
             method: mutation.method,
-            headers: { ...mutation.headers, 'x-tenant-slug': mutation.tenantSlug },
+            headers: { ...mutation.headers, [TENANT_HEADER]: mutation.tenantSlug },
             credentials: 'include',
             body: mutation.body === undefined || mutation.body === null
               ? null

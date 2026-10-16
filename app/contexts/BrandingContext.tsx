@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiFetch, invalidateAuthMeCache } from '@/app/lib/api'
 import { currentTenantSlug } from '@/app/lib/offline'
+import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 
 export type RestaurantBranding = {
   nome: string
@@ -70,10 +71,10 @@ function normalizedBranding(value?: BrandingPayload): RestaurantBranding {
     nome,
     nomeExibicao: value?.nomeExibicao?.trim() || nome,
     slogan: value?.slogan?.trim() || DEFAULT_BRANDING.slogan,
-    logoUrl: value?.logoUrl?.trim() || '',
-    logoCompactaUrl: value?.logoCompactaUrl?.trim() || '',
-    faviconUrl: value?.faviconUrl?.trim() || '',
-    imagemLoginUrl: value?.imagemLoginUrl?.trim() || '',
+    logoUrl: tenantResourceUrl(value?.logoUrl?.trim() || ''),
+    logoCompactaUrl: tenantResourceUrl(value?.logoCompactaUrl?.trim() || ''),
+    faviconUrl: tenantResourceUrl(value?.faviconUrl?.trim() || ''),
+    imagemLoginUrl: tenantResourceUrl(value?.imagemLoginUrl?.trim() || ''),
     corPrimaria: value?.corPrimaria || DEFAULT_BRANDING.corPrimaria,
     corSecundaria: value?.corSecundaria || DEFAULT_BRANDING.corSecundaria,
     corDestaque: value?.corDestaque || DEFAULT_BRANDING.corDestaque,

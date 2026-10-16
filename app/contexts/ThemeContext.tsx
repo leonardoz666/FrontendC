@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { tenantForCurrentTab } from '@/app/lib/tenant-navigation'
 
 export type ColorTheme = 'light' | 'dark'
 
@@ -17,8 +18,7 @@ type BrandTheme = 'CLARO' | 'ESCURO' | 'SISTEMA'
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function tenantThemeStorageKey(): string {
-  const match = document.cookie.match(/(?:^|;\s*)controlae_tenant_slug=([^;]+)/)
-  const tenant = match ? decodeURIComponent(match[1]) : 'tenant-unresolved'
+  const tenant = tenantForCurrentTab() || 'tenant-unresolved'
   return `${STORAGE_KEY}:${tenant}`
 }
 

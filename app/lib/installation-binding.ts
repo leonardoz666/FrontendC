@@ -1,4 +1,9 @@
 import crypto from 'crypto'
+import {
+  apiOriginCookieName,
+  installationCookieName,
+  installationGateCookieName,
+} from './tenant-navigation'
 
 export const INSTALLATION_COOKIE = 'controlae_installation'
 export const INSTALLATION_GATE_COOKIE = 'controlae_installation_gate'
@@ -13,6 +18,8 @@ export type InstallationBinding = {
   establishmentName: string
   expiresAt: number
 }
+
+type CookieReader = { get(name: string): { value: string } | undefined }
 
 function secret(): string {
   const value = process.env.FRONTEND_INSTALLATION_SECRET?.trim()
@@ -101,4 +108,18 @@ export function openInstallationBinding(value: string | undefined): Installation
   } catch {
     return null
   }
+}
+
+export function installationBindingForTenant(cookies: CookieReader, slug: string): InstallationBinding | null {
+  const current = openInstallationBinding(cookies.get(installationCookieName(slug))?.value)
+  if (current?.tenantSlug === slug) return current
+
+  const legacy = openInstallationBinding(cookies.get(INSTALLATION_COOKIE)?.value)
+  return legacy?.tenantSlug === slug ? legacy : null
+}
+
+export {
+  apiOriginCookieName,
+  installationCookieName,
+  installationGateCookieName,
 }

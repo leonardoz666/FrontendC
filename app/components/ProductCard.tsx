@@ -1,6 +1,7 @@
 import { memo, useState } from 'react'
 import Image from 'next/image'
 import { ImageIcon, Wine, Utensils, Trash2 } from 'lucide-react'
+import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 
 export type Categoria = {
   id: number
@@ -78,7 +79,7 @@ export const ProductCard = memo(function ProductCard({ prod, onEdit, onDelete }:
         )}
         {prod.foto && !imageError ? (
           <Image 
-            src={prod.foto} 
+            src={tenantResourceUrl(prod.foto)}
             alt={prod.nome} 
             fill
             sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, (max-width: 1024px) 16vw, 12vw"

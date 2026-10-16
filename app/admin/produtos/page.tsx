@@ -15,6 +15,7 @@ import { buildProductFormData } from '@/app/lib/product-form'
 import { parseFlavorSizeConfig, type FlavorSizePrice } from '@/app/lib/flavor-size-pricing'
 import { InlineLoader, PageLoader } from '@/app/components/ui/PageLoader'
 import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-import'
+import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 import { 
   Plus, 
   Upload, 
@@ -628,7 +629,7 @@ export default function ProdutosPage() {
           <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
             {produto.foto ? (
               <Image
-                src={produto.foto}
+                src={tenantResourceUrl(produto.foto)}
                 alt=""
                 fill
                 sizes="44px"
@@ -911,7 +912,7 @@ export default function ProdutosPage() {
                     <>
                       <div className="relative w-full h-full">
                         <Image 
-                          src={foto} 
+                          src={tenantResourceUrl(foto)}
                           alt="Preview" 
                           fill
                           className="object-cover opacity-80 group-hover:opacity-60 transition-opacity" 

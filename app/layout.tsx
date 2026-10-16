@@ -18,8 +18,9 @@ const geistMono = Geist_Mono({
 const themeInitScript = `
   (function () {
     try {
-      var match = document.cookie.match(/(?:^|;\\s*)controlae_tenant_slug=([^;]+)/);
-      var tenant = match ? decodeURIComponent(match[1]) : 'tenant-unresolved';
+      var queryTenant = new URLSearchParams(window.location.search).get('estabelecimento');
+      if (queryTenant && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(queryTenant)) sessionStorage.setItem('controlae:tab-tenant', queryTenant);
+      var tenant = sessionStorage.getItem('controlae:tab-tenant') || 'tenant-unresolved';
       var saved = localStorage.getItem('controlae-color-theme:' + tenant);
       var dark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
       var theme = dark ? 'dark' : 'light';

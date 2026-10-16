@@ -3,8 +3,13 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Check, Eye, EyeOff, Link2, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react'
+import {
+  requestedTenantRequiresActivation,
+  requestedTenantSlug,
+  selectTenantForTab,
+} from '@/app/lib/tenant-navigation'
 
-type InstallationStatus = { active: boolean; establishmentUrl?: string; establishmentName?: string }
+type InstallationStatus = { active: boolean; establishmentUrl?: string; tenantSlug?: string; establishmentName?: string }
 
 export default function InstallationPage() {
   const router = useRouter()
@@ -24,13 +29,36 @@ export default function InstallationPage() {
     setStatusLoading(true)
     setStatusError('')
     try {
-      const response = await fetch('/api/installation/status', { cache: 'no-store' })
+      const searchParams = new URLSearchParams(window.location.search)
+      const requestedSlug = requestedTenantSlug(searchParams)
+      const statusUrl = requestedSlug
+        ? `/api/installation/status?estabelecimento=${encodeURIComponent(requestedSlug)}`
+        : '/api/installation/status'
+      const response = await fetch(statusUrl, { cache: 'no-store' })
       if (response.status === 404) {
         setStatus({ active: false })
+        if (requestedSlug) {
+          const requestedLink = searchParams.get('link')
+          setEstablishmentUrl(requestedLink || `${window.location.origin}/e/${requestedSlug}`)
+        }
         return
       }
       if (!response.ok) throw new Error()
       const current = await response.json() as InstallationStatus
+      const requestedLink = searchParams.get('link')
+      if (current.active && requestedTenantRequiresActivation(current.tenantSlug, requestedSlug)) {
+        setStatus({ active: false })
+        setEstablishmentUrl(requestedLink || `${window.location.origin}/e/${requestedSlug}`)
+        return
+      }
+      if (current.active) {
+        if (current.tenantSlug) selectTenantForTab(current.tenantSlug)
+        const destination = current.tenantSlug
+          ? `/login?estabelecimento=${encodeURIComponent(current.tenantSlug)}`
+          : '/login'
+        router.replace(destination)
+        return
+      }
       setStatus(current)
       if (current.establishmentUrl) setEstablishmentUrl(current.establishmentUrl)
     } catch {
@@ -38,7 +66,7 @@ export default function InstallationPage() {
     } finally {
       setStatusLoading(false)
     }
-  }, [])
+  }, [router])
 
   useEffect(() => {
     document.documentElement.classList.remove('dark')
@@ -59,8 +87,9 @@ export default function InstallationPage() {
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ establishmentUrl, code }),
       })
-      const result = await response.json().catch(() => ({})) as { error?: string; estabelecimento?: { nome?: string } }
+      const result = await response.json().catch(() => ({})) as { error?: string; estabelecimento?: { slug?: string; nome?: string } }
       if (!response.ok) throw new Error(result.error || 'Não foi possível ativar o aplicativo')
+      if (result.estabelecimento?.slug) selectTenantForTab(result.estabelecimento.slug)
       setSuccessName(result.estabelecimento?.nome || 'estabelecimento')
       window.setTimeout(() => { router.replace('/login'); router.refresh() }, 900)
     } catch (reason) {
@@ -74,7 +103,11 @@ export default function InstallationPage() {
     setResetting(true)
     setError('')
     try {
-      const response = await fetch('/api/installation/reset', { method: 'POST' })
+      const requestedSlug = requestedTenantSlug(new URLSearchParams(window.location.search)) || status?.tenantSlug
+      const resetUrl = requestedSlug
+        ? `/api/installation/reset?estabelecimento=${encodeURIComponent(requestedSlug)}`
+        : '/api/installation/reset'
+      const response = await fetch(resetUrl, { method: 'POST' })
       if (!response.ok) throw new Error()
       setStatus({ active: false })
       setEstablishmentUrl('')

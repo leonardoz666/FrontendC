@@ -11,6 +11,8 @@ No primeiro acesso, o middleware bloqueia todas as telas e envia o usuário para
 
 O código expira em 15 minutos. Depois da validação, o FrontendC guarda um vínculo criptografado em cookie `httpOnly`; o código digitado não é persistido. A URL e o tenant usados pelo proxy vêm exclusivamente desse vínculo.
 
+Cada estabelecimento possui seu próprio vínculo e sua própria sessão. O mesmo navegador pode manter vários restaurantes ativados simultaneamente; cada aba seleciona o tenant pelo link `/e/<slug>` sem compartilhar login, cache ou arquivos com as outras.
+
 Configure `FRONTEND_INSTALLATION_SECRET` com pelo menos 32 caracteres no ambiente que executará o aplicativo. Distribuições diferentes devem usar segredos diferentes.
 
 ## Desenvolvimento

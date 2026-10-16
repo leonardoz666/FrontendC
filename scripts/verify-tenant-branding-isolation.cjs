@@ -49,8 +49,8 @@ const checks = [
     pass: /cache-control['"],\s*['"]private, no-store, max-age=0/.test(proxy) && /vary['"],\s*['"]Cookie, x-tenant-slug/.test(proxy),
   },
   {
-    name: 'não aceita tenant injetado pelo navegador no proxy',
-    pass: /headers\.delete\(['"]x-tenant-slug['"]\)/.test(proxy) && /openInstallationBinding/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*binding\.tenantSlug\)/.test(proxy),
+    name: 'aceita o tenant da aba somente com vínculo criptografado correspondente',
+    pass: /TENANT_HEADER/.test(proxy) && /installationBindingForTenant\(request\.cookies, requestedSlug\)/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*binding\.tenantSlug\)/.test(proxy),
   },
   {
     name: 'não libera telas operacionais apenas pela presença de um cookie',
@@ -78,7 +78,7 @@ const checks = [
   },
   {
     name: 'isola a preferência de tema por estabelecimento',
-    pass: /controlae_tenant_slug/.test(theme) && /tenantThemeStorageKey/.test(theme),
+    pass: /tenantForCurrentTab/.test(theme) && /tenantThemeStorageKey/.test(theme),
   },
 ]
 

@@ -20,6 +20,7 @@ import {
 } from '@/app/lib/offline'
 import { Produto, Categoria, CartItem, SubmittedItem, APIPedido } from '@/types'
 import { LoadingMark, PageLoader } from '@/app/components/ui/PageLoader'
+import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 
 const CUSTOM_CANCELLATION_REASON = '__CUSTOM__'
 const CANCELLATION_REASONS = [
@@ -69,7 +70,7 @@ function OrderProductImage({ produto }: { produto: Produto }) {
 
   return (
     <Image
-      src={produto.foto}
+      src={tenantResourceUrl(produto.foto)}
       alt=""
       fill
       sizes="(max-width: 639px) 46vw, (max-width: 767px) 23vw, (max-width: 1023px) 19vw, 14vw"

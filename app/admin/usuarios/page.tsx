@@ -12,6 +12,7 @@ import Skeleton from '@/app/components/ui/Skeleton'
 import { PageLoader } from '@/app/components/ui/PageLoader'
 import { PAGE_SIZE_OPTIONS, usePagedQuery } from '@/app/lib/pagination'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
+import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 import {
   ArrowLeft,
   Camera,
@@ -315,7 +316,7 @@ export default function AdminUsersPage() {
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
                   {foto ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={foto} alt="Prévia do usuário" className="mb-3 h-20 w-20 rounded-full object-cover" />
+                    <img src={tenantResourceUrl(foto)} alt="Prévia do usuário" className="mb-3 h-20 w-20 rounded-full object-cover" />
                   ) : (
                     <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-orange-100 text-2xl font-bold text-orange-700">{nome.charAt(0).toUpperCase() || '?'}</div>
                   )}
@@ -497,7 +498,7 @@ export default function AdminUsersPage() {
                   <div className="flex min-w-0 items-center gap-2.5 pr-16">
                     {user.foto ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={user.foto} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+                      <img src={tenantResourceUrl(user.foto)} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
                     ) : (
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-700">{user.nome.charAt(0).toUpperCase()}</div>
                     )}

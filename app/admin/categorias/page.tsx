@@ -9,6 +9,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { apiFetch, fetchList, redirectToLogin } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { SeloAtivo } from '@/app/lib/crud-client'
+import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 
 type Categoria = {
   id: number
@@ -257,7 +258,7 @@ export default function CategoriasPage() {
             <div
               aria-hidden="true"
               className="h-10 w-10 rounded bg-cover bg-center"
-              style={{ backgroundImage: `url(${categoria.imagem})` }}
+              style={{ backgroundImage: `url(${tenantResourceUrl(categoria.imagem)})` }}
             />
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100 text-gray-400">

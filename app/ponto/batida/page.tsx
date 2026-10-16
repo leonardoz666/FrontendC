@@ -7,6 +7,7 @@ import { Camera, CheckCircle2, RefreshCw, ShieldCheck, Upload } from 'lucide-rea
 import { Button } from '@/app/components/ui/Button'
 import { apiFetch, fetchList } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
+import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 
 type Funcionario = { id: number; nome: string; cpf: string; status?: string }
 type FuncionarioComBiometria = Funcionario & { biometriaId: number; biometriaCriadaEm: string }
@@ -159,7 +160,7 @@ export default function BatidaPontoPage() {
           <p className="mt-5 text-sm font-semibold text-gray-900">Foto de referência</p>
           <div className="relative mt-2 aspect-[4/5] overflow-hidden rounded-lg border border-gray-200 bg-gray-200">
             {selecionado ? (
-              <Image unoptimized fill sizes="320px" src={`/api/ponto/biometrias/${selecionado.biometriaId}/foto`} alt={`Referência facial de ${selecionado.nome}`} className="object-cover" />
+              <Image unoptimized fill sizes="320px" src={tenantResourceUrl(`/api/ponto/biometrias/${selecionado.biometriaId}/foto`)} alt={`Referência facial de ${selecionado.nome}`} className="object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center px-5 text-center text-sm text-gray-500">Selecione um funcionário com foto cadastrada.</div>
             )}

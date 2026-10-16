@@ -11,6 +11,7 @@ import {
   queueApiMutation,
   readCachedApiPayload,
 } from './offline'
+import { TENANT_HEADER } from './tenant-navigation'
 
 /**
  * Cliente HTTP do frontend.
@@ -200,6 +201,8 @@ export async function apiRequest(path: string, options: ApiRequestOptions = {}):
   const url = toApiPath(path)
   const upperMethod = method.toUpperCase()
   const finalHeaders = new Headers(headers)
+  const tenantSlug = currentTenantSlug()
+  if (tenantSlug !== '__tenant-unresolved__') finalHeaders.set(TENANT_HEADER, tenantSlug)
   if (!finalHeaders.has('Accept')) {
     finalHeaders.set('Accept', 'application/json')
   }

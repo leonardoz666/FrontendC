@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:ci": "npm run test:payment && npm run test:product-catalog && npm run test:product-form && npm run test:flavor-size-pricing && npm run test:table-transfer && npm run test:category-printer && npm run test:data-sync && npm run test:offline && npm run test:menu-json-import && npm run test:printer-agent-config && npm run test:api && npm run test:stock-lot-contrast && npm run test:no-native-confirms && npm run test:tenant-branding",
+    "test:ci": "npm run test:payment && npm run test:product-catalog && npm run test:product-form && npm run test:flavor-size-pricing && npm run test:table-transfer && npm run test:category-printer && npm run test:data-sync && npm run test:offline && npm run test:menu-json-import && npm run test:printer-agent-config && npm run test:api && npm run test:stock-lot-contrast && npm run test:no-native-confirms && npm run test:tenant-branding && npm run test:multi-tenant-installation",
     "test:payment": "node scripts/verify-payment.cjs",
     "test:product-catalog": "node scripts/verify-product-catalog.cjs",
     "test:product-form": "node scripts/verify-product-form.cjs",
@@ -21,6 +21,7 @@
     "dev": "node --disable-warning=DEP0060 node_modules/next/dist/bin/next dev",
     "build": "npm run typecheck && node --disable-warning=DEP0060 node_modules/next/dist/bin/next build",
     "test:tenant-branding": "node scripts/verify-tenant-branding-isolation.cjs",
+    "test:multi-tenant-installation": "ts-node --project scripts/tsconfig.json scripts/verify-multi-tenant-installation.ts",
     "typecheck": "tsc --noEmit",
     "start": "node --disable-warning=DEP0060 node_modules/next/dist/bin/next start",
     "lint": "eslint"
