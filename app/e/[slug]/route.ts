@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
   }
 
   const response = NextResponse.redirect(new URL(`/login?estabelecimento=${encodeURIComponent(slug)}`, request.url))
-  response.cookies.set('rei_tenant_slug', slug, {
+  response.cookies.set('controlae_tenant_slug', slug, {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -24,7 +24,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     maxAge: 0,
     path: '/'
   })
-  response.cookies.set('rei_backend_url', '', { maxAge: 0, path: '/' })
   response.headers.set('cache-control', 'private, no-store, max-age=0')
   response.headers.set('vary', 'Cookie')
   return response

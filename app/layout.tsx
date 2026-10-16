@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 const themeInitScript = `
   (function () {
     try {
-      var match = document.cookie.match(/(?:^|;\\s*)rei_tenant_slug=([^;]+)/);
+      var match = document.cookie.match(/(?:^|;\\s*)controlae_tenant_slug=([^;]+)/);
       var tenant = match ? decodeURIComponent(match[1]) : 'tenant-unresolved';
-      var saved = localStorage.getItem('rei-color-theme:' + tenant);
+      var saved = localStorage.getItem('controlae-color-theme:' + tenant);
       var dark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
       var theme = dark ? 'dark' : 'light';
       document.documentElement.classList.toggle('dark', dark);

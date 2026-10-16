@@ -24,7 +24,7 @@ const unsubscribe = subscribeLocalDataChanges(target, detail => received.push(de
 publishLocalDataChange(target, { method: 'PATCH', path: '/categories/1' })
 unsubscribe()
 publishLocalDataChange(target, { method: 'DELETE', path: '/categories/2' })
-assert.equal(DATA_CHANGED_EVENT, 'rei:data-changed')
+assert.equal(DATA_CHANGED_EVENT, 'controlae:data-changed')
 assert.deepEqual(received, [{ method: 'PATCH', path: '/categories/1' }])
 
 const queryClient = createQueryClient()

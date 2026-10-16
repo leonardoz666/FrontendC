@@ -5,6 +5,7 @@ const { indexedDB, IDBKeyRange } = require('fake-indexeddb')
 global.indexedDB = indexedDB
 global.IDBKeyRange = IDBKeyRange
 global.window = new EventTarget()
+global.document = { cookie: 'controlae_tenant_slug=tenant-a' }
 Object.defineProperty(global, 'navigator', {
   configurable: true,
   value: { onLine: true },
@@ -31,10 +32,10 @@ async function main() {
     'mesa individual deve poder nascer do mapa armazenado',
   )
 
-  const openHeaders = new Headers({ 'Idempotency-Key': 'rei-offline-open-0001' })
+  const openHeaders = new Headers({ 'Idempotency-Key': 'controlae-offline-open-0001' })
   const orderHeaders = new Headers({
     'Content-Type': 'application/json',
-    'Idempotency-Key': 'rei-offline-order-0001',
+    'Idempotency-Key': 'controlae-offline-order-0001',
   })
   await offline.queueApiMutation({
     path: '/api/tables/10/open',
@@ -65,8 +66,8 @@ async function main() {
   }
   await offline.syncOfflineQueue()
   assert.deepEqual(delivered, [
-    { path: '/api/tables/10/open', idempotencyKey: 'rei-offline-open-0001' },
-    { path: '/api/orders', idempotencyKey: 'rei-offline-order-0001' },
+    { path: '/api/tables/10/open', idempotencyKey: 'controlae-offline-open-0001' },
+    { path: '/api/orders', idempotencyKey: 'controlae-offline-order-0001' },
   ])
   assert.equal((await offline.listOfflineMutations()).length, 0)
 
@@ -83,7 +84,7 @@ async function main() {
   assert.equal(offline.isOfflineQueuedResult(offlineOrder), true)
   const apiQueue = await offline.listOfflineMutations()
   assert.equal(apiQueue.length, 1)
-  assert.match(apiQueue[0].headers['Idempotency-Key'], /^rei-/)
+  assert.match(apiQueue[0].headers['Idempotency-Key'], /^controlae-/)
 
   global.navigator.onLine = true
   global.fetch = async () => Response.json({ error: 'Produto indisponível' }, { status: 409 })
@@ -95,16 +96,16 @@ async function main() {
   assert.equal((await offline.getOfflineStatus()).pending, 0)
 
   await offline.clearOfflineData()
-  global.document = { cookie: 'rei_tenant_slug=tenant-a' }
+  global.document = { cookie: 'controlae_tenant_slug=tenant-a' }
   await offline.cacheApiPayload('/api/tables', [{ id: 31 }])
   await offline.queueApiMutation({ path: '/api/orders', method: 'POST', body: { mesaId: 31 }, headers: new Headers() })
-  global.document.cookie = 'rei_tenant_slug=tenant-b'
+  global.document.cookie = 'controlae_tenant_slug=tenant-b'
   await offline.cacheApiPayload('/api/tables', [{ id: 41 }])
   await offline.queueApiMutation({ path: '/api/orders', method: 'POST', body: { mesaId: 41 }, headers: new Headers() })
   await offline.clearOfflineData()
   assert.equal(await offline.readCachedApiPayload('/api/tables'), undefined, 'logout deve limpar somente o cache do tenant atual')
   assert.equal((await offline.listOfflineMutations()).length, 0, 'logout deve limpar somente a fila do tenant atual')
-  global.document.cookie = 'rei_tenant_slug=tenant-a'
+  global.document.cookie = 'controlae_tenant_slug=tenant-a'
   assert.deepEqual(await offline.readCachedApiPayload('/api/tables'), [{ id: 31 }], 'cache de outro tenant deve permanecer')
   assert.equal((await offline.listOfflineMutations()).length, 1, 'fila de outro tenant deve permanecer')
   await offline.clearOfflineData()

@@ -114,7 +114,7 @@ export default function Sidebar({
   isOpen,
   onClose,
   user: userProp,
-  establishmentName = 'Rei do Pirão',
+  establishmentName = 'Estabelecimento',
   collapsed: collapsedProp,
   onToggleCollapse,
 }: SidebarProps) {

@@ -11,13 +11,13 @@ type ThemeContextValue = {
   toggleTheme: () => void
 }
 
-const STORAGE_KEY = 'rei-color-theme'
+const STORAGE_KEY = 'controlae-color-theme'
 type BrandTheme = 'CLARO' | 'ESCURO' | 'SISTEMA'
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function tenantThemeStorageKey(): string {
-  const match = document.cookie.match(/(?:^|;\s*)rei_tenant_slug=([^;]+)/)
+  const match = document.cookie.match(/(?:^|;\s*)controlae_tenant_slug=([^;]+)/)
   const tenant = match ? decodeURIComponent(match[1]) : 'tenant-unresolved'
   return `${STORAGE_KEY}:${tenant}`
 }
@@ -67,8 +67,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeState(brandedTheme)
       applyTheme(brandedTheme)
     }
-    window.addEventListener('rei-branding-theme', applyBrandPreference)
-    return () => window.removeEventListener('rei-branding-theme', applyBrandPreference)
+    window.addEventListener('controlae-branding-theme', applyBrandPreference)
+    return () => window.removeEventListener('controlae-branding-theme', applyBrandPreference)
   }, [])
 
   const setTheme = useCallback((nextTheme: ColorTheme) => {

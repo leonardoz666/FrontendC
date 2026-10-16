@@ -1,7 +1,7 @@
-export const OFFLINE_STATUS_EVENT = 'rei:offline-status'
-export const OFFLINE_SYNC_EVENT = 'rei:offline-synced'
+export const OFFLINE_STATUS_EVENT = 'controlae:offline-status'
+export const OFFLINE_SYNC_EVENT = 'controlae:offline-synced'
 
-const DB_NAME = 'rei-offline'
+const DB_NAME = 'controlae-offline'
 const DB_VERSION = 1
 const RESPONSE_STORE = 'responses'
 const MUTATION_STORE = 'mutations'
@@ -65,7 +65,7 @@ const UNRESOLVED_TENANT = '__tenant-unresolved__'
 
 export function currentTenantSlug(): string {
   if (typeof document === 'undefined') return UNRESOLVED_TENANT
-  const match = document.cookie.match(/(?:^|;\s*)rei_tenant_slug=([^;]+)/)
+  const match = document.cookie.match(/(?:^|;\s*)controlae_tenant_slug=([^;]+)/)
   return match ? decodeURIComponent(match[1]) : UNRESOLVED_TENANT
 }
 
@@ -188,9 +188,9 @@ export function isTransientOfflineFailure(error: unknown): boolean {
 
 export function createIdempotencyKey(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return `rei-${crypto.randomUUID()}`
+    return `controlae-${crypto.randomUUID()}`
   }
-  return `rei-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`
+  return `controlae-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`
 }
 
 export function isOfflineQueuedResult(value: unknown): value is OfflineQueuedResult {
@@ -209,6 +209,7 @@ export function markBackendReachable(reachable: boolean): void {
 
 export async function cacheApiPayload(path: string, payload: unknown): Promise<void> {
   if (!isCacheableApiGet(path)) return
+  if (currentTenantSlug() === UNRESOLVED_TENANT) return
   try {
     await putRecord(RESPONSE_STORE, {
       key: cacheKey(path),
@@ -253,6 +254,10 @@ export async function queueApiMutation(input: {
   if (!browserAvailable()) {
     throw new Error('O armazenamento offline não está disponível neste navegador.')
   }
+  const tenantSlug = currentTenantSlug()
+  if (tenantSlug === UNRESOLVED_TENANT) {
+    throw new Error('Acesse o sistema pelo link do estabelecimento antes de trabalhar offline.')
+  }
   const id = input.headers.get('Idempotency-Key') ?? createIdempotencyKey()
   const headers: Record<string, string> = {}
   for (const name of ['Content-Type', 'Accept', 'Idempotency-Key']) {
@@ -261,7 +266,7 @@ export async function queueApiMutation(input: {
   }
   const mutation: OfflineMutation = {
     id,
-    tenantSlug: currentTenantSlug(),
+    tenantSlug,
     path: input.path,
     method: input.method.toUpperCase(),
     body: input.body,
@@ -366,10 +371,14 @@ export async function syncOfflineQueue(options: { retryBlocked?: boolean } = {})
       const mutations = await listOfflineMutations()
       for (const mutation of mutations) {
         if (mutation.blocked && !options.retryBlocked) continue
+        if (!mutation.tenantSlug || mutation.tenantSlug === UNRESOLVED_TENANT) {
+          await updateMutationFailure(mutation, 'Fila sem estabelecimento identificado', true)
+          continue
+        }
         try {
           const response = await fetch(mutation.path, {
             method: mutation.method,
-            headers: { ...mutation.headers, 'x-tenant-slug': mutation.tenantSlug || 'rei-do-pirao' },
+            headers: { ...mutation.headers, 'x-tenant-slug': mutation.tenantSlug },
             credentials: 'include',
             body: mutation.body === undefined || mutation.body === null
               ? null

@@ -13,7 +13,7 @@ const withPWA = withPWAInit({
       {
         urlPattern: /\/api\//,
         handler: 'NetworkOnly',
-        options: { cacheName: 'rei-api-network-only' },
+        options: { cacheName: 'controlae-api-network-only' },
       },
       ...runtimeCaching,
     ],

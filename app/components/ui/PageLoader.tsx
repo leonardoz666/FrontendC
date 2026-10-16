@@ -18,19 +18,19 @@ export function PageLoader({
     <div
       role="status"
       aria-live="polite"
-      className={`rei-page-loader${compact ? ' rei-page-loader--compact' : ''}`}
+      className={`controlae-page-loader${compact ? ' controlae-page-loader--compact' : ''}`}
     >
-      <div className="rei-page-loader__content">
-        <div className="rei-page-loader__stage" aria-hidden="true">
-          <span className="rei-page-loader__glow" />
-          <span className="rei-page-loader__orbit rei-page-loader__orbit--outer" />
-          <span className="rei-page-loader__orbit rei-page-loader__orbit--inner" />
-          <span className="rei-page-loader__mark">C</span>
+      <div className="controlae-page-loader__content">
+        <div className="controlae-page-loader__stage" aria-hidden="true">
+          <span className="controlae-page-loader__glow" />
+          <span className="controlae-page-loader__orbit controlae-page-loader__orbit--outer" />
+          <span className="controlae-page-loader__orbit controlae-page-loader__orbit--inner" />
+          <span className="controlae-page-loader__mark">C</span>
         </div>
-        <div className="rei-page-loader__copy">
+        <div className="controlae-page-loader__copy">
           <strong>{message}</strong>
           <span>{detail}</span>
-          <span className="rei-page-loader__dots" aria-hidden="true">
+          <span className="controlae-page-loader__dots" aria-hidden="true">
             <i /><i /><i />
           </span>
         </div>
@@ -41,9 +41,9 @@ export function PageLoader({
 
 export function InlineLoader({ message = 'Carregando', className = '' }: InlineLoaderProps) {
   return (
-    <span role="status" aria-live="polite" className={`rei-inline-loader ${className}`.trim()}>
+    <span role="status" aria-live="polite" className={`controlae-inline-loader ${className}`.trim()}>
       <span>{message}</span>
-      <span className="rei-inline-loader__dots" aria-hidden="true">
+      <span className="controlae-inline-loader__dots" aria-hidden="true">
         <i /><i /><i />
       </span>
     </span>
@@ -52,12 +52,12 @@ export function InlineLoader({ message = 'Carregando', className = '' }: InlineL
 
 export function LoadingMark({ className = '' }: { className?: string }) {
   return (
-    <span className={`rei-loading-mark ${className}`.trim()} aria-hidden="true">
+    <span className={`controlae-loading-mark ${className}`.trim()} aria-hidden="true">
       <i /><i /><i />
     </span>
   )
 }
 
 export function LoadingValue() {
-  return <span className="rei-loading-value" role="status" aria-label="Carregando" />
+  return <span className="controlae-loading-value" role="status" aria-label="Carregando" />
 }

@@ -54,7 +54,7 @@ export type ComandaConfig = {
 export const DEFAULT_COMANDA_CONFIG: ComandaConfig = {
   versao: 1,
   geral: {
-    nomeEstabelecimento: 'REI DO PIRÃO', endereco: '', documento: '',
+    nomeEstabelecimento: 'ESTABELECIMENTO', endereco: '', documento: '',
     rodape: 'Obrigado pela preferência!\nVolte sempre!', margemEsquerda: 2,
     linhasAntesCorte: 3, separador: '-'
   },

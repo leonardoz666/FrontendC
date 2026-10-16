@@ -1,9 +1,9 @@
 import { apiFetch } from './api'
 
-export const SIDEBAR_COLLAPSED_STORAGE_KEY = 'rei.sidebar.collapsed'
-const LEGACY_SIDEBAR_GROUPS_STORAGE_KEY = 'rei.sidebar.groups'
-export const SIDEBAR_VISIBILITY_EVENT = 'rei:sidebar-visibility-change'
-export const UI_PREFERENCES_SYNC_EVENT = 'rei:ui-preferences-sync'
+export const SIDEBAR_COLLAPSED_STORAGE_KEY = 'controlae.sidebar.collapsed'
+const LEGACY_SIDEBAR_GROUPS_STORAGE_KEY = 'controlae.sidebar.groups'
+export const SIDEBAR_VISIBILITY_EVENT = 'controlae:sidebar-visibility-change'
+export const UI_PREFERENCES_SYNC_EVENT = 'controlae:ui-preferences-sync'
 const PAGE_SIZE_STORAGE_PREFIX = 'dsh:pageSize:'
 
 export interface SidebarVisibilityPreference {
@@ -21,7 +21,7 @@ export interface UiPreferences {
 }
 
 function visibilityStorageKey(userId: number | string): string {
-  return `rei.sidebar.visibility:${userId}`
+  return `controlae.sidebar.visibility:${userId}`
 }
 
 function parseObject(raw: string | null): Record<string, unknown> | null {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const FALLBACK_BACKEND_URL = 'https://backendrei.onrender.com'
+const FALLBACK_BACKEND_URL = 'https://controlae-backend.onrender.com'
 const HOP_BY_HOP_HEADERS = ['connection', 'content-length', 'host', 'transfer-encoding']
-const TENANT_COOKIE = 'rei_tenant_slug'
+const TENANT_COOKIE = 'controlae_tenant_slug'
 
 function configuredBackend(): string {
   return (process.env.NEXT_PUBLIC_API_URL || FALLBACK_BACKEND_URL).replace(/\/$/, '')

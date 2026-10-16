@@ -539,7 +539,7 @@ const EMPTY_SIDEBAR_VISIBILITY: SidebarVisibilityState = {
 }
 
 export function sidebarVisibilityStorageKey(user: NavUser | null | undefined): string {
-  return `rei.sidebar.visibility:${user?.id ?? user?.role ?? 'default'}`
+  return `controlae.sidebar.visibility:${user?.id ?? user?.role ?? 'default'}`
 }
 
 export function readStoredSidebarVisibility(user: NavUser | null | undefined): SidebarVisibilityState {

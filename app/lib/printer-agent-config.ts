@@ -1,4 +1,4 @@
-export const PRINTER_AGENT_STORAGE_KEY = 'rei:printer-agent-connection'
+export const PRINTER_AGENT_STORAGE_KEY = 'controlae:printer-agent-connection'
 
 export type PrinterAgentConnection = {
   url: string

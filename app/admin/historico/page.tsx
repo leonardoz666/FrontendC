@@ -176,7 +176,7 @@ export default function HistoricoPedidosPage() {
     try {
       const eventos = await buscarTodos()
       const conteudo = JSON.stringify({
-        schema: 'rei-historico-v1',
+        schema: 'controlae-historico-v1',
         exportadoEm: new Date().toISOString(),
         periodo: { inicio, fim, tipo },
         events: eventos
@@ -201,7 +201,7 @@ export default function HistoricoPedidosPage() {
       const documento: unknown = JSON.parse(await file.text())
       if (!documento || typeof documento !== 'object' || Array.isArray(documento)) throw new Error('Arquivo de histórico inválido')
       const registro = documento as { schema?: unknown; events?: unknown }
-      if (registro.schema !== 'rei-historico-v1' || !Array.isArray(registro.events) || registro.events.length === 0) {
+      if (registro.schema !== 'controlae-historico-v1' || !Array.isArray(registro.events) || registro.events.length === 0) {
         throw new Error('Selecione um arquivo exportado pelo Histórico do ControlaÊ')
       }
       let importados = 0

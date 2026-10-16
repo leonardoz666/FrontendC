@@ -654,7 +654,7 @@ export default function ProdutosPage() {
       render: (produto) => (
         produto.categoria ? (
           <span
-            className="rei-category-color inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold"
+            className="controlae-category-color inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold"
             style={categoryColorStyle(produto.categoria.id)}
           >
             {produto.categoria.nome}
@@ -783,7 +783,7 @@ export default function ProdutosPage() {
                   setPage(1)
                 }}
                 className={clsx(
-                  'rei-category-color flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
+                  'controlae-category-color flex h-9 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition',
                   categoriaFiltro === categoria.id
                     ? 'shadow-sm ring-1 ring-current/20'
                     : 'hover:brightness-95'

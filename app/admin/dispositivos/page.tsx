@@ -53,8 +53,7 @@ const LIST_RESOURCE = '/dispositivos?tipo=IMPRESSORA'
 // production bridge; the env var remains available for a custom local URL.
 const CONFIGURED_PRINTER_AGENT_URL = (process.env.NEXT_PUBLIC_PRINTER_AGENT_URL || '').trim()
 const PRINTER_AGENT_URL = (CONFIGURED_PRINTER_AGENT_URL || 'http://127.0.0.1:4100').replace(/\/$/, '')
-const PRINTER_AGENT_TOKEN = process.env.NEXT_PUBLIC_PRINTER_AGENT_TOKEN || ''
-const DEFAULT_PRINTER_AGENT_CONNECTION = { url: PRINTER_AGENT_URL, token: PRINTER_AGENT_TOKEN }
+const DEFAULT_PRINTER_AGENT_CONNECTION = { url: PRINTER_AGENT_URL, token: '' }
 
 function deveUsarAgenteLocal(manual = false): boolean {
   if (manual) return true
@@ -65,9 +64,9 @@ function deveUsarAgenteLocal(manual = false): boolean {
 
 function erroDoAgente(error: unknown): Error {
   if (error instanceof TypeError) {
-    return new Error('Não foi possível acessar o ControlaÊ Printer Agent. Confirme que ele está Online e permita o acesso à rede local no navegador.')
+    return new Error('Não foi possível acessar o ControlaÊ Agent. Confirme que ele está Online e permita o acesso à rede local no navegador.')
   }
-  return error instanceof Error ? error : new Error('Erro ao comunicar com o ControlaÊ Printer Agent')
+  return error instanceof Error ? error : new Error('Erro ao comunicar com o ControlaÊ Agent')
 }
 
 const CONEXOES = ['TCP', 'USB'] as const
@@ -198,7 +197,7 @@ export default function DispositivosPage() {
       printerAgentFetchOptions(connection.url, { ...options, headers, cache: 'no-store' }),
     )
     const data = await response.json().catch(() => ({}))
-    if (!response.ok) throw new Error(data.error || 'Erro ao comunicar com o ControlaÊ Printer Agent')
+    if (!response.ok) throw new Error(data.error || 'Erro ao comunicar com o ControlaÊ Agent')
     return data as T
   }
 

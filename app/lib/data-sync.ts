@@ -1,4 +1,4 @@
-export const DATA_CHANGED_EVENT = 'rei:data-changed'
+export const DATA_CHANGED_EVENT = 'controlae:data-changed'
 
 export type DataChangeDetail = {
   method: string

@@ -24,12 +24,12 @@ const checks = [
     pass: /useSearchParams/.test(provider) && /tenantHint/.test(provider),
   },
   {
-    name: 'não usa Rei do Pirão como fallback universal',
+    name: 'não usa nenhum restaurante como fallback universal',
     pass: !/useState\(DEFAULT_BRANDING\)/.test(provider),
   },
   {
-    name: 'não atribui cache sem tenant ao Rei do Pirão',
-    pass: /__tenant-unresolved__/.test(offline) && !/record\.tenantSlug\s*\|\|\s*['"]rei-do-pirao/.test(offline),
+    name: 'não atribui cache sem tenant a um restaurante',
+    pass: /__tenant-unresolved__/.test(offline) && /Fila sem estabelecimento identificado/.test(offline) && !/['"]x-tenant-slug['"]:\s*mutation\.tenantSlug\s*\|\|/.test(offline),
   },
   {
     name: 'isola o cache de sessão pelo tenant atual',
@@ -49,7 +49,7 @@ const checks = [
   },
   {
     name: 'aplica favicon, tipografia e tema da identidade do estabelecimento',
-    pass: /faviconUrl/.test(provider) && /--brand-font-family/.test(provider) && /rei-branding-theme/.test(provider),
+    pass: /faviconUrl/.test(provider) && /--brand-font-family/.test(provider) && /controlae-branding-theme/.test(provider),
   },
   {
     name: 'usa imagem personalizada na tela de login',
@@ -61,7 +61,7 @@ const checks = [
   },
   {
     name: 'isola a preferência de tema por estabelecimento',
-    pass: /rei_tenant_slug/.test(theme) && /tenantThemeStorageKey/.test(theme),
+    pass: /controlae_tenant_slug/.test(theme) && /tenantThemeStorageKey/.test(theme),
   },
 ]
 

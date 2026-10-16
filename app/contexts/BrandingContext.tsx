@@ -22,8 +22,8 @@ export type RestaurantBranding = {
 }
 
 export const DEFAULT_BRANDING: RestaurantBranding = {
-  nome: 'Rei do Pirão',
-  nomeExibicao: 'Rei do Pirão',
+  nome: 'ControlaÊ',
+  nomeExibicao: 'ControlaÊ',
   slogan: 'Operação, atendimento e gestão em um só lugar.',
   logoUrl: '',
   logoCompactaUrl: '',
@@ -145,7 +145,7 @@ function applyBranding(branding: RestaurantBranding): void {
     document.head.appendChild(favicon)
   }
   favicon.href = branding.faviconUrl || '/icon-192x192.png'
-  window.dispatchEvent(new CustomEvent('rei-branding-theme', { detail: branding.temaPadrao }))
+  window.dispatchEvent(new CustomEvent('controlae-branding-theme', { detail: branding.temaPadrao }))
 }
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {
