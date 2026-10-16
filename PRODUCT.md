@@ -16,7 +16,7 @@ O FrontendC é a aplicação operacional desktop do ControlaÊ. Antes do primeir
 
 ## Operating Context
 
-O programa é instalado em um computador do restaurante. No primeiro acesso, o instalador informa a URL HTTPS da API e um código de ativação temporário gerado no Painel ControlaÊ. Depois da validação, o vínculo fica armazenado localmente e não precisa ser digitado novamente.
+O programa é instalado em um computador do restaurante. No primeiro acesso, o instalador informa a URL HTTPS exclusiva daquele estabelecimento e um código de ativação temporário gerado no Painel ControlaÊ. Depois da validação, o vínculo fica armazenado localmente e não precisa ser digitado novamente.
 
 ## Capabilities and Constraints
 
