@@ -12,6 +12,7 @@ import {
 import { middleware } from '../middleware'
 
 process.env.FRONTEND_INSTALLATION_SECRET = 'multi-tenant-verification-secret-32-chars'
+process.env.BACKEND_URL = 'https://backend.example.com'
 
 const expiresAt = Date.now() + 60_000
 const createBinding = (slug: string, name: string) => sealInstallationBinding({
@@ -75,8 +76,11 @@ async function verify() {
   assert.match(migratedCookies, /controlae_installation_rei-da-carne-de-sol=/, 'novo vínculo da Carne de Sol deve ser salvo separadamente')
 
   const backendCookies: string[] = []
+  const backendInstallations: string[] = []
   globalThis.fetch = async (_input, init) => {
-    backendCookies.push(String(new Headers(init?.headers).get('cookie')))
+    const headers = new Headers(init?.headers)
+    backendCookies.push(String(headers.get('cookie')))
+    backendInstallations.push(String(headers.get('x-controlae-installation')))
     return new Response('{}', {
       status: 200,
       headers: { 'set-cookie': 'token=novo-token; Path=/; HttpOnly; SameSite=Strict' },
@@ -88,6 +92,7 @@ async function verify() {
     { [TENANT_HEADER]: 'rei-da-carne-de-sol' },
   ), '/auth/me')
   assert.equal(backendCookies[0], 'token=token-carne', 'proxy não deve enviar a sessão do Pirão')
+  assert.equal(backendInstallations[0], 'installation-rei-da-carne-de-sol', 'proxy deve comprovar a instalação do tenant selecionado')
   assert.match(
     proxied.headers.get('set-cookie') || '',
     /^controlae_token_rei-da-carne-de-sol=novo-token/,

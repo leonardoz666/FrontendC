@@ -26,7 +26,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Informe o link do estabelecimento e o código de ativação' }, { status: 400 })
     }
     const establishment = normalizeEstablishmentUrl(body.establishmentUrl)
-    const apiUrl = normalizeApiUrl(process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://backendrei.onrender.com')
+    const configuredApiUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL
+    if (!configuredApiUrl) {
+      return NextResponse.json({ error: 'A URL da API não foi configurada nesta implantação' }, { status: 503 })
+    }
+    const apiUrl = normalizeApiUrl(configuredApiUrl)
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 10_000)
     let backendResponse: Response
