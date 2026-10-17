@@ -297,6 +297,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/relacionamento/fidelidade', label: 'Fidelidade', icon: 'Wallet', permission: 'fidelidade.visualizar', module: 'FIDELIDADE' },
       { href: '/relacionamento/marketing', label: 'Marketing', icon: 'Target', permission: 'marketing.visualizar', module: 'MARKETING' },
+      { href: '/relacionamento/integracoes', label: 'Integrações e Fila', icon: 'Settings', permission: 'marketing.visualizar', module: 'MARKETING' },
     ],
   },
   {
@@ -331,6 +332,13 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'Users',
         permission: 'financeiro.visualizar',
         module: 'FINANCEIRO',
+      },
+      {
+        href: '/financeiro/gateway',
+        label: 'Pagamentos Online',
+        icon: 'Wallet',
+        permission: 'financeiro.visualizar',
+        module: 'GATEWAY_ONLINE',
       },
       {
         href: '/admin/centros-custo',
