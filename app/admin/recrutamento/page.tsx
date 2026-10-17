@@ -16,6 +16,7 @@ type Vacancy = {
   id: number;
   titulo: string;
   descricao: string;
+  imagemUrl: string | null;
   status: string;
   inicioEm: string | null;
   fimEm: string | null;
@@ -50,6 +51,7 @@ export default function RecruitmentPage() {
   const [form, setForm] = useState({
     titulo: "",
     descricao: "",
+    imagemUrl: "",
     status: "RASCUNHO",
     inicioEm: "",
     fimEm: "",
@@ -114,6 +116,7 @@ export default function RecruitmentPage() {
           method: "POST",
           body: {
             ...form,
+            imagemUrl: form.imagemUrl || null,
             inicioEm: form.inicioEm ? `${form.inicioEm}T00:00:00` : null,
             fimEm: form.fimEm ? `${form.fimEm}T23:59:59` : null,
             retencaoDias: Number(form.retencaoDias),
@@ -130,6 +133,18 @@ export default function RecruitmentPage() {
         }),
       "Etapa do candidato atualizada.",
     );
+  const selectedVacancy = vacancies.find((item) => item.id === selected);
+  const updateVacancyStatus = (status: string) => {
+    if (!selected) return;
+    void run(
+      () =>
+        apiFetch(`/recrutamento/${selected}`, {
+          method: "PATCH",
+          body: { status },
+        }),
+      status === "PUBLICADA" ? "Vaga publicada." : "Vaga encerrada.",
+    );
+  };
 
   return (
     <main className="min-h-screen bg-slate-100 p-4 sm:p-6">
@@ -170,6 +185,15 @@ export default function RecruitmentPage() {
                   value={form.descricao}
                   onChange={(event) =>
                     setForm({ ...form, descricao: event.target.value })
+                  }
+                />
+                <input
+                  className={input}
+                  type="url"
+                  placeholder="Imagem da vaga (URL opcional)"
+                  value={form.imagemUrl}
+                  onChange={(event) =>
+                    setForm({ ...form, imagemUrl: event.target.value })
                   }
                 />
                 <select
@@ -246,6 +270,36 @@ export default function RecruitmentPage() {
             </Panel>
           </aside>
           <Panel title="Pipeline de candidatos">
+            {selectedVacancy && (
+              <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-slate-200 pb-4">
+                <div className="min-w-0 flex-1">
+                  <strong className="block truncate text-sm text-slate-950">
+                    {selectedVacancy.titulo}
+                  </strong>
+                  <span className="text-xs text-slate-500">
+                    Situação atual: {selectedVacancy.status}
+                  </span>
+                </div>
+                {selectedVacancy.status !== "PUBLICADA" && (
+                  <button
+                    disabled={busy}
+                    onClick={() => updateVacancyStatus("PUBLICADA")}
+                    className="h-9 rounded-lg bg-emerald-700 px-3 text-xs font-black text-white"
+                  >
+                    Publicar
+                  </button>
+                )}
+                {selectedVacancy.status !== "ENCERRADA" && (
+                  <button
+                    disabled={busy}
+                    onClick={() => updateVacancyStatus("ENCERRADA")}
+                    className="h-9 rounded-lg border border-slate-300 px-3 text-xs font-black text-slate-700"
+                  >
+                    Encerrar
+                  </button>
+                )}
+              </div>
+            )}
             <div className="mb-4 flex flex-wrap items-center gap-2">
               {stages.map((stage) => (
                 <span
@@ -288,6 +342,7 @@ export default function RecruitmentPage() {
                     <th className="px-3 py-3">Candidato</th>
                     <th className="px-3 py-3">Contato</th>
                     <th className="px-3 py-3">Etapa</th>
+                    <th className="px-3 py-3">Nota interna</th>
                     <th className="px-3 py-3">Retenção</th>
                     <th className="px-3 py-3">Currículo</th>
                     <th className="px-3 py-3">LGPD</th>
@@ -303,6 +358,28 @@ export default function RecruitmentPage() {
                         <span className="text-xs text-slate-500">
                           {new Date(candidate.criadoEm).toLocaleString("pt-BR")}
                         </span>
+                      </td>
+                      <td className="min-w-56 px-3 py-4">
+                        <textarea
+                          className="min-h-16 w-full rounded-lg border border-slate-300 p-2 text-xs outline-none focus:border-orange-500"
+                          placeholder="Visível somente para a equipe"
+                          value={candidate.observacaoInterna ?? ""}
+                          onChange={(event) =>
+                            setCandidates((current) =>
+                              current.map((item) =>
+                                item.id === candidate.id
+                                  ? {
+                                      ...item,
+                                      observacaoInterna: event.target.value,
+                                    }
+                                  : item,
+                              ),
+                            )
+                          }
+                          onBlur={() =>
+                            void updateCandidate(candidate, candidate.status)
+                          }
+                        />
                       </td>
                       <td className="px-3 py-4 text-xs text-slate-600">
                         {candidate.email}

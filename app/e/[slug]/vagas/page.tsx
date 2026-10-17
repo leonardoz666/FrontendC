@@ -116,6 +116,13 @@ export default function PublicVacanciesPage() {
                 }}
                 className={`w-full rounded-2xl border bg-white p-5 text-left transition ${selected?.id === vacancy.id ? "border-orange-500 shadow-lg" : "border-slate-200 hover:border-slate-400"}`}
               >
+                {vacancy.imagemUrl && (
+                  <img
+                    src={vacancy.imagemUrl}
+                    alt=""
+                    className="mb-4 h-40 w-full rounded-xl bg-slate-100 object-cover"
+                  />
+                )}
                 <h3 className="text-lg font-black">{vacancy.titulo}</h3>
                 <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
                   {vacancy.descricao}

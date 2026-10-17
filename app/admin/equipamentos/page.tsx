@@ -133,6 +133,11 @@ export default function EquipmentPage() {
   const [reprint, setReprint] = useState<{ id: number; reason: string } | null>(
     null,
   );
+  const [historyFilter, setHistoryFilter] = useState({ inicio: "", fim: "" });
+  const [historyTotal, setHistoryTotal] = useState({
+    emissoes: 0,
+    etiquetas: 0,
+  });
 
   const load = useCallback(async () => {
     try {
@@ -149,6 +154,37 @@ export default function EquipmentPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const query = new URLSearchParams();
+      if (historyFilter.inicio)
+        query.set("inicio", `${historyFilter.inicio}T00:00:00`);
+      if (historyFilter.fim) query.set("fim", `${historyFilter.fim}T23:59:59`);
+      const result = await apiFetch<{
+        data: Emission[];
+        totalEmissoes: number;
+        totalEtiquetas: number;
+      }>(`/equipamentos/rotulos?${query}`);
+      setData((current) =>
+        current ? { ...current, emissoes: result.data } : current,
+      );
+      setHistoryTotal({
+        emissoes: result.totalEmissoes,
+        etiquetas: result.totalEtiquetas,
+      });
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível gerar o histórico.",
+        "error",
+      );
+    }
+  }, [historyFilter, showToast]);
+  useEffect(() => {
+    if (tab === "HISTORICO") void loadHistory();
+  }, [tab, loadHistory]);
 
   const selectedProduct = useMemo(
     () => data?.produtos.find((item) => item.id === Number(weight.produtoId)),
@@ -435,6 +471,19 @@ export default function EquipmentPage() {
                         {item.nome}
                       </option>
                     ))}
+                  </select>
+                </Field>
+                <Field label="Origem">
+                  <select
+                    className={input}
+                    value={label.origemTipo}
+                    onChange={(event) =>
+                      setLabel({ ...label, origemTipo: event.target.value })
+                    }
+                  >
+                    <option value="AVULSO">Impressão avulsa</option>
+                    <option value="RECEBIMENTO">Recebimento</option>
+                    <option value="PRODUCAO">Produção interna</option>
                   </select>
                 </Field>
                 <Field label="Item">
@@ -1006,11 +1055,56 @@ export default function EquipmentPage() {
         {tab === "HISTORICO" && (
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="border-b border-slate-200 p-5">
-              <h2 className="font-black text-slate-950">Emissões recentes</h2>
-              <p className="text-xs text-slate-500">
-                Toda reimpressão exige um motivo e cria uma nova linha
-                auditável.
-              </p>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="min-w-64 flex-1">
+                  <h2 className="font-black text-slate-950">
+                    Histórico de etiquetas
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Toda reimpressão exige um motivo e cria uma nova linha
+                    auditável.
+                  </p>
+                </div>
+                <Field label="De">
+                  <input
+                    type="date"
+                    className={input}
+                    value={historyFilter.inicio}
+                    onChange={(event) =>
+                      setHistoryFilter({
+                        ...historyFilter,
+                        inicio: event.target.value,
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="Até">
+                  <input
+                    type="date"
+                    className={input}
+                    value={historyFilter.fim}
+                    onChange={(event) =>
+                      setHistoryFilter({
+                        ...historyFilter,
+                        fim: event.target.value,
+                      })
+                    }
+                  />
+                </Field>
+                <button
+                  disabled={busy}
+                  onClick={() => void loadHistory()}
+                  className="h-11 rounded-xl bg-slate-950 px-4 text-sm font-black text-white"
+                >
+                  Gerar relatório
+                </button>
+                <div className="min-w-40 text-right text-xs text-slate-500">
+                  <strong className="block text-lg text-slate-950">
+                    {historyTotal.etiquetas}
+                  </strong>
+                  {historyTotal.emissoes} emissões no período
+                </div>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
