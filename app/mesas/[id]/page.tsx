@@ -318,24 +318,32 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
   // Real-time updates via Socket.io
   useEffect(() => {
-    const socket = connectTableSocket()
-
     const handleTableUpdate = (data?: { mesaId: number }) => {
       if (!data || Number(data.mesaId) === Number(mesaId)) {
         fetchTableData()
       }
     }
 
-    socket.on('table:updated', handleTableUpdate)
     const handleCashUpdate = (estado?: { aberto?: boolean }) => {
       if (typeof estado?.aberto === 'boolean') setCaixaAberto(estado.aberto)
       else void fetchEstadoCaixa()
     }
-    socket.on('caixa:updated', handleCashUpdate)
+    let socket: Awaited<ReturnType<typeof connectTableSocket>> = null
+    let socketCancelled = false
+    void connectTableSocket().then(connected => {
+      if (socketCancelled) {
+        connected?.disconnect()
+        return
+      }
+      socket = connected
+      socket?.on('table:updated', handleTableUpdate)
+      socket?.on('caixa:updated', handleCashUpdate)
+    })
 
     return () => {
-      socket.off('caixa:updated', handleCashUpdate)
-      socket.disconnect()
+      socketCancelled = true
+      socket?.off('caixa:updated', handleCashUpdate)
+      socket?.disconnect()
     }
   }, [mesaId, fetchTableData, fetchEstadoCaixa])
 

@@ -25,10 +25,21 @@ export function DataSyncBridge() {
     }
 
     const unsubscribeLocal = subscribeLocalDataChanges(window, invalidate)
-    const socket = pathname === '/login' ? null : connectTableSocket()
-    socket?.on('data:changed', invalidate)
+    let socket: Awaited<ReturnType<typeof connectTableSocket>> = null
+    let cancelled = false
+    if (pathname !== '/login') {
+      void connectTableSocket().then(connected => {
+        if (cancelled) {
+          connected?.disconnect()
+          return
+        }
+        socket = connected
+        socket?.on('data:changed', invalidate)
+      })
+    }
 
     return () => {
+      cancelled = true
       if (timer) clearTimeout(timer)
       unsubscribeLocal()
       socket?.off('data:changed', invalidate)

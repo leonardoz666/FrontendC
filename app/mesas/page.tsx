@@ -246,9 +246,6 @@ export default function MesasPage() {
 
     init()
     
-    // Socket connection for real-time updates
-    const socket = connectTableSocket()
-
     let refreshTimer: ReturnType<typeof setTimeout> | undefined
     const handleUpdate = () => {
       if (refreshTimer) clearTimeout(refreshTimer)
@@ -258,18 +255,28 @@ export default function MesasPage() {
       }, 50)
     }
 
-    socket.on('tables-updated', handleUpdate)
-    socket.on('table:updated', handleUpdate)
     const handleCashUpdate = (estado?: { aberto?: boolean }) => {
       if (typeof estado?.aberto === 'boolean') setCaixaAberto(estado.aberto)
       else void fetchEstadoCaixa()
     }
-    socket.on('caixa:updated', handleCashUpdate)
+    let socket: Awaited<ReturnType<typeof connectTableSocket>> = null
+    let socketCancelled = false
+    void connectTableSocket().then(connected => {
+      if (socketCancelled) {
+        connected?.disconnect()
+        return
+      }
+      socket = connected
+      socket?.on('tables-updated', handleUpdate)
+      socket?.on('table:updated', handleUpdate)
+      socket?.on('caixa:updated', handleCashUpdate)
+    })
 
     return () => {
+      socketCancelled = true
       if (refreshTimer) clearTimeout(refreshTimer)
-      socket.off('caixa:updated', handleCashUpdate)
-      socket.disconnect()
+      socket?.off('caixa:updated', handleCashUpdate)
+      socket?.disconnect()
     }
   }, [router])
 
