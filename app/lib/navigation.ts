@@ -211,6 +211,12 @@ export const NAV_GROUPS: NavGroup[] = [
         permission: 'relatorios.visualizar',
       },
       {
+        href: '/relatorios',
+        label: 'Central de Relatórios',
+        icon: 'FileSpreadsheet',
+        permission: 'relatorios.visualizar',
+      },
+      {
         href: '/admin/avaliacoes',
         label: 'Avaliações',
         icon: 'ClipboardCheck',
