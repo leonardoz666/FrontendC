@@ -109,6 +109,13 @@ export type NavPermission =
   | 'producao.criar'
   | 'producao.apontar'
   | 'producao.cancelar'
+  | 'fidelidade.visualizar'
+  | 'fidelidade.configurar'
+  | 'fidelidade.ajustar'
+  | 'marketing.visualizar'
+  | 'marketing.editar'
+  | 'marketing.disparar'
+  | 'marketing.exportar'
 
 /** Nomes de ícone do `lucide-react` usados na árvore (resolvidos em `Sidebar.tsx`). */
 export type NavIconName =
@@ -275,6 +282,15 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: '/delivery/relatorio', label: 'Relatório de Motoboys', icon: 'ChartColumn', permission: 'delivery.visualizar', module: 'DELIVERY' },
       { href: '/delivery/entregas', label: 'Minhas Entregas', icon: 'MapPin', permission: 'delivery.portal', module: 'DELIVERY' },
       { href: '/admin/delivery', label: 'Configurar Delivery', icon: 'Settings', permission: 'delivery.configurar', module: 'DELIVERY' },
+    ],
+  },
+  {
+    id: 'relacionamento',
+    label: 'Relacionamento',
+    icon: 'Target',
+    items: [
+      { href: '/relacionamento/fidelidade', label: 'Fidelidade', icon: 'Wallet', permission: 'fidelidade.visualizar', module: 'FIDELIDADE' },
+      { href: '/relacionamento/marketing', label: 'Marketing', icon: 'Target', permission: 'marketing.visualizar', module: 'MARKETING' },
     ],
   },
   {
