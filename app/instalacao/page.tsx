@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Check, Eye, EyeOff, Link2, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react'
+import { PageLoader } from '@/app/components/ui/PageLoader'
 import {
   requestedTenantRequiresActivation,
   requestedTenantSlug,
@@ -20,6 +21,7 @@ export default function InstallationPage() {
   const [error, setError] = useState('')
   const [status, setStatus] = useState<InstallationStatus | null>(null)
   const [statusLoading, setStatusLoading] = useState(true)
+  const [redirecting, setRedirecting] = useState(false)
   const [statusError, setStatusError] = useState('')
   const [confirmingReset, setConfirmingReset] = useState(false)
   const [resetting, setResetting] = useState(false)
@@ -52,6 +54,7 @@ export default function InstallationPage() {
         return
       }
       if (current.active) {
+        setRedirecting(true)
         if (current.tenantSlug) selectTenantForTab(current.tenantSlug)
         const destination = current.tenantSlug
           ? `/login?estabelecimento=${encodeURIComponent(current.tenantSlug)}`
@@ -128,6 +131,17 @@ export default function InstallationPage() {
           <h1 className="mt-6 text-balance text-3xl font-extrabold tracking-[-0.025em]">Aplicativo conectado</h1>
           <p className="mt-3 text-base leading-7 text-slate-600">A instalação foi vinculada a <strong className="text-slate-900">{successName}</strong>. Abrindo o acesso da equipe…</p>
         </div>
+      </main>
+    )
+  }
+
+  if (redirecting || (statusLoading && status === null && !statusError)) {
+    return (
+      <main className="min-h-dvh bg-[#f4f1ea] text-slate-950">
+        <PageLoader
+          message={redirecting ? 'Abrindo o estabelecimento' : 'Verificando este computador'}
+          detail={redirecting ? 'Seu aplicativo já está conectado' : 'Confirmando a ativação salva'}
+        />
       </main>
     )
   }
