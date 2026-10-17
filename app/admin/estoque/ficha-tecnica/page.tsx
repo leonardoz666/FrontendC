@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
@@ -53,6 +54,8 @@ const FORM_VAZIO: FormState = {
 }
 
 export default function FichaTecnicaPage() {
+  const searchParams = useSearchParams()
+  const openedFromProduct = useRef(false)
   const { showToast } = useToast()
   const crud = useCrud<FichaTecnicaItem>({ resource: RESOURCE, entidade: 'Item de ficha técnica' })
   const ui = useListaCrud(RESOURCE)
@@ -82,6 +85,17 @@ export default function FichaTecnicaPage() {
   const [form, setForm] = useState<FormState>(FORM_VAZIO)
   const [salvando, setSalvando] = useState(false)
   const [paraExcluir, setParaExcluir] = useState<FichaTecnicaItem | null>(null)
+
+  useEffect(() => {
+    const produtoId = Number(searchParams.get('produtoId'))
+    if (openedFromProduct.current || !Number.isInteger(produtoId) || produtoId <= 0 || produtosSelect.length === 0) return
+    const produto = produtosSelect.find(item => item.id === produtoId)
+    if (!produto) return
+    openedFromProduct.current = true
+    setEditing(null)
+    setForm({ ...FORM_VAZIO, produtoId: String(produto.id), insumoId: insumosSelect[0]?.id ? String(insumosSelect[0].id) : '' })
+    setShowForm(true)
+  }, [insumosSelect, produtosSelect, searchParams])
 
   const atualizarCampo = <K extends keyof FormState>(campo: K, valor: FormState[K]) => {
     setForm((atual) => ({ ...atual, [campo]: valor }))

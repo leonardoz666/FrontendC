@@ -68,6 +68,7 @@ const ROLE_LABELS: Record<string, string> = {
   GARCOM: 'Garçom',
   COZINHA: 'Cozinha',
   ESTOQUISTA: 'Estoquista',
+  MOTOBOY: 'Motoboy',
 }
 
 export default function AdminUsersPage() {
@@ -343,7 +344,7 @@ export default function AdminUsersPage() {
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">Cargo / Perfil</label>
                   <select value={role} onChange={(e) => handleRoleChange(e.target.value)} className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-orange-500">
-                    <option value="GARCOM">Garçom</option><option value="ATENDENTE">Atendente</option><option value="COZINHA">Cozinha</option><option value="ESTOQUISTA">Estoquista</option><option value="CAIXA">Caixa</option><option value="GERENTE">Gerente</option>
+                    <option value="GARCOM">Garçom</option><option value="ATENDENTE">Atendente</option><option value="COZINHA">Cozinha</option><option value="ESTOQUISTA">Estoquista</option><option value="MOTOBOY">Motoboy</option><option value="CAIXA">Caixa</option><option value="GERENTE">Gerente</option>
                     {isAdmin && <option value="DONO">Dono</option>}{isAdmin && <option value="ADMIN">Administrador</option>}
                   </select>
                 </div>

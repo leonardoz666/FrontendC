@@ -5,6 +5,7 @@ import {
   type SidebarVisibilityPreference,
   type UiPreferences,
 } from './uiPreferences'
+import type { ModuleKey } from './modules'
 
 /**
  * Árvore de navegação da sidebar — DADOS puros, sem JSX (PRD seção 4, RF-UI-05).
@@ -33,6 +34,7 @@ export type NavPermission =
   | 'pedidos.criar'
   | 'pedidos.editar'
   | 'pedidos.cancelar'
+  | 'pedidos.cortesia'
   | 'pedidos.itens.fechar'
   | 'pagamentos.abrir'
   | 'pagamentos.registrar'
@@ -78,6 +80,21 @@ export type NavPermission =
   | 'fiscal.emitir'
   | 'fiscal.cancelar'
   | 'fiscal.configurar'
+  | 'clientes.visualizar'
+  | 'clientes.editar'
+  | 'clientes.exportar'
+  | 'clientes.saldo'
+  | 'delivery.visualizar'
+  | 'delivery.operar'
+  | 'delivery.configurar'
+  | 'delivery.motoboys'
+  | 'delivery.portal'
+  | 'financeiro.visualizar'
+  | 'financeiro.lancar'
+  | 'financeiro.baixar'
+  | 'financeiro.estornar'
+  | 'financeiro.conciliar'
+  | 'financeiro.exportar'
 
 /** Nomes de ícone do `lucide-react` usados na árvore (resolvidos em `Sidebar.tsx`). */
 export type NavIconName =
@@ -132,6 +149,8 @@ export interface NavItem {
   disabled?: boolean
   /** Atalho de teclado associado (documentado na sidebar). */
   shortcut?: NavShortcut
+  /** Feature flag do estabelecimento necessária para exibir a rota. */
+  module?: ModuleKey
 }
 
 export interface NavGroup {
@@ -170,6 +189,12 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'ChartColumn',
         permission: 'relatorios.visualizar',
       },
+      {
+        href: '/admin/avaliacoes',
+        label: 'Avaliações',
+        icon: 'ClipboardCheck',
+        permission: 'relatorios.visualizar',
+      },
     ],
   },
   {
@@ -184,6 +209,14 @@ export const NAV_GROUPS: NavGroup[] = [
         permission: 'mesas.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE', 'CAIXA', 'GARCOM'],
         shortcut: 'F8',
+      },
+      {
+        href: '/balcao',
+        label: 'Balcão / PDV',
+        icon: 'ClipboardList',
+        permission: 'pedidos.criar',
+        roles: ['ADMIN', 'DONO', 'GERENTE', 'CAIXA', 'ATENDENTE'],
+        module: 'BALCAO',
       },
       {
         href: '/minhas-mesas',
@@ -206,6 +239,12 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: 'Tags',
     items: [
       {
+        href: '/admin/clientes',
+        label: 'Clientes',
+        icon: 'Users',
+        permission: 'clientes.visualizar',
+      },
+      {
         href: '/admin/fornecedores',
         label: 'Fornecedores',
         icon: 'Truck',
@@ -214,10 +253,49 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'delivery',
+    label: 'Delivery',
+    icon: 'Bike',
+    items: [
+      { href: '/delivery', label: 'Monitor de Pedidos', icon: 'Bike', permission: 'delivery.visualizar', module: 'DELIVERY' },
+      { href: '/delivery/relatorio', label: 'Relatório de Motoboys', icon: 'ChartColumn', permission: 'delivery.visualizar', module: 'DELIVERY' },
+      { href: '/delivery/entregas', label: 'Minhas Entregas', icon: 'MapPin', permission: 'delivery.portal', module: 'DELIVERY' },
+      { href: '/admin/delivery', label: 'Configurar Delivery', icon: 'Settings', permission: 'delivery.configurar', module: 'DELIVERY' },
+    ],
+  },
+  {
     id: 'financeiro',
     label: 'Financeiro',
     icon: 'Landmark',
     items: [
+      {
+        href: '/financeiro',
+        label: 'Visão Financeira',
+        icon: 'ChartColumn',
+        permission: 'financeiro.visualizar',
+        module: 'FINANCEIRO',
+      },
+      {
+        href: '/financeiro/conciliacao',
+        label: 'Conciliação e Cartões',
+        icon: 'FileSpreadsheet',
+        permission: 'financeiro.conciliar',
+        module: 'FINANCEIRO',
+      },
+      {
+        href: '/financeiro/credito',
+        label: 'Convênios e Fiado',
+        icon: 'Wallet',
+        permission: 'financeiro.visualizar',
+        module: 'FINANCEIRO',
+      },
+      {
+        href: '/financeiro/garcons',
+        label: 'Fechamento de Garçons',
+        icon: 'Users',
+        permission: 'financeiro.visualizar',
+        module: 'FINANCEIRO',
+      },
       {
         href: '/admin/centros-custo',
         label: 'Centros de Custo',

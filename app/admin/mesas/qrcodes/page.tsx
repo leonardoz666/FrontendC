@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { CheckSquare, Printer, QrCode, Square } from 'lucide-react'
+import { CheckSquare, LoaderCircle, Printer, QrCode, RefreshCw, Square } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import { apiFetch, fetchList } from '@/app/lib/api'
 import { PageLoader } from '@/app/components/ui/PageLoader'
@@ -27,6 +27,7 @@ export default function MesaQrCodesPage() {
   const [loading, setLoading] = useState(true)
   const [gerando, setGerando] = useState(false)
   const [erro, setErro] = useState('')
+  const [renovandoId, setRenovandoId] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelado = false
@@ -91,6 +92,17 @@ export default function MesaQrCodesPage() {
     } finally {
       setGerando(false)
     }
+  }
+
+  const renovar = async (mesaId: number) => {
+    setRenovandoId(mesaId)
+    setErro('')
+    try {
+      await apiFetch(`/tables/${mesaId}/public-token/rotate`, { method: 'POST' })
+      await gerar()
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Falha ao renovar o QR-Code')
+    } finally { setRenovandoId(null) }
   }
 
   return (
@@ -217,6 +229,7 @@ export default function MesaQrCodesPage() {
                 <h2 className="mt-3 text-2xl font-bold text-gray-900">Mesa {qr.numero}</h2>
                 <p className="mt-1 text-sm text-gray-500">{mesa?.praca?.nome ?? 'Não definida'}</p>
                 <p className="mt-2 break-all text-[10px] text-gray-600">{qr.payload}</p>
+                <button type="button" onClick={() => void renovar(qr.mesaId)} disabled={renovandoId !== null} className="no-print mt-3 inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-xs font-bold text-gray-700 hover:border-orange-300 hover:text-orange-700 disabled:opacity-50">{renovandoId === qr.mesaId ? <LoaderCircle size={14} className="animate-spin" /> : <RefreshCw size={14} />} Revogar e gerar outro</button>
               </article>
             )
           })}

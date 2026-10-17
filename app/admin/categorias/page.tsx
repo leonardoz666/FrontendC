@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { ImageIcon, Power, PowerOff, Printer } from 'lucide-react'
+import { Copy, ImageIcon, PackagePlus, Power, PowerOff, Printer } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
@@ -56,8 +56,20 @@ export default function CategoriasPage() {
   const [search, setSearch] = useState('')
   const [orderedCategories, setOrderedCategories] = useState<Categoria[]>([])
   const [reordering, setReordering] = useState(false)
+  const [duplicatingId, setDuplicatingId] = useState<number | null>(null)
 
   const [editing, setEditing] = useState<Categoria | null>(null)
+
+  const duplicar = async (categoria: Categoria, copiarProdutos: boolean) => {
+    setDuplicatingId(categoria.id)
+    try {
+      const resultado = await apiFetch<{ produtosCopiados: number }>(`/categories/${categoria.id}/duplicate`, { method: 'POST', body: { copiarProdutos } })
+      showToast(copiarProdutos ? `Categoria duplicada com ${resultado.produtosCopiados} produto(s).` : 'Estrutura da categoria duplicada.', 'success')
+      await refetch()
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível duplicar a categoria.', 'error')
+    } finally { setDuplicatingId(null) }
+  }
   const [showForm, setShowForm] = useState(false)
   const [nome, setNome] = useState('')
   const [setor, setSetor] = useState<string>('COZINHA')
@@ -357,7 +369,7 @@ export default function CategoriasPage() {
           onDelete: setParaExcluir,
           deleteLabel: 'Excluir',
           extra: (categoria) => (
-            <button
+            <div className="flex items-center gap-1"><button type="button" title="Duplicar somente categoria" aria-label="Duplicar somente categoria" disabled={duplicatingId !== null} onClick={() => void duplicar(categoria, false)} className="rounded-lg p-1.5 text-gray-600 transition-colors hover:bg-orange-50 hover:text-orange-700 disabled:opacity-50"><Copy className="h-4 w-4" /></button><button type="button" title="Duplicar categoria e produtos" aria-label="Duplicar categoria e produtos" disabled={duplicatingId !== null} onClick={() => void duplicar(categoria, true)} className="rounded-lg p-1.5 text-gray-600 transition-colors hover:bg-orange-50 hover:text-orange-700 disabled:opacity-50"><PackagePlus className="h-4 w-4" /></button><button
               type="button"
               title={categoria.ativo ? 'Desativar' : 'Ativar'}
               aria-label={categoria.ativo ? 'Desativar categoria' : 'Ativar categoria'}
@@ -366,7 +378,7 @@ export default function CategoriasPage() {
               className="rounded-lg p-1.5 text-gray-600 transition-colors hover:bg-gray-100 disabled:opacity-50"
             >
               {categoria.ativo ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-            </button>
+            </button></div>
           ),
         }}
         createAction={{ label: 'Nova categoria', onClick: abrirNova }}

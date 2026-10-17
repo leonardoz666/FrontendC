@@ -29,15 +29,19 @@ type PaymentItem = {
 interface PaymentModalProps {
     isOpen: boolean
     onClose: () => void
-    mesaId: number
-    mesaNumero: number
+    mesaId?: number
+    mesaNumero?: number
+    counterOrderId?: number
     onSuccess: () => void
     canApplyDiscount?: boolean
     items?: PaymentItem[]
 }
 
-export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, canApplyDiscount = false, items = [] }: PaymentModalProps) {
+export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrderId, onSuccess, canApplyDiscount = false, items = [] }: PaymentModalProps) {
     const { showToast } = useToast()
+    const isCounter = typeof counterOrderId === 'number'
+    const summaryPath = isCounter ? `/orders/counter/${counterOrderId}/payment-summary` : `/tables/${mesaId}/payment-summary`
+    const paymentPath = isCounter ? `/orders/counter/${counterOrderId}/payment` : `/tables/${mesaId}/payment`
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null)
     const [selectedCardBrand, setSelectedCardBrand] = useState<CreditCardBrand | ''>('')
     const [amountPaid, setAmountPaid] = useState('')
@@ -48,7 +52,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
     const [summaryError, setSummaryError] = useState('')
     const paymentInFlight = useRef(false)
     const [emitirNfce, setEmitirNfce] = useState(false)
-    const [includeService, setIncludeService] = useState(true)
+    const [includeService, setIncludeService] = useState(!isCounter)
     const [discountEnabled, setDiscountEnabled] = useState(false)
     const [discountPercent, setDiscountPercent] = useState('')
     const [metodosAtivos, setMetodosAtivos] = useState<PaymentMethod[]>(METODOS_PADRAO)
@@ -91,7 +95,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
         setSummaryLoading(true)
         setSummaryError('')
         try {
-            const data = await apiFetch<PaymentSummary>(`/tables/${mesaId}/payment-summary`, { signal })
+            const data = await apiFetch<PaymentSummary>(summaryPath, { signal })
             if (!signal?.aborted) setSummary(data)
         } catch (error) {
             if (!signal?.aborted) {
@@ -101,7 +105,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
         } finally {
             if (!signal?.aborted) setSummaryLoading(false)
         }
-    }, [mesaId])
+    }, [summaryPath])
 
     const paymentMethods = metodosAtivos.map(id => ({
         id,
@@ -128,7 +132,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
             const data = await apiFetch<{
                 fechado: boolean; totalFinal: number; pagoAteAgora: number; saldoRestante: number
                 nfce?: { status: string; serie: string; numero: number; motivoRejeicao?: string }
-            }>(`/tables/${mesaId}/payment`, {
+            }>(paymentPath, {
                 method: 'POST',
                 body: {
                     tipo: selectedMethod,
@@ -220,7 +224,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
             setSplitCount(1)
             setSplitMode('PEOPLE')
             setEmitirNfce(false)
-            setIncludeService(true)
+            setIncludeService(!isCounter)
             setDiscountEnabled(false)
             setDiscountPercent('')
             return () => {
@@ -228,7 +232,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                 document.body.style.overflow = previousOverflow
             }
         }
-    }, [isOpen, loadSummary])
+    }, [isCounter, isOpen, loadSummary])
 
     if (!isOpen) return null
 
@@ -240,7 +244,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                     <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                         <div>
                             <h2 className="text-2xl font-bold">Receber conta</h2>
-                            <p className="mt-0.5 text-sm font-medium text-green-100">Mesa {mesaNumero}</p>
+                            <p className="mt-0.5 text-sm font-medium text-green-100">{isCounter ? `Balcão #${counterOrderId}` : `Mesa ${mesaNumero}`}</p>
                         </div>
                         <button onClick={onClose} disabled={processing} aria-label="Fechar" className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-white transition-colors hover:bg-white/15 disabled:opacity-50">
                             <X size={26} />
@@ -357,7 +361,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                             </div>
                         ) : (
                             <div className="space-y-3 border-y border-gray-200 py-4">
-                                <label className="flex cursor-pointer items-center justify-between gap-4">
+                                {!isCounter && <label className="flex cursor-pointer items-center justify-between gap-4">
                                     <span>
                                         <span className="block font-semibold text-gray-900">Incluir taxa de serviço de 10%</span>
                                         <span className="text-sm text-gray-500">Desative quando a conta for paga sem os 10%.</span>
@@ -368,7 +372,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                                         onChange={(event) => setIncludeService(event.target.checked)}
                                         className="h-5 w-5 shrink-0 rounded border-gray-300 text-green-600 focus:ring-green-500"
                                     />
-                                </label>
+                                </label>}
 
                                 {canApplyDiscount && (
                                     <div className="border-t border-gray-200 pt-3">
@@ -516,7 +520,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                             </div>
                         )}
 
-                        <label className="flex items-start gap-3 rounded-xl border border-gray-200 p-3 text-sm text-gray-700">
+                        {!isCounter && <label className="flex items-start gap-3 rounded-xl border border-gray-200 p-3 text-sm text-gray-700">
                             <input
                                 type="checkbox"
                                 checked={emitirNfce}
@@ -527,7 +531,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, onSuccess, c
                                 <span className="block font-semibold text-gray-900">Emitir NFC-e ao fechar</span>
                                 <span className="text-gray-500">A emissão só ocorre quando a conta for quitada totalmente.</span>
                             </span>
-                        </label>
+                        </label>}
 
                         {/* Cash amount input */}
                         {selectedMethod === 'DINHEIRO' && (

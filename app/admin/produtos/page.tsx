@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable'
@@ -28,7 +29,8 @@ import {
   Search,
   ListFilter,
   LayoutGrid,
-  Tag
+  Tag,
+  Copy, ChartNoAxesCombined, FlaskConical, LoaderCircle, CalendarClock, Trash2
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -53,6 +55,26 @@ type ComplementoGrupo = {
   maxEscolhas: number | null
   ativo: boolean
 }
+
+type SalesHistory = {
+  totalQuantidade: number
+  totalValor: number
+  porCanal: Array<{ canal: string; quantidade: number; valor: number }>
+  porDia: Array<{ data: string; quantidade: number; valor: number }>
+}
+
+type SalesChannel = 'SALAO' | 'BALCAO' | 'DELIVERY' | 'AUTOATENDIMENTO'
+type AvailabilityRule = { id?: number; diaSemana: number; inicioMinuto: number; fimMinuto: number; canal: SalesChannel; ativo: boolean }
+type PromotionRule = { id?: number; valor: number | string; inicio: string; fim: string; canal: SalesChannel; prioridade: number; ativo: boolean }
+
+const SALES_CHANNELS: Array<{ value: SalesChannel; label: string }> = [
+  { value: 'SALAO', label: 'Salão' }, { value: 'BALCAO', label: 'Balcão' },
+  { value: 'DELIVERY', label: 'Delivery' }, { value: 'AUTOATENDIMENTO', label: 'Autoatendimento' },
+]
+const WEEK_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+const minutesToTime = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+const timeToMinutes = (value: string) => { const [hours, minutes] = value.split(':').map(Number); return hours * 60 + minutes }
+const toLocalDateTime = (value: string) => { const date = new Date(value); const offset = date.getTimezoneOffset(); return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16) }
 
 function categoryColorStyle(categoryId: number, selected = false) {
   // O passo áureo distribui categorias vizinhas em matizes bem separados.
@@ -140,6 +162,65 @@ export default function ProdutosPage() {
   const [deleteConfirmationId, setDeleteConfirmationId] = useState<number | null>(null)
   const [fixStatus, setFixStatus] = useState<string | null>(null)
   const [confirmarFixSetores, setConfirmarFixSetores] = useState(false)
+  const [duplicatingId, setDuplicatingId] = useState<number | null>(null)
+  const [historyProduct, setHistoryProduct] = useState<Produto | null>(null)
+  const [salesHistory, setSalesHistory] = useState<SalesHistory | null>(null)
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [rulesProduct, setRulesProduct] = useState<Produto | null>(null)
+  const [availability, setAvailability] = useState<AvailabilityRule[]>([])
+  const [promotions, setPromotions] = useState<PromotionRule[]>([])
+  const [loadingRules, setLoadingRules] = useState(false)
+  const [savingRules, setSavingRules] = useState(false)
+
+  const duplicateProduct = async (produto: Produto) => {
+    setDuplicatingId(produto.id)
+    try {
+      await apiFetch(`/products/${produto.id}/duplicate`, { method: 'POST' })
+      showToast(`${produto.nome} foi duplicado com novo código.`, 'success')
+      await refetchProdutos()
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível duplicar o produto.', 'error')
+    } finally { setDuplicatingId(null) }
+  }
+
+  const openHistory = async (produto: Produto) => {
+    setHistoryProduct(produto); setSalesHistory(null); setLoadingHistory(true)
+    try {
+      setSalesHistory(await apiFetch<SalesHistory>(`/products/${produto.id}/sales-history`))
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível carregar o histórico.', 'error')
+    } finally { setLoadingHistory(false) }
+  }
+
+  const openRules = async (produto: Produto) => {
+    setRulesProduct(produto); setAvailability([]); setPromotions([]); setLoadingRules(true)
+    try {
+      const [availabilityData, promotionData] = await Promise.all([
+        apiFetch<AvailabilityRule[]>(`/products/${produto.id}/availability`),
+        apiFetch<PromotionRule[]>(`/products/${produto.id}/promotions`),
+      ])
+      setAvailability(availabilityData)
+      setPromotions(promotionData.map(item => ({ ...item, inicio: toLocalDateTime(item.inicio), fim: toLocalDateTime(item.fim) })))
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível carregar as regras comerciais.', 'error')
+      setRulesProduct(null)
+    } finally { setLoadingRules(false) }
+  }
+
+  const saveRules = async () => {
+    if (!rulesProduct) return
+    setSavingRules(true)
+    try {
+      await Promise.all([
+        apiFetch(`/products/${rulesProduct.id}/availability`, { method: 'PUT', body: { regras: availability.map(({ diaSemana, inicioMinuto, fimMinuto, canal, ativo }) => ({ diaSemana, inicioMinuto, fimMinuto, canal, ativo })) } }),
+        apiFetch(`/products/${rulesProduct.id}/promotions`, { method: 'PUT', body: { promocoes: promotions.map(({ valor, inicio, fim, canal, prioridade, ativo }) => ({ valor: Number(valor), inicio: new Date(inicio).toISOString(), fim: new Date(fim).toISOString(), canal, prioridade, ativo })) } }),
+      ])
+      showToast(`Regras comerciais de ${rulesProduct.nome} salvas.`, 'success')
+      setRulesProduct(null)
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Não foi possível salvar as regras comerciais.', 'error')
+    } finally { setSavingRules(false) }
+  }
 
   const alternarAtivo = async (produto: Produto, ativo: boolean) => {
     await apiFetch(`/products/${produto.id}/visibilidade-garcom`, {
@@ -868,6 +949,12 @@ export default function ProdutosPage() {
           loading={loadingProd}
           showControls={false}
           rowActions={{
+            extra: (produto) => <div className="flex items-center gap-1">
+              <button type="button" onClick={() => void duplicateProduct(produto)} disabled={duplicatingId !== null} title="Duplicar produto" aria-label={`Duplicar ${produto.nome}`} className="rounded-lg p-2 text-slate-500 hover:bg-orange-50 hover:text-orange-700 disabled:opacity-40">{duplicatingId === produto.id ? <LoaderCircle size={16} className="animate-spin" /> : <Copy size={16} />}</button>
+              <button type="button" onClick={() => void openHistory(produto)} title="Histórico de vendas" aria-label={`Histórico de vendas de ${produto.nome}`} className="rounded-lg p-2 text-slate-500 hover:bg-orange-50 hover:text-orange-700"><ChartNoAxesCombined size={16} /></button>
+              <button type="button" onClick={() => void openRules(produto)} title="Disponibilidade e promoções" aria-label={`Regras comerciais de ${produto.nome}`} className="rounded-lg p-2 text-slate-500 hover:bg-orange-50 hover:text-orange-700"><CalendarClock size={16} /></button>
+              <Link href={`/admin/estoque/ficha-tecnica?produtoId=${produto.id}`} title="Abrir ficha técnica" aria-label={`Ficha técnica de ${produto.nome}`} className="rounded-lg p-2 text-slate-500 hover:bg-orange-50 hover:text-orange-700"><FlaskConical size={16} /></Link>
+            </div>,
             onEdit: handleEdit,
             onDelete: (produto) => setDeleteConfirmationId(produto.id),
             editLabel: 'Editar produto',
@@ -889,6 +976,36 @@ export default function ProdutosPage() {
           ariaLabel="Produtos do cardápio"
         />
       </div>
+
+      {historyProduct && <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-labelledby="history-title"><section className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"><header className="flex items-center justify-between border-b border-slate-200 px-5 py-4"><div><h2 id="history-title" className="text-xl font-black text-slate-950">Vendas de {historyProduct.nome}</h2><p className="mt-1 text-sm text-slate-500">Últimos 30 dias, separados por canal.</p></div><button type="button" onClick={() => setHistoryProduct(null)} aria-label="Fechar" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X size={19} /></button></header>{loadingHistory ? <div className="grid h-56 place-items-center"><LoaderCircle className="animate-spin text-orange-600" /></div> : salesHistory && <div className="p-5"><div className="grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-slate-100 p-4"><span className="text-sm text-slate-500">Quantidade vendida</span><strong className="mt-1 block text-2xl text-slate-950">{salesHistory.totalQuantidade}</strong></div><div className="rounded-xl bg-slate-100 p-4"><span className="text-sm text-slate-500">Valor vendido</span><strong className="mt-1 block text-2xl text-slate-950">{salesHistory.totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></div></div><div className="mt-4 overflow-hidden rounded-xl border border-slate-200"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-slate-500"><tr><th className="px-4 py-3">Canal</th><th className="px-4 py-3 text-right">Quantidade</th><th className="px-4 py-3 text-right">Valor</th></tr></thead><tbody className="divide-y divide-slate-100">{salesHistory.porCanal.map(item => <tr key={item.canal}><td className="px-4 py-3 font-bold text-slate-800">{item.canal}</td><td className="px-4 py-3 text-right">{item.quantidade}</td><td className="px-4 py-3 text-right font-semibold">{item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td></tr>)}</tbody></table>{salesHistory.porCanal.length === 0 && <p className="p-8 text-center text-sm text-slate-500">Nenhuma venda no período.</p>}</div></div>}</section></div>}
+
+      {rulesProduct && <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+        <section className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <header className="flex items-start justify-between border-b border-slate-200 px-5 py-4"><div><p className="text-xs font-black uppercase tracking-wider text-orange-600">Regras comerciais</p><h2 id="rules-title" className="mt-1 text-xl font-black text-slate-950">{rulesProduct.nome}</h2><p className="mt-1 text-sm text-slate-500">Sem regras de horário, o produto permanece disponível o dia todo.</p></div><button type="button" onClick={() => setRulesProduct(null)} disabled={savingRules} aria-label="Fechar" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X size={19} /></button></header>
+          {loadingRules ? <div className="grid h-72 place-items-center"><LoaderCircle className="animate-spin text-orange-600" /></div> : <div className="min-h-0 flex-1 space-y-8 overflow-y-auto p-5">
+            <section><div className="flex items-center justify-between gap-3"><div><h3 className="font-black text-slate-950">Disponibilidade</h3><p className="text-sm text-slate-500">Dias, horários e canais em que o item pode ser vendido.</p></div><button type="button" onClick={() => setAvailability(items => [...items, { diaSemana: 1, inicioMinuto: 0, fimMinuto: 1440, canal: 'SALAO', ativo: true }])} className="rounded-lg border border-orange-200 px-3 py-2 text-sm font-black text-orange-700 hover:bg-orange-50">+ Horário</button></div>
+              <div className="mt-3 space-y-2">{availability.map((rule, index) => <div key={rule.id ?? index} className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1.25fr_1fr_1fr_1.4fr_auto]">
+                <select aria-label={`Dia da regra ${index + 1}`} value={rule.diaSemana} onChange={event => setAvailability(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, diaSemana: Number(event.target.value) } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">{WEEK_DAYS.map((day, dayIndex) => <option key={day} value={dayIndex}>{day}</option>)}</select>
+                <input aria-label={`Início da regra ${index + 1}`} type="time" value={minutesToTime(rule.inicioMinuto)} onChange={event => setAvailability(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, inicioMinuto: timeToMinutes(event.target.value) } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                <input aria-label={`Fim da regra ${index + 1}`} type="time" value={minutesToTime(rule.fimMinuto === 1440 ? 1439 : rule.fimMinuto)} onChange={event => setAvailability(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, fimMinuto: timeToMinutes(event.target.value) } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                <select aria-label={`Canal da regra ${index + 1}`} value={rule.canal} onChange={event => setAvailability(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, canal: event.target.value as SalesChannel } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">{SALES_CHANNELS.map(channel => <option key={channel.value} value={channel.value}>{channel.label}</option>)}</select>
+                <button type="button" onClick={() => setAvailability(items => items.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remover regra ${index + 1}`} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={17} /></button>
+              </div>)}{availability.length === 0 && <p className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">Disponível sem restrição de horário.</p>}</div>
+            </section>
+            <section><div className="flex items-center justify-between gap-3"><div><h3 className="font-black text-slate-950">Promoções agendadas</h3><p className="text-sm text-slate-500">O maior número de prioridade vence quando períodos se sobrepõem.</p></div><button type="button" onClick={() => { const start = new Date(); const end = new Date(start.getTime() + 7 * 86400_000); setPromotions(items => [...items, { valor: '', inicio: toLocalDateTime(start.toISOString()), fim: toLocalDateTime(end.toISOString()), canal: 'SALAO', prioridade: 0, ativo: true }]) }} className="rounded-lg border border-orange-200 px-3 py-2 text-sm font-black text-orange-700 hover:bg-orange-50">+ Promoção</button></div>
+              <div className="mt-3 space-y-2">{promotions.map((promotion, index) => <div key={promotion.id ?? index} className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 lg:grid-cols-[.8fr_1.35fr_1.35fr_1fr_.65fr_auto]">
+                <input aria-label={`Valor da promoção ${index + 1}`} type="number" min="0" step="0.01" placeholder="R$" value={promotion.valor} onChange={event => setPromotions(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, valor: event.target.value } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                <input aria-label={`Início da promoção ${index + 1}`} type="datetime-local" value={promotion.inicio} onChange={event => setPromotions(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, inicio: event.target.value } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                <input aria-label={`Fim da promoção ${index + 1}`} type="datetime-local" value={promotion.fim} onChange={event => setPromotions(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, fim: event.target.value } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                <select aria-label={`Canal da promoção ${index + 1}`} value={promotion.canal} onChange={event => setPromotions(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, canal: event.target.value as SalesChannel } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">{SALES_CHANNELS.map(channel => <option key={channel.value} value={channel.value}>{channel.label}</option>)}</select>
+                <input aria-label={`Prioridade da promoção ${index + 1}`} type="number" step="1" value={promotion.prioridade} onChange={event => setPromotions(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, prioridade: Number(event.target.value) } : item))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" />
+                <button type="button" onClick={() => setPromotions(items => items.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remover promoção ${index + 1}`} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={17} /></button>
+              </div>)}{promotions.length === 0 && <p className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">Nenhuma promoção agendada.</p>}</div>
+            </section>
+          </div>}
+          <footer className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4"><button type="button" onClick={() => setRulesProduct(null)} disabled={savingRules} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700">Cancelar</button><button type="button" onClick={() => void saveRules()} disabled={loadingRules || savingRules} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-black text-white hover:bg-orange-700 disabled:opacity-50">{savingRules && <LoaderCircle size={16} className="animate-spin" />} Salvar regras</button></footer>
+        </section>
+      </div>}
 
       {/* Modal Add/Edit Product */}
       {isAdding && (

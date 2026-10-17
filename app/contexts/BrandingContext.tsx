@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { apiFetch, invalidateAuthMeCache } from '@/app/lib/api'
 import { currentTenantSlug } from '@/app/lib/offline'
 import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
+import { parseTenantModules, type ModuleKey } from '@/app/lib/modules'
 
 export type RestaurantBranding = {
   nome: string
@@ -20,6 +21,7 @@ export type RestaurantBranding = {
   corDestaque: string
   fonteInterface: 'MODERNA' | 'SISTEMA' | 'CLASSICA'
   temaPadrao: 'CLARO' | 'ESCURO' | 'SISTEMA'
+  modulosAtivos: ModuleKey[]
 }
 
 export const DEFAULT_BRANDING: RestaurantBranding = {
@@ -35,6 +37,7 @@ export const DEFAULT_BRANDING: RestaurantBranding = {
   corDestaque: '#f97316',
   fonteInterface: 'MODERNA',
   temaPadrao: 'SISTEMA',
+  modulosAtivos: [],
 }
 
 const NEUTRAL_BRANDING: RestaurantBranding = {
@@ -50,6 +53,7 @@ const NEUTRAL_BRANDING: RestaurantBranding = {
   corDestaque: '#64748b',
   fonteInterface: 'MODERNA',
   temaPadrao: 'SISTEMA',
+  modulosAtivos: [],
 }
 
 type BrandingPayload = Partial<RestaurantBranding> & { nome?: string }
@@ -59,6 +63,7 @@ type BrandingContextValue = {
   carregando: boolean
   refreshBranding: () => Promise<void>
   setBranding: (branding: BrandingPayload) => void
+  moduleEnabled: (module: ModuleKey) => boolean
 }
 
 const BrandingContext = createContext<BrandingContextValue | null>(null)
@@ -84,6 +89,7 @@ function normalizedBranding(value?: BrandingPayload): RestaurantBranding {
     temaPadrao: temaPadrao && ['CLARO', 'ESCURO', 'SISTEMA'].includes(temaPadrao)
       ? temaPadrao
       : DEFAULT_BRANDING.temaPadrao,
+    modulosAtivos: parseTenantModules(value?.modulosAtivos),
   }
 }
 
@@ -211,8 +217,10 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     )
   }
 
+  const moduleEnabled = (module: ModuleKey) => branding.modulosAtivos.includes(module)
+
   return (
-    <BrandingContext.Provider value={{ branding, carregando, refreshBranding, setBranding }}>
+    <BrandingContext.Provider value={{ branding, carregando, refreshBranding, setBranding, moduleEnabled }}>
       {children}
     </BrandingContext.Provider>
   )

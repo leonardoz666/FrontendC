@@ -150,7 +150,12 @@ export default function Sidebar({
   const isWaiter = user?.role === 'GARCOM'
   const isStockkeeper = user?.role === 'ESTOQUISTA'
 
-  const visibleGroups = useMemo(() => visibleNavGroups(user), [user])
+  const visibleGroups = useMemo(() => visibleNavGroups(user)
+    .map(({ group, items }) => ({
+      group,
+      items: items.filter(item => !item.module || branding.modulosAtivos.includes(item.module)),
+    }))
+    .filter(({ items }) => items.length > 0), [branding.modulosAtivos, user])
   const active = useMemo(() => findActiveNavItem(pathname), [pathname])
   const activeHref = active?.item.href
   const quickShortcuts = user?.role === 'GARCOM'
