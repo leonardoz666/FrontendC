@@ -116,6 +116,9 @@ export type NavPermission =
   | 'marketing.editar'
   | 'marketing.disparar'
   | 'marketing.exportar'
+  | 'recrutamento.visualizar'
+  | 'recrutamento.editar'
+  | 'recrutamento.exportar'
 
 /** Nomes de ícone do `lucide-react` usados na árvore (resolvidos em `Sidebar.tsx`). */
 export type NavIconName =
@@ -153,6 +156,7 @@ export type NavIconName =
   | 'HardDrive'
   | 'QrCode'
   | 'Eye'
+  | 'Scale'
 
 export type NavShortcut = 'F8'
 
@@ -301,6 +305,14 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'pessoas',
+    label: 'Pessoas',
+    icon: 'Contact',
+    items: [
+      { href: '/admin/recrutamento', label: 'Recrutamento', icon: 'Contact', permission: 'recrutamento.visualizar', module: 'RECRUTAMENTO' },
+    ],
+  },
+  {
     id: 'financeiro',
     label: 'Financeiro',
     icon: 'Landmark',
@@ -396,6 +408,13 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'ClipboardList',
         permission: 'cadastros.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+      },
+      {
+        href: '/admin/equipamentos',
+        label: 'Rótulos e Balança',
+        icon: 'Scale',
+        permission: 'cadastros.visualizar',
+        module: 'ROTULOS_BALANCA',
       },
     ],
   },

@@ -32,6 +32,7 @@ import {
   Pencil,
   Printer,
   QrCode,
+  Scale,
   Settings,
   Shield,
   Tags,
@@ -97,6 +98,7 @@ const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   HardDrive,
   QrCode,
   Eye,
+  Scale,
 }
 
 interface SidebarProps {
