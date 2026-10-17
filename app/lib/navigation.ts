@@ -157,6 +157,7 @@ export type NavIconName =
   | 'QrCode'
   | 'Eye'
   | 'Scale'
+  | 'Activity'
 
 export type NavShortcut = 'F8'
 
@@ -218,6 +219,12 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/relatorios',
         label: 'Central de Relatórios',
         icon: 'FileSpreadsheet',
+        permission: 'relatorios.visualizar',
+      },
+      {
+        href: '/operacao',
+        label: 'Pulso da Operação',
+        icon: 'Activity',
         permission: 'relatorios.visualizar',
       },
       {

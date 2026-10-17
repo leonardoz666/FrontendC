@@ -4,6 +4,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
+  Activity,
   Armchair,
   Bike,
   Boxes,
@@ -64,6 +65,7 @@ import {
 import { useBranding } from '@/app/contexts/BrandingContext'
 
 const NAV_ICONS: Record<NavIconName, LucideIcon> = {
+  Activity,
   LayoutDashboard,
   ChartColumn,
   Armchair,
