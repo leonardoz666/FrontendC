@@ -95,6 +95,20 @@ export type NavPermission =
   | 'financeiro.estornar'
   | 'financeiro.conciliar'
   | 'financeiro.exportar'
+  | 'compras.visualizar'
+  | 'compras.solicitar'
+  | 'compras.aprovar'
+  | 'compras.receber'
+  | 'compras.cancelar'
+  | 'requisicoes.visualizar'
+  | 'requisicoes.solicitar'
+  | 'requisicoes.separar'
+  | 'requisicoes.despachar'
+  | 'requisicoes.receber'
+  | 'producao.visualizar'
+  | 'producao.criar'
+  | 'producao.apontar'
+  | 'producao.cancelar'
 
 /** Nomes de ícone do `lucide-react` usados na árvore (resolvidos em `Sidebar.tsx`). */
 export type NavIconName =
@@ -414,6 +428,20 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Estoque',
     icon: 'Boxes',
     items: [
+      {
+        href: '/admin/abastecimento',
+        label: 'Compras e abastecimento',
+        icon: 'Truck',
+        anyPermission: ['compras.visualizar', 'requisicoes.visualizar'],
+        module: 'COMPRAS',
+      },
+      {
+        href: '/admin/producao',
+        label: 'Produção interna',
+        icon: 'UtensilsCrossed',
+        permission: 'producao.visualizar',
+        module: 'PRODUCAO_INTERNA',
+      },
       {
         href: '/admin/estoque',
         label: 'Visão Geral',
