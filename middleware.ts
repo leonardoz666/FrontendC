@@ -97,7 +97,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  const installationRoute = pathname.startsWith('/api/installation/') || pathname.startsWith('/api/public/') || pathname.startsWith('/e/')
+  const installationRoute = pathname === '/_offline'
+    || pathname.startsWith('/api/installation/')
+    || pathname.startsWith('/api/public/')
+    || pathname.startsWith('/e/')
   if (installationRoute || await hasValidInstallationGate(request, requestedSlug)) return NextResponse.next()
   if (pathname.startsWith('/api/') || pathname.startsWith('/uploads/')) {
     return NextResponse.json({ code: 'INSTALLATION_REQUIRED', error: 'Ative este aplicativo antes de continuar' }, { status: 428 })
