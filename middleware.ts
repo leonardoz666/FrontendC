@@ -97,7 +97,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  const installationRoute = pathname === '/_offline'
+  const installationRoute = pathname === '/offline'
     || pathname.startsWith('/api/installation/')
     || pathname.startsWith('/api/public/')
     || pathname.startsWith('/e/')

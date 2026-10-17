@@ -7,7 +7,7 @@ const withPWA = withPWAInit({
   register: true,
   cacheStartUrl: false,
   fallbacks: {
-    document: '/_offline',
+    document: '/offline',
   },
   workboxOptions: {
     skipWaiting: true,
