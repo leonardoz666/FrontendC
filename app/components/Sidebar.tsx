@@ -351,14 +351,14 @@ export default function Sidebar({
       )}
 
       <aside className={`
-        controlae-navigation fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r border-slate-300 bg-[#e9f0f7] transition-[transform,width] duration-300 ease-in-out
+        controlae-navigation fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar-background)] transition-[transform,width] duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         ${isCollapsed ? 'md:w-[88px]' : 'md:w-72'}
         md:translate-x-0
       `}>
         {!isStockkeeper && (!visibility.hideBrand || !visibility.hideSearch || !visibility.hideShortcuts) && (
         <div
-          className={`border-b border-slate-300/80 bg-[#f5f8fb] px-4 pt-[18px] pb-4 ${
+          className={`border-b border-[var(--sidebar-border)] bg-[var(--sidebar-header)] px-4 pt-[18px] pb-4 ${
             isCollapsed ? `md:px-4 ${visibility.hideBrand ? 'md:hidden' : ''}` : ''
           }`}
         >
@@ -456,7 +456,7 @@ export default function Sidebar({
             const isGroupOpen = Boolean(normalizedSearch) || (openGroups[section.id] ?? isGroupActive)
 
             return (
-              <div key={section.id} className={`mb-2 border-b border-slate-300/70 pb-2 ${isCollapsed ? 'md:hidden' : ''}`}>
+              <div key={section.id} className={`mb-2 border-b border-[var(--sidebar-border)] pb-2 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <button
                   type="button"
                   onClick={() => toggleGroup(section.id)}
@@ -487,7 +487,7 @@ export default function Sidebar({
 
         </nav>
 
-        <div className="border-t border-slate-300 bg-[#dce6f0] p-3">
+        <div className="border-t border-[var(--sidebar-border)] bg-[var(--sidebar-footer)] p-3">
           <div
             className={`group flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm shadow-slate-950/[0.03] transition-colors hover:bg-slate-50 ${
               isCollapsed ? 'md:flex-col md:justify-center' : ''

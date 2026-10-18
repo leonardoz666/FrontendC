@@ -20,6 +20,7 @@ export type RestaurantBranding = {
   corPrimaria: string
   corSecundaria: string
   corDestaque: string
+  corNavegacao: string
   fonteInterface: 'MODERNA' | 'SISTEMA' | 'CLASSICA'
   temaPadrao: 'CLARO' | 'ESCURO' | 'SISTEMA'
   modulosAtivos: ModuleKey[]
@@ -36,6 +37,7 @@ export const DEFAULT_BRANDING: RestaurantBranding = {
   corPrimaria: '#ea580c',
   corSecundaria: '#0f172a',
   corDestaque: '#f97316',
+  corNavegacao: '#e9f0f7',
   fonteInterface: 'MODERNA',
   temaPadrao: 'SISTEMA',
   modulosAtivos: [],
@@ -52,6 +54,7 @@ const NEUTRAL_BRANDING: RestaurantBranding = {
   corPrimaria: '#475569',
   corSecundaria: '#0f172a',
   corDestaque: '#64748b',
+  corNavegacao: '#e9f0f7',
   fonteInterface: 'MODERNA',
   temaPadrao: 'SISTEMA',
   modulosAtivos: [],
@@ -84,6 +87,7 @@ function normalizedBranding(value?: BrandingPayload): RestaurantBranding {
     corPrimaria: value?.corPrimaria || DEFAULT_BRANDING.corPrimaria,
     corSecundaria: value?.corSecundaria || DEFAULT_BRANDING.corSecundaria,
     corDestaque: value?.corDestaque || DEFAULT_BRANDING.corDestaque,
+    corNavegacao: value?.corNavegacao || DEFAULT_BRANDING.corNavegacao,
     fonteInterface: fonteInterface && ['MODERNA', 'SISTEMA', 'CLASSICA'].includes(fonteInterface)
       ? fonteInterface
       : DEFAULT_BRANDING.fonteInterface,
@@ -124,6 +128,10 @@ function applyBranding(branding: RestaurantBranding): void {
   root.style.setProperty('--brand-primary', branding.corPrimaria)
   root.style.setProperty('--brand-secondary', branding.corSecundaria)
   root.style.setProperty('--brand-accent', branding.corDestaque)
+  root.style.setProperty('--sidebar-background', branding.corNavegacao)
+  root.style.setProperty('--sidebar-header', mix(branding.corNavegacao, '#ffffff', .62))
+  root.style.setProperty('--sidebar-footer', mix(branding.corNavegacao, '#000000', .06))
+  root.style.setProperty('--sidebar-border', mix(branding.corNavegacao, '#000000', .18))
   root.style.setProperty('--brand-on-primary', readableTextColor(branding.corPrimaria))
   root.style.setProperty('--brand-font-family', fontFamilies[branding.fonteInterface])
   root.style.setProperty('--color-slate-950', mix(branding.corSecundaria, '#000000', .16))

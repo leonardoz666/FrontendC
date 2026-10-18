@@ -10,6 +10,7 @@ colors:
   warm-canvas: "#f4f1ea"
   ink: "#171717"
   border: "#d1d5db"
+  navigation-surface: "#e9f0f7"
 typography:
   display:
     fontFamily: "Geist, Segoe UI, sans-serif"
@@ -163,6 +164,8 @@ Controles usam cantos de 8px, campos e cartões operacionais usam 12px e superf�
 ### Navigation
 
 Itens ativos usam laranja sólido e texto branco. Itens inativos permanecem claros, com texto azul-ardósia e hover tonal. A marca compacta usa o monograma ou logo do tenant quando ele já foi resolvido.
+
+A superfície da barra lateral usa a cor de navegação configurada no Painel CEO. Cabeçalho, rodapé e divisórias são tons derivados automaticamente dessa base para preservar hierarquia e contraste.
 
 ## Do's and Don'ts
 
