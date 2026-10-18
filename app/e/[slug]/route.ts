@@ -11,13 +11,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     return NextResponse.redirect(new URL('/instalacao?erro=estabelecimento-invalido', request.url))
   }
 
-  const establishmentUrl = `${request.nextUrl.origin}/e/${slug}`
   const binding = installationBindingForTenant(request.cookies, slug)
   if (binding) {
     return NextResponse.redirect(new URL(tenantPageUrl('/login', slug), request.url))
   }
-  const destination = new URL('/instalacao', request.url)
-  destination.searchParams.set('link', establishmentUrl)
+  const destination = new URL(`/acesso/${slug}`, request.url)
   const response = NextResponse.redirect(destination)
   response.headers.set('cache-control', 'private, no-store, max-age=0')
   return response

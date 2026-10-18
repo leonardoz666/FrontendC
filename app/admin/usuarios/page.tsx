@@ -12,17 +12,19 @@ import Skeleton from '@/app/components/ui/Skeleton'
 import { PageLoader } from '@/app/components/ui/PageLoader'
 import { PAGE_SIZE_OPTIONS, usePagedQuery } from '@/app/lib/pagination'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
-import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
+import { tenantForCurrentTab, tenantResourceUrl } from '@/app/lib/tenant-navigation'
 import {
   ArrowLeft,
   Camera,
   ChevronDown,
+  Copy,
   Edit,
   KeyRound,
   Plus,
   Save,
   Search,
   ShieldCheck,
+  Smartphone,
   Trash2,
   UserCheck,
   UserRound,
@@ -96,6 +98,8 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState<'TODOS' | 'ATIVOS' | 'INATIVOS'>('TODOS')
   const [expandedPermissionGroups, setExpandedPermissionGroups] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
+  const [generatingAccessFor, setGeneratingAccessFor] = useState<number | null>(null)
+  const [deviceAccess, setDeviceAccess] = useState<{ userName: string; url: string; expiresAt: string } | null>(null)
   
   const [error, setError] = useState('')
   const [, setSuccess] = useState('')
@@ -285,6 +289,23 @@ export default function AdminUsersPage() {
     }
   }
 
+  const generateDeviceAccess = async (user: User) => {
+    setGeneratingAccessFor(user.id)
+    try {
+      const result = await apiFetch<{ invite: string; expiresAt: string }>(`/users/${user.id}/device-invites`, { method: 'POST' })
+      const tenant = tenantForCurrentTab()
+      if (!tenant) throw new Error('Não foi possível identificar o estabelecimento desta aba')
+      const url = `${window.location.origin}/acesso/${tenant}?convite=${encodeURIComponent(result.invite)}`
+      setDeviceAccess({ userName: user.nome, url, expiresAt: result.expiresAt })
+      await navigator.clipboard.writeText(url).catch(() => undefined)
+      showToast('Link individual gerado e copiado. Ele vale por 15 minutos.', 'success')
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Erro ao gerar acesso do aparelho', 'error')
+    } finally {
+      setGeneratingAccessFor(null)
+    }
+  }
+
   if (loading) return <PageLoader message="Carregando usuários" detail="Organizando acessos e permissões" />
 
   if (isCreating || editingId) {
@@ -438,6 +459,23 @@ export default function AdminUsersPage() {
           {canCreateUsers && <Button onClick={handleCreate}><Plus size={18} className="mr-2" />Novo usuário</Button>}
         </header>
 
+        {deviceAccess && (
+          <section className="rounded-xl border border-orange-200 bg-orange-50 p-4" aria-live="polite">
+            <div className="flex items-start gap-3">
+              <Smartphone className="mt-0.5 shrink-0 text-orange-700" size={21} />
+              <div className="min-w-0 flex-1">
+                <h2 className="font-bold text-slate-950">Link de {deviceAccess.userName}</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">Abra no celular que será usado por esse funcionário. O convite funciona uma vez e expira às {new Date(deviceAccess.expiresAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.</p>
+                <div className="mt-3 flex gap-2">
+                  <input readOnly value={deviceAccess.url} className="h-10 min-w-0 flex-1 rounded-lg border border-orange-200 bg-white px-3 text-xs text-slate-700" />
+                  <Button type="button" variant="outline" onClick={() => { void navigator.clipboard.writeText(deviceAccess.url); showToast('Link copiado!', 'success') }}><Copy size={16} className="mr-2" />Copiar</Button>
+                </div>
+              </div>
+              <button type="button" onClick={() => setDeviceAccess(null)} className="text-sm font-bold text-slate-500 hover:text-slate-900" aria-label="Fechar">×</button>
+            </div>
+          </section>
+        )}
+
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border-b border-slate-200 pb-4">
           <div className="flex items-center gap-2"><UserRound size={18} className="text-slate-500" /><span className="text-sm text-slate-500">Total</span><strong className="text-lg text-slate-950">{resumoQuery.data?.total ?? '—'}</strong></div>
           <div className="flex items-center gap-2"><UserCheck size={18} className="text-emerald-600" /><span className="text-sm text-slate-500">Ativos</span><strong className="text-lg text-slate-950">{resumoQuery.data?.ativos ?? '—'}</strong></div>
@@ -496,7 +534,7 @@ export default function AdminUsersPage() {
             <div className={`transition-opacity ${usersQuery.isFetching ? 'opacity-60' : 'opacity-100'} flex flex-wrap items-start gap-2`}>
               {pagina.data.map(user => (
                 <article key={user.id} className="relative w-full min-w-0 rounded-lg border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 hover:shadow-sm sm:w-[250px]">
-                  <div className="flex min-w-0 items-center gap-2.5 pr-16">
+                  <div className="flex min-w-0 items-center gap-2.5 pr-24">
                     {user.foto ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={tenantResourceUrl(user.foto)} alt="" width={32} height={32} className="h-8 w-8 shrink-0 rounded-full object-cover" />
@@ -517,6 +555,7 @@ export default function AdminUsersPage() {
                   </dl>
 
                   <div className="absolute right-2 top-2 flex items-center">
+                    {canEditUsers && canManage(user) && user.ativo && user.role !== 'DONO' && <Button variant="ghost" size="icon" title="Gerar link para este aparelho" aria-label="Gerar link para este aparelho" className="h-8 w-8 text-orange-700" isLoading={generatingAccessFor === user.id} onClick={() => void generateDeviceAccess(user)}><Smartphone size={15} /></Button>}
                     {canEditUsers && canManage(user) && <Button variant="ghost" size="icon" title="Editar usuário" aria-label="Editar usuário" className="h-8 w-8" onClick={() => handleEdit(user)}><Edit size={15} /></Button>}
                     {canDeleteUsers && canManage(user) && user.id !== actor?.id && <Button variant="ghost" size="icon" title="Desativar usuário" aria-label="Desativar usuário" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => setDeleteTarget(user)}><Trash2 size={15} /></Button>}
                   </div>

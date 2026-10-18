@@ -93,16 +93,16 @@ export async function middleware(request: NextRequest) {
 
   if (internalPathname === '/login' && requestedSlug && !await hasValidInstallationGate(request, requestedSlug)) {
     const url = request.nextUrl.clone()
-    url.pathname = '/instalacao'
+    url.pathname = `/acesso/${requestedSlug}`
     url.search = ''
-    url.searchParams.set('estabelecimento', requestedSlug)
-    url.searchParams.set('retorno', '/login')
     return NextResponse.redirect(url)
   }
 
   const installationRoute = internalPathname === '/offline'
-    || internalPathname.startsWith('/api/installation/')
-    || internalPathname.startsWith('/api/public/')
+    || pathname.startsWith('/api/installation/')
+    || pathname.startsWith('/api/public/')
+    || pathname.startsWith('/api/device-access/')
+    || pathname.startsWith('/acesso/')
     || publicTenantRoute
     || (pathTenantSlug && !prefixedOperationalRoute)
   if (installationRoute) return NextResponse.next()

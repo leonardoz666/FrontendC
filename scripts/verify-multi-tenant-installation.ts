@@ -78,8 +78,12 @@ async function verify() {
   assert.equal(unknown.status, 307)
   assert.equal(
     unknown.headers.get('location'),
-    'https://frontend-c-kappa.vercel.app/instalacao?estabelecimento=novo-restaurante&retorno=%2Flogin',
+    'https://frontend-c-kappa.vercel.app/acesso/novo-restaurante',
+    'a equipe deve receber a tela de vínculo do aparelho, não a ativação administrativa',
   )
+
+  const accessPage = await middleware(request('https://frontend-c-kappa.vercel.app/acesso/rei-do-pirao?convite=teste'))
+  assert.equal(accessPage.headers.get('x-middleware-next'), '1', 'a página de resgate precisa abrir antes de existir um vínculo')
 
   globalThis.fetch = async () => new Response(JSON.stringify({
     installationToken: 'installation-rei-da-carne-de-sol',
