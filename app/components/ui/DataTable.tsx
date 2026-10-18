@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -172,6 +172,11 @@ export function DataTable<T>({
   const [mounted, setMounted] = useState(false)
   const [draggedRowId, setDraggedRowId] = useState<string | number | null>(null)
   const [dragOverRowId, setDragOverRowId] = useState<string | number | null>(null)
+  const onSearchRef = useRef(onSearch)
+
+  useEffect(() => {
+    onSearchRef.current = onSearch
+  }, [onSearch])
 
   useEffect(() => {
     setMounted(true)
@@ -181,13 +186,13 @@ export function DataTable<T>({
   // primeira renderização para não disparar um fetch idêntico ao inicial.
   const [searchInitialized, setSearchInitialized] = useState(false)
   useEffect(() => {
-    if (!onSearch || !showControls) return
+    if (!onSearchRef.current || !showControls) return
     if (!searchInitialized) {
       setSearchInitialized(true)
       return
     }
-    onSearch(debouncedSearch.trim())
-  }, [debouncedSearch, onSearch, searchInitialized, showControls])
+    onSearchRef.current?.(debouncedSearch.trim())
+  }, [debouncedSearch, searchInitialized, showControls])
 
   // Restaura o pageSize salvo desta tela uma única vez, no cliente.
   const [pageSizeInitialized, setPageSizeInitialized] = useState(false)
