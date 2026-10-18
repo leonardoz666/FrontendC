@@ -1,12 +1,18 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-16T00:00:00-03:00",
+  "generatedAt": "2026-10-18T09:11:42-03:00",
   "title": "Design System: ControlaÊ",
   "extensions": {
     "colorMeta": {
       "controlae-orange": { "role": "primary", "displayName": "Laranja ControlaÊ", "canonical": "#ea580c", "tonalRamp": ["#431407", "#7c2d12", "#c2410c", "#ea580c", "#f97316", "#fdba74", "#ffedd5", "#fff7ed"] },
+      "controlae-orange-bright": { "role": "primary", "displayName": "Laranja Vivo", "canonical": "#f97316", "tonalRamp": ["#431407", "#7c2d12", "#c2410c", "#ea580c", "#f97316", "#fdba74", "#ffedd5", "#fff7ed"] },
       "operational-navy": { "role": "secondary", "displayName": "Azul Operacional", "canonical": "#0f172a", "tonalRamp": ["#020617", "#0f172a", "#1e293b", "#334155", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"] },
-      "warm-canvas": { "role": "neutral", "displayName": "Tela Quente", "canonical": "#f4f1ea", "tonalRamp": ["#292721", "#4d4940", "#777166", "#a49d90", "#cac4b9", "#e2ddd4", "#f4f1ea", "#fcfbf8"] }
+      "installation-navy": { "role": "secondary", "displayName": "Azul de Instalação", "canonical": "#172033", "tonalRamp": ["#080b12", "#172033", "#273653", "#3d5275", "#637696", "#91a0b8", "#c9d1dc", "#f1f4f7"] },
+      "canvas": { "role": "neutral", "displayName": "Tela Clara", "canonical": "#ffffff", "tonalRamp": ["#171717", "#383838", "#5f5f5f", "#898989", "#b3b3b3", "#d6d6d6", "#eeeeee", "#ffffff"] },
+      "warm-canvas": { "role": "neutral", "displayName": "Tela Quente", "canonical": "#f4f1ea", "tonalRamp": ["#292721", "#4d4940", "#777166", "#a49d90", "#cac4b9", "#e2ddd4", "#f4f1ea", "#fcfbf8"] },
+      "ink": { "role": "neutral", "displayName": "Tinta", "canonical": "#171717", "tonalRamp": ["#171717", "#333333", "#555555", "#777777", "#999999", "#bbbbbb", "#dddddd", "#f5f5f5"] },
+      "border": { "role": "neutral", "displayName": "Borda", "canonical": "#d1d5db", "tonalRamp": ["#25282d", "#464b53", "#6b727d", "#9299a3", "#b5bac2", "#d1d5db", "#e8eaed", "#f8f9fa"] },
+      "navigation-surface": { "role": "neutral", "displayName": "Superfície de Navegação", "canonical": "#e9f0f7", "tonalRamp": ["#111820", "#263442", "#42576b", "#677d91", "#93a6b8", "#becbd8", "#e9f0f7", "#f8fafc"] }
     },
     "typographyMeta": {
       "display": { "displayName": "Display", "purpose": "Promessas e estados de primeira ordem." },
@@ -63,7 +69,14 @@
       "kind": "nav",
       "description": "Destino operacional atualmente selecionado.",
       "html": "<a class=\"ds-nav-active\" href=\"#\">MESAS</a>",
-      "css": ".ds-nav-active{display:inline-flex;min-height:40px;align-items:center;justify-content:center;padding:8px 16px;border:1px solid #c2410c;border-radius:8px;background:#ea580c;color:#fff;text-decoration:none;font:700 14px Geist,Segoe UI,sans-serif;box-shadow:0 3px 7px rgba(194,65,12,.3)}.ds-nav-active:hover{background:#c2410c}.ds-nav-active:focus-visible{outline:2px solid #f97316;outline-offset:2px}"
+      "css": ".ds-nav-active{display:inline-flex;min-height:40px;align-items:center;justify-content:center;padding:8px 16px;border:1px solid color-mix(in srgb,var(--brand-primary,#ea580c) 82%,black);border-radius:8px;background:var(--brand-primary,#ea580c);color:var(--brand-on-primary,#fff);text-decoration:none;font:700 14px Geist,Segoe UI,sans-serif}.ds-nav-active:hover{background:color-mix(in srgb,var(--brand-primary,#ea580c) 82%,black)}.ds-nav-active:focus-visible{outline:2px solid var(--brand-accent,#f97316);outline-offset:2px}"
+    },
+    {
+      "name": "Tenant Navigation Surface",
+      "kind": "nav",
+      "description": "Barra lateral cuja base, superfícies, bordas e textos formam uma paleta coerente derivada da cor escolhida pelo estabelecimento.",
+      "html": "<nav class=\"ds-tenant-nav\"><a class=\"ds-tenant-nav-active\" href=\"#\">Dashboard</a><a class=\"ds-tenant-nav-item\" href=\"#\">Atendimento</a><a class=\"ds-tenant-nav-item\" href=\"#\">Cardápio</a><footer class=\"ds-tenant-nav-profile\"><strong>Dono</strong><span>DONO</span></footer></nav>",
+      "css": ".ds-tenant-nav{display:grid;gap:8px;width:240px;padding:16px;border:1px solid var(--sidebar-border,#becbd8);border-radius:12px;background:var(--sidebar-background,#e9f0f7);color:var(--sidebar-text,#0f172a);font-family:Geist,Segoe UI,sans-serif}.ds-tenant-nav a{display:flex;min-height:40px;align-items:center;padding:0 12px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700}.ds-tenant-nav-item{border:1px solid var(--sidebar-border,#becbd8);background:var(--sidebar-surface,#f7f9fc);color:var(--sidebar-text,#0f172a)}.ds-tenant-nav-item:hover{background:var(--sidebar-surface-hover,#fff)}.ds-tenant-nav-active{border:1px solid color-mix(in srgb,var(--brand-primary,#ea580c) 82%,black);background:var(--brand-primary,#ea580c);color:var(--brand-on-primary,#fff)}.ds-tenant-nav a:focus-visible{outline:2px solid var(--brand-primary,#ea580c);outline-offset:2px}.ds-tenant-nav-profile{display:grid;gap:2px;margin-top:12px;padding:12px;border:1px solid var(--sidebar-border,#becbd8);border-radius:12px;background:var(--sidebar-surface,#f7f9fc)}.ds-tenant-nav-profile span{color:var(--sidebar-text-muted,#526174);font-size:12px}"
     }
   ],
   "narrative": {

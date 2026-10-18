@@ -285,14 +285,14 @@ export default function Sidebar({
           key={item.href}
           aria-disabled="true"
           title={`${item.label} — em breve`}
-          className={`flex h-9 items-center gap-2.5 rounded-md px-3 text-[13px] font-medium text-slate-300 cursor-not-allowed select-none ${
+          className={`sidebar-muted flex h-9 items-center gap-2.5 rounded-md px-3 text-[13px] font-medium opacity-55 cursor-not-allowed select-none ${
             isCollapsed ? 'md:justify-center md:px-0' : ''
           }`}
         >
           <Icon size={19} className={`hidden shrink-0 ${isCollapsed ? 'md:block' : ''}`} aria-hidden="true" />
           <span className={`flex-1 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
           <span
-            className={`rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 ${
+            className={`sidebar-surface-strong rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
               isCollapsed ? 'md:hidden' : ''
             }`}
           >
@@ -316,8 +316,8 @@ export default function Sidebar({
           isActive
             ? 'border-orange-700 bg-orange-600 font-semibold text-white'
             : standalone
-              ? 'border-slate-300 bg-white text-slate-950 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-900'
-              : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
+              ? 'sidebar-surface'
+              : 'sidebar-text hover:bg-[var(--sidebar-surface-hover)]'
         } ${isCollapsed ? 'md:justify-center md:px-0' : ''}`}
       >
         <Icon
@@ -330,7 +330,7 @@ export default function Sidebar({
         {item.shortcut && (
           <kbd
             className={`rounded-full border px-2 py-0.5 font-mono text-[10px] ${
-              isActive ? 'border-white/40 bg-white/15 text-white' : 'border-slate-200 text-slate-400 group-hover:border-white/40 group-hover:text-white'
+              isActive ? 'border-white/40 bg-white/15 text-white' : 'sidebar-muted border-[var(--sidebar-border)] group-hover:text-[var(--sidebar-text)]'
             } ${isCollapsed ? 'md:hidden' : ''}`}
           >
             {item.shortcut}
@@ -369,10 +369,10 @@ export default function Sidebar({
                 {branding.logoCompactaUrl || branding.logoUrl ? <img src={branding.logoCompactaUrl || branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : branding.nomeExibicao.charAt(0).toUpperCase()}
               </div>
               <div className={`min-w-0 ${isCollapsed ? 'md:hidden' : ''}`}>
-                <span className="block truncate text-base font-bold leading-tight text-slate-950">
+                <span className="sidebar-text block truncate text-base font-bold leading-tight">
                   {branding.nomeExibicao || establishmentName}
                 </span>
-                <span className="block truncate text-xs font-medium text-slate-500">Operação do salão</span>
+                <span className="sidebar-muted block truncate text-xs font-medium">Operação do salão</span>
               </div>
             </div>
 
@@ -382,7 +382,7 @@ export default function Sidebar({
               aria-label={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
               aria-expanded={!isCollapsed}
               title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-              className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors hover:bg-orange-50 hover:text-orange-700 md:flex"
+              className="sidebar-icon-button sidebar-surface-strong hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors md:flex"
             >
               {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
             </button>
@@ -391,16 +391,16 @@ export default function Sidebar({
 
           {!visibility.hideSearch && (
           <div className={`${visibility.hideBrand ? '' : 'mt-3'} ${isWaiter ? 'hidden' : isCollapsed ? 'md:hidden' : ''}`}>
-            <label className="flex h-10 items-center gap-2 rounded-[10px] border border-slate-200 bg-slate-50 px-3 focus-within:border-orange-300 focus-within:ring-4 focus-within:ring-orange-100">
-              <span className="shrink-0 text-[15px] font-semibold text-slate-500">/</span>
+            <label className="sidebar-field flex h-10 items-center gap-2 rounded-[10px] border px-3 transition-[border-color,box-shadow]">
+              <span className="sidebar-muted shrink-0 text-[15px] font-semibold">/</span>
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-slate-700 outline-none placeholder:text-slate-500"
+                className="min-w-0 flex-1 bg-transparent text-[13px] font-medium outline-none"
                 placeholder="Buscar módulo ou ação"
                 type="search"
               />
-              <span className="rounded-[11px] bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+              <span className="sidebar-surface-strong sidebar-muted rounded-[11px] px-2.5 py-1 text-[11px] font-semibold">
                 Ctrl K
               </span>
             </label>
@@ -408,7 +408,7 @@ export default function Sidebar({
           )}
 
           {!visibility.hideShortcuts && (
-          <div className={`${visibility.hideBrand && visibility.hideSearch ? '' : 'mt-3'} ${isWaiter ? 'flex flex-col gap-1.5' : 'flex gap-1.5 rounded-xl border border-slate-200 bg-slate-100 p-1.5'} ${isCollapsed ? 'md:hidden' : ''}`}>
+          <div className={`${visibility.hideBrand && visibility.hideSearch ? '' : 'mt-3'} ${isWaiter ? 'flex flex-col gap-1.5' : 'sidebar-surface-strong flex gap-1.5 rounded-xl border p-1.5'} ${isCollapsed ? 'md:hidden' : ''}`}>
             {quickShortcuts.map(shortcut => {
               const activeShortcut = pathname === shortcut.href
               return (
@@ -419,7 +419,7 @@ export default function Sidebar({
                   className={`flex items-center justify-center rounded-lg border px-2 text-center text-[11px] font-bold leading-3 transition-[background-color,border-color,color,box-shadow,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1 ${isWaiter ? 'min-h-10 w-full' : 'min-h-10 min-w-0 flex-1'} ${
                     activeShortcut
                       ? 'border-orange-700 bg-orange-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-950 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-900'
+                      : 'sidebar-surface'
                   }`}
                 >
                   {shortcut.label}
@@ -431,9 +431,9 @@ export default function Sidebar({
         </div>
         )}
 
-        <nav className={`flex-1 overflow-y-auto px-4 py-4 [scrollbar-width:thin] [scrollbar-color:#94a3b8_transparent] ${isCollapsed ? 'md:px-4' : ''}`}>
+        <nav className={`flex-1 overflow-y-auto px-4 py-4 [scrollbar-width:thin] ${isCollapsed ? 'md:px-4' : ''}`}>
           {filteredGroups.length === 0 && (
-            <div className={`rounded-xl border border-dashed border-slate-300 bg-white/70 px-3 py-4 text-center text-sm font-medium text-slate-600 ${isCollapsed ? 'md:hidden' : ''}`}>
+            <div className={`sidebar-surface sidebar-muted rounded-xl border border-dashed px-3 py-4 text-center text-sm font-medium ${isCollapsed ? 'md:hidden' : ''}`}>
               Nenhum módulo encontrado
             </div>
           )}
@@ -462,7 +462,7 @@ export default function Sidebar({
                   onClick={() => toggleGroup(section.id)}
                   aria-expanded={isGroupOpen}
                   title={section.label}
-                  className={`flex min-h-10 w-full items-center rounded-lg border px-3 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 ${isGroupActive ? 'border-orange-300 bg-orange-50 text-orange-950' : 'border-slate-300 bg-white/75 text-slate-700 hover:border-slate-400 hover:bg-white hover:text-slate-950'}`}
+                  className={`flex min-h-10 w-full items-center rounded-lg border px-3 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 ${isGroupActive ? 'border-orange-300 bg-orange-50 text-orange-950' : 'sidebar-surface'}`}
                 >
                   <span className="flex-1 text-left truncate">{section.label}</span>
                   <ChevronDown
@@ -472,9 +472,9 @@ export default function Sidebar({
                   />
                 </button>
 
-                <div className={isGroupOpen ? 'mt-2 rounded-lg border border-slate-300 bg-white p-2 shadow-sm shadow-slate-950/[0.04]' : 'hidden'}>
+                <div className={isGroupOpen ? 'sidebar-panel mt-2 rounded-lg border p-2' : 'hidden'}>
                   {section.groups.map((group, index) => (
-                    <div key={group.id} className={index > 0 ? 'mt-2 border-t border-slate-200 pt-2' : ''}>
+                    <div key={group.id} className={index > 0 ? 'sidebar-divider mt-2 border-t pt-2' : ''}>
                       <div className="space-y-0.5 px-1">
                         {group.items.map(item => renderItem(item))}
                       </div>
@@ -489,39 +489,39 @@ export default function Sidebar({
 
         <div className="border-t border-[var(--sidebar-border)] bg-[var(--sidebar-footer)] p-3">
           <div
-            className={`group flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm shadow-slate-950/[0.03] transition-colors hover:bg-slate-50 ${
+            className={`sidebar-profile group flex items-center justify-between gap-2 rounded-2xl border p-2.5 transition-colors ${
               isCollapsed ? 'md:flex-col md:justify-center' : ''
             }`}
           >
             <div className={`flex items-center space-x-3 overflow-hidden ${isCollapsed ? 'md:space-x-0' : ''}`}>
               <div
                 title={user?.name ?? undefined}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-bold text-white shadow-sm"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-600 text-sm font-bold text-white"
               >
                 {user?.name?.charAt(0).toUpperCase() || 'U'}
               </div>
               <div className={`flex-1 min-w-0 ${isCollapsed ? 'md:hidden' : ''}`}>
-                <p className="text-sm font-semibold text-gray-900 truncate leading-tight">{user?.name}</p>
-                <p className="text-xs text-gray-500 uppercase font-medium tracking-wide mt-0.5">{user?.role}</p>
+                <p className="sidebar-text text-sm font-semibold truncate leading-tight">{user?.name}</p>
+                <p className="sidebar-muted mt-0.5 text-xs font-medium uppercase tracking-wide">{user?.role}</p>
               </div>
             </div>
 
             <div className={`flex shrink-0 items-center gap-1 ${isCollapsed ? 'md:flex-col' : ''}`}>
-              <ThemeToggle compact />
+              <ThemeToggle compact className="sidebar-icon-button sidebar-surface" />
               {visibility.hideBrand && (
                 <button
                   type="button"
                   onClick={handleToggleCollapse}
                   aria-label={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
                   title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-                  className="hidden rounded-xl p-2 text-slate-400 transition-colors hover:bg-orange-50 hover:text-orange-700 md:flex"
+                  className="sidebar-icon-button hidden rounded-xl p-2 transition-colors md:flex"
                 >
                   {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
                 </button>
               )}
               <button
                 onClick={handleLogout}
-                className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                className="sidebar-icon-button rounded-xl p-2 transition-colors hover:!bg-red-50 hover:!text-red-600"
                 title="Sair"
                 aria-label="Sair"
               >

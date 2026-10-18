@@ -11,6 +11,11 @@
   --sidebar-header: #f5f8fb;
   --sidebar-footer: #dce6f0;
   --sidebar-border: #becbd8;
+  --sidebar-surface: #f7f9fc;
+  --sidebar-surface-hover: #ffffff;
+  --sidebar-surface-strong: #eef3f8;
+  --sidebar-text: #0f172a;
+  --sidebar-text-muted: #526174;
   --surface: #ffffff;
   --surface-subtle: #f8fafc;
   --surface-muted: #eef1f4;
@@ -53,7 +58,51 @@ body {
 
 .controlae-navigation {
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+  color: var(--sidebar-text);
+  color-scheme: light dark;
+  scrollbar-color: var(--sidebar-border) transparent;
 }
+
+.controlae-navigation .sidebar-text { color: var(--sidebar-text); }
+.controlae-navigation .sidebar-muted { color: var(--sidebar-text-muted); }
+.controlae-navigation .sidebar-surface {
+  background: var(--sidebar-surface);
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+.controlae-navigation .sidebar-surface:hover { background: var(--sidebar-surface-hover); }
+.controlae-navigation .sidebar-surface-strong {
+  background: var(--sidebar-surface-strong);
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+.controlae-navigation .sidebar-icon-button { color: var(--sidebar-text-muted); }
+.controlae-navigation .sidebar-icon-button:hover {
+  background: var(--sidebar-surface-hover);
+  color: var(--sidebar-text);
+}
+.controlae-navigation .sidebar-field {
+  background: var(--sidebar-surface);
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+.controlae-navigation .sidebar-field:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 24%, transparent);
+}
+.controlae-navigation .sidebar-field input { color: var(--sidebar-text); }
+.controlae-navigation .sidebar-field input::placeholder { color: var(--sidebar-text-muted); }
+.controlae-navigation .sidebar-panel {
+  background: var(--sidebar-surface-strong);
+  border-color: var(--sidebar-border);
+}
+.controlae-navigation .sidebar-divider { border-color: var(--sidebar-border); }
+.controlae-navigation .sidebar-profile {
+  background: var(--sidebar-surface);
+  border-color: var(--sidebar-border);
+  color: var(--sidebar-text);
+}
+.controlae-navigation .sidebar-profile:hover { background: var(--sidebar-surface-hover); }
 
 h1,
 h2,

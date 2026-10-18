@@ -77,6 +77,14 @@ const checks = [
     pass: /branding\.logoCompactaUrl\s*\|\|\s*branding\.logoUrl/.test(sidebar),
   },
   {
+    name: 'deriva superfícies e textos da cor configurada para a navegação',
+    pass: /--sidebar-surface/.test(provider)
+      && /--sidebar-text-muted/.test(provider)
+      && /navigationIsDark/.test(provider)
+      && /sidebar-profile/.test(sidebar)
+      && /sidebar-panel/.test(sidebar),
+  },
+  {
     name: 'isola a preferência de tema por estabelecimento',
     pass: /tenantForCurrentTab/.test(theme) && /tenantThemeStorageKey/.test(theme),
   },

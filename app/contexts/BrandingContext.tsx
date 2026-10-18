@@ -118,6 +118,12 @@ export function readableTextColor(hex: string): '#ffffff' | '#0f172a' {
   return 1.05 / (luminance + .05) >= 4.5 ? '#ffffff' : '#0f172a'
 }
 
+function isDarkColor(hex: string): boolean {
+  const safe = /^#[0-9a-f]{6}$/i.test(hex) ? hex : DEFAULT_BRANDING.corNavegacao
+  const [red, green, blue] = [1, 3, 5].map(offset => channel(safe, offset))
+  return (red * 299 + green * 587 + blue * 114) / 1000 < 150
+}
+
 function applyBranding(branding: RestaurantBranding): void {
   const root = document.documentElement
   const fontFamilies = {
@@ -128,10 +134,16 @@ function applyBranding(branding: RestaurantBranding): void {
   root.style.setProperty('--brand-primary', branding.corPrimaria)
   root.style.setProperty('--brand-secondary', branding.corSecundaria)
   root.style.setProperty('--brand-accent', branding.corDestaque)
+  const navigationIsDark = isDarkColor(branding.corNavegacao)
   root.style.setProperty('--sidebar-background', branding.corNavegacao)
-  root.style.setProperty('--sidebar-header', mix(branding.corNavegacao, '#ffffff', .62))
-  root.style.setProperty('--sidebar-footer', mix(branding.corNavegacao, '#000000', .06))
-  root.style.setProperty('--sidebar-border', mix(branding.corNavegacao, '#000000', .18))
+  root.style.setProperty('--sidebar-header', mix(branding.corNavegacao, navigationIsDark ? '#ffffff' : '#000000', navigationIsDark ? .055 : .025))
+  root.style.setProperty('--sidebar-footer', mix(branding.corNavegacao, navigationIsDark ? '#ffffff' : '#000000', navigationIsDark ? .04 : .045))
+  root.style.setProperty('--sidebar-border', mix(branding.corNavegacao, navigationIsDark ? '#ffffff' : '#000000', navigationIsDark ? .2 : .16))
+  root.style.setProperty('--sidebar-surface', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .1 : .68))
+  root.style.setProperty('--sidebar-surface-hover', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .17 : .88))
+  root.style.setProperty('--sidebar-surface-strong', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .07 : .48))
+  root.style.setProperty('--sidebar-text', navigationIsDark ? '#ffffff' : '#0f172a')
+  root.style.setProperty('--sidebar-text-muted', mix(branding.corNavegacao, navigationIsDark ? '#ffffff' : '#000000', navigationIsDark ? .68 : .62))
   root.style.setProperty('--brand-on-primary', readableTextColor(branding.corPrimaria))
   root.style.setProperty('--brand-font-family', fontFamilies[branding.fonteInterface])
   root.style.setProperty('--color-slate-950', mix(branding.corSecundaria, '#000000', .16))
