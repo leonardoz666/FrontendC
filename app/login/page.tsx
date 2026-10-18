@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useTenantRouter } from '@/app/lib/tenant-router'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ChefHat } from 'lucide-react'
 import { ApiError, apiFetch } from '@/app/lib/api'
 import { InlineLoader } from '@/app/components/ui/PageLoader'
@@ -132,42 +133,63 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-[#f5f6f8] px-4 py-10 sm:px-6">
-      <section className="w-full max-w-[460px] overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <header
-          className="relative overflow-hidden bg-slate-950 px-6 py-5 text-white sm:px-7"
+    <main className="flex min-h-screen w-full bg-gray-50">
+      <section
+          className="relative hidden items-center justify-center overflow-hidden bg-orange-600 lg:flex lg:w-1/2"
           style={branding.imagemLoginUrl ? { backgroundImage: `url(${branding.imagemLoginUrl})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
         >
-          {branding.imagemLoginUrl && <div className="absolute inset-0 bg-slate-950/75" aria-hidden="true" />}
-          <div className="relative flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white/10 p-2">
+        <div className="absolute inset-0 z-10 bg-black/10" aria-hidden="true" />
+        <div className="relative z-20 p-12 text-center text-white">
+          <div className="mb-8 flex justify-center">
+            <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl bg-white/15 p-3">
               {branding.logoUrl ? (
                 <img
                   src={branding.logoUrl}
                   alt={`Logo ${establishmentName}`}
-                  width={56}
-                  height={56}
+                  width={128}
+                  height={128}
                   className="h-full w-full object-contain"
                 />
               ) : (
-                <ChefHat size={28} aria-hidden="true" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-lg font-semibold tracking-[-0.02em]">{establishmentName}</p>
-              {branding.slogan && (
-                <p className="mt-0.5 line-clamp-2 text-sm leading-5 text-slate-300">{branding.slogan}</p>
+                <ChefHat size={64} aria-hidden="true" />
               )}
             </div>
           </div>
-        </header>
+          <h1 className="mb-6 text-5xl font-bold tracking-[-0.03em]">{establishmentName}</h1>
+          {branding.slogan && (
+            <p className="mx-auto max-w-md text-xl text-orange-50/85">{branding.slogan}</p>
+          )}
+        </div>
+        {!branding.imagemLoginUrl && (
+          <>
+            <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-orange-500 opacity-70 blur-xl" aria-hidden="true" />
+            <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-orange-700 opacity-70 blur-xl" aria-hidden="true" />
+          </>
+        )}
+      </section>
 
-        <div className="px-6 py-6 sm:px-7 sm:py-7">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-[-0.025em] text-slate-950">Entre no sistema</h1>
-            <p className="mt-1 text-sm text-slate-600">Use suas credenciais para acessar a operação.</p>
-          </div>
-
+      <section className="flex flex-1 items-center justify-center p-4 sm:p-8">
+        <Card className="w-full max-w-md border-0 shadow-none lg:border lg:shadow-sm">
+          <CardHeader className="space-y-1 text-center lg:text-left">
+            <div className="mb-4 flex justify-center lg:hidden">
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={`Logo ${establishmentName}`}
+                  width={112}
+                  height={56}
+                  className="h-14 w-28 object-contain"
+                />
+              ) : (
+                <ChefHat size={48} className="text-orange-600" aria-hidden="true" />
+              )}
+            </div>
+            <CardTitle className="text-center text-2xl font-bold lg:text-left">Bem-vindo de volta</CardTitle>
+            <p className="text-center text-sm text-gray-500 lg:text-left">
+              Entre com suas credenciais para acessar o sistema
+            </p>
+          </CardHeader>
+          <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 label="Login"
@@ -188,7 +210,7 @@ export default function LoginPage() {
                 onChange={(e) => setSenha(e.target.value)}
                 required
               />
-              
+
               {error && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
                   {error}
@@ -206,10 +228,11 @@ export default function LoginPage() {
               </Button>
             </form>
 
-          <p className="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} {establishmentName}. Todos os direitos reservados.
-          </p>
-        </div>
+            <p className="mt-6 text-center text-xs text-gray-600">
+              &copy; {new Date().getFullYear()} {establishmentName}. Todos os direitos reservados.
+            </p>
+          </CardContent>
+        </Card>
       </section>
     </main>
   )
