@@ -34,6 +34,7 @@ import {
   Printer,
   QrCode,
   Scale,
+  Search,
   Settings,
   Shield,
   Tags,
@@ -44,6 +45,7 @@ import {
   UtensilsCrossed,
   Wallet,
   Warehouse,
+  X,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -171,7 +173,7 @@ export default function Sidebar({
       ]
     : [
         { href: '/', label: 'Início' },
-        { href: '/mesas', label: 'Mapa de Mesas' },
+        { href: '/mesas', label: 'Mesas' },
         { href: '/admin', label: 'Painel' },
       ]
   const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -229,6 +231,7 @@ export default function Sidebar({
     [activeHref, visualSections]
   )
   const activeSectionId = visualSectionForActive?.id
+  const roleLabel = user?.role?.replaceAll('_', ' ').toLocaleLowerCase('pt-BR')
 
   useEffect(() => {
     if (!activeSectionId || activeSectionRef.current === activeSectionId) return
@@ -285,11 +288,11 @@ export default function Sidebar({
           key={item.href}
           aria-disabled="true"
           title={`${item.label} — em breve`}
-          className={`sidebar-muted flex h-9 items-center gap-2.5 rounded-md px-3 text-[13px] font-medium opacity-55 cursor-not-allowed select-none ${
+          className={`sidebar-muted flex h-10 items-center gap-3 rounded-lg px-3 text-[13px] font-medium opacity-55 cursor-not-allowed select-none ${
             isCollapsed ? 'md:justify-center md:px-0' : ''
           }`}
         >
-          <Icon size={19} className={`hidden shrink-0 ${isCollapsed ? 'md:block' : ''}`} aria-hidden="true" />
+          <Icon size={18} className="shrink-0" aria-hidden="true" />
           <span className={`flex-1 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
           <span
             className={`sidebar-surface-strong rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
@@ -310,26 +313,24 @@ export default function Sidebar({
         href={item.href}
         title={item.label}
         aria-current={isActive ? 'page' : undefined}
-        className={`group relative flex items-center gap-2.5 px-3 text-[13px] leading-5 transition-[background-color,border-color,color,box-shadow,transform] focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 ${
-          standalone ? 'h-11 rounded-lg border font-semibold' : 'h-9 rounded-md font-medium'
+        className={`group relative flex h-10 items-center gap-3 rounded-lg px-3 text-[13px] leading-5 transition-[background-color,color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)] ${
+          standalone ? 'font-semibold' : 'font-medium'
         } ${
           isActive
-            ? 'border-orange-700 bg-orange-600 font-semibold text-white'
-            : standalone
-              ? 'sidebar-surface'
-              : 'sidebar-text hover:bg-[var(--sidebar-surface-hover)]'
+            ? 'bg-[var(--brand-primary)] font-semibold text-[var(--brand-on-primary)]'
+            : 'sidebar-text hover:bg-[var(--sidebar-surface-hover)]'
         } ${isCollapsed ? 'md:justify-center md:px-0' : ''}`}
       >
         <Icon
-          size={19}
+          size={18}
           strokeWidth={standalone ? 2.25 : 2}
-          className={`${standalone ? 'block' : 'hidden'} shrink-0 ${isCollapsed ? 'md:block' : ''}`}
+          className="shrink-0"
           aria-hidden="true"
         />
         <span className={`flex-1 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
         {item.shortcut && (
           <kbd
-            className={`rounded-full border px-2 py-0.5 font-mono text-[10px] ${
+            className={`rounded-md border px-1.5 py-0.5 font-mono text-[10px] ${
               isActive ? 'border-white/40 bg-white/15 text-white' : 'sidebar-muted border-[var(--sidebar-border)] group-hover:text-[var(--sidebar-text)]'
             } ${isCollapsed ? 'md:hidden' : ''}`}
           >
@@ -351,28 +352,28 @@ export default function Sidebar({
       )}
 
       <aside className={`
-        controlae-navigation fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar-background)] transition-[transform,width] duration-300 ease-in-out
+        controlae-navigation fixed inset-y-0 left-0 z-[70] flex w-[min(86vw,272px)] flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar-background)] transition-[transform,width] duration-300 ease-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        ${isCollapsed ? 'md:w-[88px]' : 'md:w-72'}
+        ${isCollapsed ? 'md:w-[76px]' : 'md:w-[272px]'}
         md:translate-x-0
       `}>
         {!isStockkeeper && (!visibility.hideBrand || !visibility.hideSearch || !visibility.hideShortcuts) && (
         <div
-          className={`border-b border-[var(--sidebar-border)] bg-[var(--sidebar-header)] px-4 pt-[18px] pb-4 ${
-            isCollapsed ? `md:px-4 ${visibility.hideBrand ? 'md:hidden' : ''}` : ''
+          className={`border-b border-[var(--sidebar-border)] bg-[var(--sidebar-header)] px-3.5 py-3 ${
+            isCollapsed ? `md:px-2 ${visibility.hideBrand ? 'md:hidden' : ''}` : ''
           }`}
         >
           {!visibility.hideBrand && (
-          <div className={`flex h-[54px] items-center gap-3 ${isCollapsed ? 'md:justify-center' : ''}`}>
+          <div className={`flex min-h-12 items-center justify-between gap-3 ${isCollapsed ? 'md:flex-col md:justify-center md:gap-2' : ''}`}>
             <div className={`flex min-w-0 items-center gap-3 ${isCollapsed ? 'md:justify-center' : ''}`}>
-              <div className={`flex h-[42px] w-[42px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-orange-600 text-[22px] font-bold text-white ${isCollapsed ? 'md:h-14 md:w-14 md:rounded-[14px] md:text-2xl' : ''}`}>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[var(--brand-primary)] text-xl font-bold text-[var(--brand-on-primary)]">
                 {branding.logoCompactaUrl || branding.logoUrl ? <img src={branding.logoCompactaUrl || branding.logoUrl} alt="" className="h-full w-full object-contain p-1" /> : branding.nomeExibicao.charAt(0).toUpperCase()}
               </div>
               <div className={`min-w-0 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <span className="sidebar-text block truncate text-base font-bold leading-tight">
                   {branding.nomeExibicao || establishmentName}
                 </span>
-                <span className="sidebar-muted block truncate text-xs font-medium">Operação do salão</span>
+                <span className="sidebar-muted mt-0.5 block truncate text-xs font-medium">Central da operação</span>
               </div>
             </div>
 
@@ -382,17 +383,25 @@ export default function Sidebar({
               aria-label={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
               aria-expanded={!isCollapsed}
               title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
-              className="sidebar-icon-button sidebar-surface-strong hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors md:flex"
+              className="sidebar-icon-button hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors md:flex"
             >
-              {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+              {isCollapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar menu"
+              className="sidebar-icon-button flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors md:hidden"
+            >
+              <X size={19} />
             </button>
           </div>
           )}
 
           {!visibility.hideSearch && (
           <div className={`${visibility.hideBrand ? '' : 'mt-3'} ${isWaiter ? 'hidden' : isCollapsed ? 'md:hidden' : ''}`}>
-            <label className="sidebar-field flex h-10 items-center gap-2 rounded-[10px] border px-3 transition-[border-color,box-shadow]">
-              <span className="sidebar-muted shrink-0 text-[15px] font-semibold">/</span>
+            <label className="sidebar-field flex h-10 items-center gap-2.5 rounded-[10px] border px-3 transition-[border-color,box-shadow]">
+              <Search size={16} className="sidebar-muted shrink-0" aria-hidden="true" />
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
@@ -400,15 +409,12 @@ export default function Sidebar({
                 placeholder="Buscar módulo ou ação"
                 type="search"
               />
-              <span className="sidebar-surface-strong sidebar-muted rounded-[11px] px-2.5 py-1 text-[11px] font-semibold">
-                Ctrl K
-              </span>
             </label>
           </div>
           )}
 
           {!visibility.hideShortcuts && (
-          <div className={`${visibility.hideBrand && visibility.hideSearch ? '' : 'mt-3'} ${isWaiter ? 'flex flex-col gap-1.5' : 'sidebar-surface-strong flex gap-1.5 rounded-xl border p-1.5'} ${isCollapsed ? 'md:hidden' : ''}`}>
+          <div className={`${visibility.hideBrand && visibility.hideSearch ? '' : 'mt-2'} grid grid-cols-3 gap-1 ${isWaiter ? 'grid-cols-1' : ''} ${isCollapsed ? 'md:hidden' : ''}`}>
             {quickShortcuts.map(shortcut => {
               const activeShortcut = pathname === shortcut.href
               return (
@@ -416,10 +422,10 @@ export default function Sidebar({
                   key={shortcut.href}
                   href={shortcut.href}
                   title={shortcut.label}
-                  className={`flex items-center justify-center rounded-lg border px-2 text-center text-[11px] font-bold leading-3 transition-[background-color,border-color,color,box-shadow,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1 ${isWaiter ? 'min-h-10 w-full' : 'min-h-10 min-w-0 flex-1'} ${
+                  className={`flex min-h-9 min-w-0 items-center justify-center rounded-lg px-2 text-center text-[11px] font-semibold leading-3 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand-primary)] ${
                     activeShortcut
-                      ? 'border-orange-700 bg-orange-600 text-white'
-                      : 'sidebar-surface'
+                      ? 'bg-[var(--brand-primary)] text-[var(--brand-on-primary)]'
+                      : 'sidebar-muted hover:bg-[var(--sidebar-surface-hover)] hover:text-[var(--sidebar-text)]'
                   }`}
                 >
                   {shortcut.label}
@@ -431,7 +437,7 @@ export default function Sidebar({
         </div>
         )}
 
-        <nav className={`flex-1 overflow-y-auto px-4 py-4 [scrollbar-width:thin] ${isCollapsed ? 'md:px-4' : ''}`}>
+        <nav aria-label="Navegação principal" className={`flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin] ${isCollapsed ? 'md:px-2.5' : ''}`}>
           {filteredGroups.length === 0 && (
             <div className={`sidebar-surface sidebar-muted rounded-xl border border-dashed px-3 py-4 text-center text-sm font-medium ${isCollapsed ? 'md:hidden' : ''}`}>
               Nenhum módulo encontrado
@@ -446,7 +452,7 @@ export default function Sidebar({
           )}
 
           {dashboardItem && (
-            <div className={`mb-3 ${isCollapsed ? 'md:hidden' : ''}`}>
+            <div className={`mb-2 ${isCollapsed ? 'md:hidden' : ''}`}>
               {renderItem(dashboardItem, true)}
             </div>
           )}
@@ -456,15 +462,15 @@ export default function Sidebar({
             const isGroupOpen = Boolean(normalizedSearch) || (openGroups[section.id] ?? isGroupActive)
 
             return (
-              <div key={section.id} className={`mb-2 border-b border-[var(--sidebar-border)] pb-2 ${isCollapsed ? 'md:hidden' : ''}`}>
+              <div key={section.id} className={`mb-1 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <button
                   type="button"
                   onClick={() => toggleGroup(section.id)}
                   aria-expanded={isGroupOpen}
                   title={section.label}
-                  className={`flex min-h-10 w-full items-center rounded-lg border px-3 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 ${isGroupActive ? 'border-orange-300 bg-orange-50 text-orange-950' : 'sidebar-surface'}`}
+                  className={`sidebar-section-trigger flex min-h-9 w-full items-center rounded-lg px-3 py-2 text-[12px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand-primary)] ${isGroupActive ? 'sidebar-text' : 'sidebar-muted'}`}
                 >
-                  <span className="flex-1 text-left truncate">{section.label}</span>
+                  <span className="flex-1 truncate text-left">{section.label.charAt(0) + section.label.slice(1).toLocaleLowerCase('pt-BR')}</span>
                   <ChevronDown
                     size={14}
                     strokeWidth={2.5}
@@ -472,10 +478,10 @@ export default function Sidebar({
                   />
                 </button>
 
-                <div className={isGroupOpen ? 'sidebar-panel mt-2 rounded-lg border p-2' : 'hidden'}>
+                <div className={isGroupOpen ? 'mt-0.5 space-y-0.5' : 'hidden'}>
                   {section.groups.map((group, index) => (
-                    <div key={group.id} className={index > 0 ? 'sidebar-divider mt-2 border-t pt-2' : ''}>
-                      <div className="space-y-0.5 px-1">
+                    <div key={group.id} className={index > 0 ? 'mt-1 pt-1' : ''}>
+                      <div className="space-y-0.5">
                         {group.items.map(item => renderItem(item))}
                       </div>
                     </div>
@@ -487,22 +493,22 @@ export default function Sidebar({
 
         </nav>
 
-        <div className="border-t border-[var(--sidebar-border)] bg-[var(--sidebar-footer)] p-3">
+        <div className="border-t border-[var(--sidebar-border)] bg-[var(--sidebar-footer)] p-2.5">
           <div
-            className={`sidebar-profile group flex items-center justify-between gap-2 rounded-2xl border p-2.5 transition-colors ${
+            className={`flex items-center justify-between gap-2 rounded-xl p-1.5 ${
               isCollapsed ? 'md:flex-col md:justify-center' : ''
             }`}
           >
             <div className={`flex items-center space-x-3 overflow-hidden ${isCollapsed ? 'md:space-x-0' : ''}`}>
               <div
                 title={user?.name ?? undefined}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-600 text-sm font-bold text-white"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--brand-primary)] text-sm font-bold text-[var(--brand-on-primary)]"
               >
                 {user?.name?.charAt(0).toUpperCase() || 'U'}
               </div>
               <div className={`flex-1 min-w-0 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <p className="sidebar-text text-sm font-semibold truncate leading-tight">{user?.name}</p>
-                <p className="sidebar-muted mt-0.5 text-xs font-medium uppercase tracking-wide">{user?.role}</p>
+                <p className="sidebar-muted mt-0.5 truncate text-xs font-medium capitalize">{roleLabel}</p>
               </div>
             </div>
 

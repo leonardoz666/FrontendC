@@ -81,8 +81,9 @@ const checks = [
     pass: /--sidebar-surface/.test(provider)
       && /--sidebar-text-muted/.test(provider)
       && /navigationIsDark/.test(provider)
-      && /sidebar-profile/.test(sidebar)
-      && /sidebar-panel/.test(sidebar),
+      && /sidebar-field/.test(sidebar)
+      && /sidebar-section-trigger/.test(sidebar)
+      && /var\(--sidebar-surface-hover\)/.test(sidebar),
   },
   {
     name: 'isola a preferência de tema por estabelecimento',

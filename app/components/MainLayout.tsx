@@ -53,7 +53,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isStockRoute = pathname === '/admin/estoque' || pathname.startsWith('/admin/estoque/')
   const simplifiedStockRoute = pathname === '/admin/estoque/registro'
   const isStockRouteBlocked = !isPublicPage && isStockkeeper && (isSimplifiedStockkeeper ? !simplifiedStockRoute : !isStockRoute)
-  const sidebarOffset = isPublicPage || !user || isWaiter || isSimplifiedStockkeeper ? '' : isStockkeeper || !isCollapsed ? 'md:ml-72' : 'md:ml-[88px]'
+  const sidebarOffset = isPublicPage || !user || isWaiter || isSimplifiedStockkeeper ? '' : isStockkeeper || !isCollapsed ? 'md:ml-[272px]' : 'md:ml-[76px]'
   const supportHref = isPublicPage || !user ? null : resolveSupportHref(process.env.NEXT_PUBLIC_SUPORTE_WHATSAPP)
 
   // Estado recolhido persistido: lido após a montagem para não divergir do SSR.

@@ -61,6 +61,7 @@ body {
   color: var(--sidebar-text);
   color-scheme: light dark;
   scrollbar-color: var(--sidebar-border) transparent;
+  box-shadow: 8px 0 24px rgba(15, 23, 42, .035);
 }
 
 .controlae-navigation .sidebar-text { color: var(--sidebar-text); }
@@ -79,6 +80,10 @@ body {
 .controlae-navigation .sidebar-icon-button { color: var(--sidebar-text-muted); }
 .controlae-navigation .sidebar-icon-button:hover {
   background: var(--sidebar-surface-hover);
+  color: var(--sidebar-text);
+}
+.controlae-navigation .sidebar-section-trigger:hover {
+  background: color-mix(in srgb, var(--sidebar-surface-hover) 72%, transparent);
   color: var(--sidebar-text);
 }
 .controlae-navigation .sidebar-field {
