@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --ui-scale: 1.1;
+  --ui-min-layout-width: 291px;
   --background: #f5f6f8;
   --foreground: #172033;
   --brand-primary: #ea580c;
@@ -46,9 +48,16 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--brand-font-family);
   --font-mono: var(--font-geist-mono);
+  --breakpoint-sm: 44rem;
+  --breakpoint-md: 52.8rem;
+  --breakpoint-lg: 70.4rem;
+  --breakpoint-xl: 88rem;
+  --breakpoint-2xl: 105.6rem;
 }
 
 body {
+  min-width: min(var(--ui-min-layout-width), 100%);
+  zoom: var(--ui-scale);
   background: var(--background);
   color: var(--foreground);
   font-family: var(--brand-font-family);

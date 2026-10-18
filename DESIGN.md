@@ -44,6 +44,8 @@ spacing:
   md: "16px"
   lg: "24px"
   xl: "32px"
+scale:
+  interface: "1.1"
 components:
   button-primary:
     backgroundColor: "{colors.controlae-orange}"
@@ -127,6 +129,8 @@ A paleta une um laranja energético a azuis profundos e superfícies claras; cor
 O ritmo base usa passos de 8, 12, 16, 24 e 32px. Cabeçalhos e barras operacionais são densos, mas alvos interativos preservam ao menos 40px de altura; formulários centrais usam 48–56px. Conteúdo longo fica em contêineres limitados e alinhados à grade.
 
 No desktop, fluxos de primeira utilização podem dividir contexto e ação em duas colunas. Em telas compactas, o contexto vira uma faixa curta e a tarefa aparece no primeiro viewport. Navegação lateral e cabeçalhos se adaptam sem introduzir rolagem horizontal.
+
+A interface usa escala global de 1.1 para que o tamanho padrão do navegador tenha a mesma presença visual de 110% de zoom. A largura mínima lógica e os breakpoints do Tailwind são compensados pela mesma razão, preservando o suporte visual a telas de 320px e fazendo o reflow acontecer nos mesmos pontos do zoom real.
 
 ## Elevation & Depth
 
