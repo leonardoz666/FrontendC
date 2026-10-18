@@ -463,7 +463,7 @@ export default function Sidebar({
             const isGroupOpen = Boolean(normalizedSearch) || (openGroups[section.id] ?? isGroupActive)
 
             return (
-              <div key={section.id} className={`mb-1.5 ${isCollapsed ? 'md:hidden' : ''}`}>
+              <div key={section.id} className={`sidebar-section mb-1.5 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <button
                   type="button"
                   onClick={() => toggleGroup(section.id)}

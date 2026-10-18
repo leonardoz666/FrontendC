@@ -116,6 +116,19 @@ body {
 .controlae-navigation .sidebar-section-trigger--active .sidebar-section-chevron {
   background: var(--sidebar-surface-hover);
 }
+.controlae-navigation .sidebar-section + .sidebar-section {
+  position: relative;
+  padding-top: .375rem;
+}
+.controlae-navigation .sidebar-section + .sidebar-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: .75rem;
+  left: .75rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--sidebar-border) 68%, transparent);
+}
 .controlae-navigation .sidebar-field {
   background: var(--sidebar-surface);
   border-color: var(--sidebar-border);

@@ -176,6 +176,8 @@ Os títulos dos grupos de navegação usam 13px, peso 700 e um tom secundário d
 
 O acesso ao Dashboard permanece em caixa normal e funciona como âncora da navegação: quando ativo, recebe superfície de destaque, contorno interno e sombra curta. Uma divisória o separa dos grupos, cujas setas ocupam pequenos campos tonais; grupos ativos ganham profundidade discreta sem transformar toda a barra em uma pilha de cartões.
 
+Categorias consecutivas são separadas por linhas finas e recuadas, derivadas da borda da navegação. O respiro fica distribuído ao redor dessas linhas para explicitar os agrupamentos sem competir com o estado ativo.
+
 ## Do's and Don'ts
 
 ### Do:
