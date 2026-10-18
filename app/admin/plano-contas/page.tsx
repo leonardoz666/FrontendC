@@ -6,7 +6,7 @@ import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { usePagedQuery } from '@/app/lib/pagination'
-import { useCrud, useListaCrud, paginaAtual, SeloAtivo } from '@/app/lib/crud-client'
+import { useCadastroAuxiliar, SeloAtivo } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
 
 /**
@@ -61,10 +61,8 @@ const FORM_VAZIO: FormState = { nome: '', tipo: 'DESPESA', paiId: '', codigo: ''
 
 export default function PlanoContasPage() {
   const { showToast } = useToast()
-  const crud = useCrud<PlanoConta>({ resource: RESOURCE, entidade: 'Conta do plano', genero: 'f' })
-  const ui = useListaCrud(RESOURCE)
-
-  const { data, isLoading, isError, error, refetch } = usePagedQuery<PlanoConta>(ui.listaParams)
+  const { crud, ui, query, pagina } = useCadastroAuxiliar<PlanoConta>({ resource: RESOURCE, entidade: 'Conta do plano', genero: 'f' })
+  const { data, isLoading, isError, error, refetch } = query
 
   /**
    * Lista completa e separada da paginação da tela: só serve de apoio (select de
@@ -80,8 +78,6 @@ export default function PlanoContasPage() {
   })
 
   const contas = useMemo(() => listaCompleta.data?.data ?? [], [listaCompleta.data])
-
-  const pagina = paginaAtual({ data }, ui.page, ui.pageSize)
 
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<PlanoConta | null>(null)

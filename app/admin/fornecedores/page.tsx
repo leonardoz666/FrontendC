@@ -5,8 +5,7 @@ import { Mail, Power, PowerOff, Phone } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
-import { usePagedQuery } from '@/app/lib/pagination'
-import { useCrud, useListaCrud, paginaAtual, SeloAtivo } from '@/app/lib/crud-client'
+import { useCadastroAuxiliar, SeloAtivo } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
 
 /**
@@ -47,12 +46,8 @@ const EMAIL_SIMPLES = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function FornecedoresPage() {
   const { showToast } = useToast()
-  const crud = useCrud<Fornecedor>({ resource: RESOURCE, entidade: 'Fornecedor' })
-  const ui = useListaCrud(RESOURCE)
-
-  const { data, isLoading, isError, error, refetch } = usePagedQuery<Fornecedor>(ui.listaParams)
-
-  const pagina = paginaAtual({ data }, ui.page, ui.pageSize)
+  const { crud, ui, query, pagina } = useCadastroAuxiliar<Fornecedor>({ resource: RESOURCE, entidade: 'Fornecedor' })
+  const { isLoading, isError, error, refetch } = query
 
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Fornecedor | null>(null)

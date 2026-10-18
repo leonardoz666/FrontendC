@@ -2,7 +2,7 @@
 
 import { createElement, useCallback, useState } from 'react'
 import { apiFetch, redirectToLogin } from './api'
-import type { Paginated, SortOrder } from './pagination'
+import { usePagedQuery, type Paginated, type SortOrder } from './pagination'
 import { useToast } from '@/contexts/ToastContext'
 
 /**
@@ -92,6 +92,15 @@ export interface UseListaCrudResult {
    * Devolve `true` quando a tela deve recarregar a lista.
    */
   aposExcluir: (registrosNaPagina: number) => boolean
+}
+
+export function useCadastroAuxiliar<T extends RegistroCrud>(options: UseCrudOptions & { listResource?: string }) {
+  const crud = useCrud<T>(options)
+  const ui = useListaCrud(options.listResource ?? options.resource)
+  const query = usePagedQuery<T>(ui.listaParams)
+  const pagina = paginaAtual(query, ui.page, ui.pageSize)
+
+  return { crud, ui, query, pagina }
 }
 
 const PAGE_SIZE_INICIAL = 25

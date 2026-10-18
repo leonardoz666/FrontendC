@@ -5,8 +5,7 @@ import { Power, PowerOff } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
-import { usePagedQuery } from '@/app/lib/pagination'
-import { useCrud, useListaCrud, paginaAtual, SeloAtivo } from '@/app/lib/crud-client'
+import { useCadastroAuxiliar, SeloAtivo } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
 
 /**
@@ -27,12 +26,8 @@ type CentroCusto = {
 
 export default function CentrosCustoPage() {
   const { showToast } = useToast()
-  const crud = useCrud<CentroCusto>({ resource: RESOURCE, entidade: 'Centro de custo' })
-  const ui = useListaCrud(RESOURCE)
-
-  const { data, isLoading, isError, error, refetch } = usePagedQuery<CentroCusto>(ui.listaParams)
-
-  const pagina = paginaAtual({ data }, ui.page, ui.pageSize)
+  const { crud, ui, query, pagina } = useCadastroAuxiliar<CentroCusto>({ resource: RESOURCE, entidade: 'Centro de custo' })
+  const { data, isLoading, isError, error, refetch } = query
 
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<CentroCusto | null>(null)

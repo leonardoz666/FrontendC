@@ -5,11 +5,8 @@ import { Power, PowerOff } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
-import { usePagedQuery } from '@/app/lib/pagination'
 import {
-  useCrud,
-  useListaCrud,
-  paginaAtual,
+  useCadastroAuxiliar,
   SeloAtivo,
   comoDecimalDigitado,
   formatarMoeda,
@@ -57,16 +54,12 @@ const FORM_VAZIO: FormState = { nome: '', banco: '', agencia: '', numero: '', sa
 
 export default function ContasBancariasPage() {
   const { showToast } = useToast()
-  const crud = useCrud<ContaBancaria>({
+  const { crud, ui, query, pagina } = useCadastroAuxiliar<ContaBancaria>({
     resource: RESOURCE,
     entidade: 'Conta bancária',
     genero: 'f',
   })
-  const ui = useListaCrud(RESOURCE)
-
-  const { data, isLoading, isError, error, refetch } = usePagedQuery<ContaBancaria>(ui.listaParams)
-
-  const pagina = paginaAtual({ data }, ui.page, ui.pageSize)
+  const { isLoading, isError, error, refetch } = query
 
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<ContaBancaria | null>(null)
