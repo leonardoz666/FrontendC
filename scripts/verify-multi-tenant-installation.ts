@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { NextRequest } from 'next/server'
-import { INSTALLATION_COOKIE, createInstallationGate, sealInstallationBinding } from '../app/lib/installation-binding'
+import { INSTALLATION_COOKIE, INSTALLATION_GATE_COOKIE, createInstallationGate, sealInstallationBinding } from '../app/lib/installation-binding'
 import { proxyBackendRequest } from '../app/lib/backend-proxy'
 import { POST as activateInstallation } from '../app/api/installation/activate/route'
 import {
@@ -43,6 +43,48 @@ const request = (url: string, headers: Record<string, string> = {}) => new NextR
 })
 
 async function verify() {
+  const configuredInstallationSecret = process.env.FRONTEND_INSTALLATION_SECRET
+  delete process.env.FRONTEND_INSTALLATION_SECRET
+  try {
+    const localSlug = 'teste-local'
+    const localExpiresAt = Date.now() + 60_000
+    const localBinding = sealInstallationBinding({
+      apiUrl: 'http://localhost:4000',
+      establishmentUrl: `http://localhost:3000/e/${localSlug}`,
+      installationToken: 'installation-teste-local',
+      tenantSlug: localSlug,
+      establishmentName: 'Teste Local',
+      expiresAt: localExpiresAt,
+    })
+    const localGate = createInstallationGate(localBinding, localExpiresAt)
+    const localCookies = [
+      `${installationCookieName(localSlug)}=${localBinding}`,
+      `${installationGateCookieName(localSlug)}=${localGate}`,
+      `controlae_tenant_slug=${localSlug}`,
+    ].join('; ')
+    const localHome = await middleware(new NextRequest('http://localhost:3000/', {
+      headers: { cookie: localCookies },
+    }))
+    assert.equal(
+      localHome.headers.get('location'),
+      `http://localhost:3000/e/${localSlug}/inicio`,
+      'o segredo de desenvolvimento deve validar o mesmo vínculo que ele cria',
+    )
+    const legacyHome = await middleware(new NextRequest('http://localhost:3000/', {
+      headers: {
+        cookie: `${INSTALLATION_COOKIE}=${localBinding}; ${INSTALLATION_GATE_COOKIE}=${localGate}; controlae_tenant_slug=${localSlug}`,
+      },
+    }))
+    assert.equal(
+      legacyHome.headers.get('location'),
+      `http://localhost:3000/e/${localSlug}/inicio`,
+      'uma ativação local anterior à separação por estabelecimento deve continuar válida',
+    )
+  } finally {
+    if (configuredInstallationSecret === undefined) delete process.env.FRONTEND_INSTALLATION_SECRET
+    else process.env.FRONTEND_INSTALLATION_SECRET = configuredInstallationSecret
+  }
+
   assert.equal(tenantSlugFromPathname('/e/rei-do-pirao/admin/produtos'), 'rei-do-pirao')
   assert.equal(operationalPathname('/e/rei-do-pirao/admin/produtos'), '/admin/produtos')
   assert.equal(

@@ -4,6 +4,7 @@ import {
   installationCookieName,
   installationGateCookieName,
 } from './tenant-navigation'
+import { resolveInstallationSecret } from './installation-secret'
 
 export const INSTALLATION_COOKIE = 'controlae_installation'
 export const INSTALLATION_GATE_COOKIE = 'controlae_installation_gate'
@@ -22,12 +23,9 @@ export type InstallationBinding = {
 type CookieReader = { get(name: string): { value: string } | undefined }
 
 function secret(): string {
-  const value = process.env.FRONTEND_INSTALLATION_SECRET?.trim()
-  if (value && value.length >= 32) return value
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('FRONTEND_INSTALLATION_SECRET deve ter pelo menos 32 caracteres')
-  }
-  return 'controlae-frontend-development-only-secret'
+  const value = resolveInstallationSecret()
+  if (value) return value
+  throw new Error('FRONTEND_INSTALLATION_SECRET deve ter pelo menos 32 caracteres')
 }
 
 function key(): Buffer {

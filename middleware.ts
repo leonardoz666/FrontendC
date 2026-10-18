@@ -12,6 +12,7 @@ import {
   tenantPageUrl,
   tenantSlugFromPathname,
 } from './app/lib/tenant-navigation'
+import { resolveInstallationSecret } from './app/lib/installation-secret'
 
 const INSTALLATION_COOKIE = 'controlae_installation'
 const INSTALLATION_GATE_COOKIE = 'controlae_installation_gate'
@@ -25,8 +26,8 @@ function bytesToBase64Url(bytes: ArrayBuffer): string {
 }
 
 async function validInstallationGate(binding: string | undefined, gate: string | undefined): Promise<boolean> {
-  const secret = process.env.FRONTEND_INSTALLATION_SECRET?.trim()
-  if (!binding || !gate || !secret || secret.length < 32) return false
+  const secret = resolveInstallationSecret()
+  if (!binding || !gate || !secret) return false
   const [expiresValue, signature, extra] = gate.split('.')
   const expiresAt = Number(expiresValue)
   if (!expiresValue || !signature || extra || !Number.isSafeInteger(expiresAt) || expiresAt <= Date.now()) return false
