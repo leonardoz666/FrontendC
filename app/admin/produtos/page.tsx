@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import Link from '@/app/components/TenantLink'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -9,13 +9,13 @@ import { DataTable, type DataTableColumn } from '@/components/ui/DataTable'
 import { Switch } from '@/components/ui/Switch'
 import { useToast } from '@/contexts/ToastContext'
 import type { Produto, Categoria } from '@/components/ProductCard'
-import { apiFetch, apiRequest, ApiError, fetchAllList, fetchList } from '@/app/lib/api'
+import { apiFetch, apiRequest, fetchAllList, fetchList } from '@/app/lib/api'
 import { PAGE_SIZE_OPTIONS, usePagedQuery, type PageSize, type SortOrder } from '@/app/lib/pagination'
 import { correctProductSectors, fetchAllProducts } from '@/app/lib/product-catalog'
 import { buildProductFormData } from '@/app/lib/product-form'
 import { parseFlavorSizeConfig, type FlavorSizePrice } from '@/app/lib/flavor-size-pricing'
 import { InlineLoader, PageLoader } from '@/app/components/ui/PageLoader'
-import { categoryForImportedItem, importCategoryKey } from '@/app/lib/menu-json-import'
+import { importProductCatalog } from '@/app/lib/product-import'
 import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 import { 
   Plus, 
@@ -33,73 +33,7 @@ import {
   Copy, ChartNoAxesCombined, FlaskConical, LoaderCircle, CalendarClock, Trash2
 } from 'lucide-react'
 import { clsx } from 'clsx'
-
-type TipoTamanho = {
-  id: number
-  nome: string
-  tamanhos?: Array<{ id: number; nome: string; valor: number | string; ordem: number }>
-}
-
-type Dispositivo = {
-  id: number
-  nome: string
-  tipo: string
-  ativo: boolean
-}
-
-type ComplementoGrupo = {
-  id: number
-  nome: string
-  obrigatorio: boolean
-  minEscolhas: number
-  maxEscolhas: number | null
-  ativo: boolean
-}
-
-type SalesHistory = {
-  totalQuantidade: number
-  totalValor: number
-  porCanal: Array<{ canal: string; quantidade: number; valor: number }>
-  porDia: Array<{ data: string; quantidade: number; valor: number }>
-}
-
-type SalesChannel = 'SALAO' | 'BALCAO' | 'DELIVERY' | 'AUTOATENDIMENTO'
-type AvailabilityRule = { id?: number; diaSemana: number; inicioMinuto: number; fimMinuto: number; canal: SalesChannel; ativo: boolean }
-type PromotionRule = { id?: number; valor: number | string; inicio: string; fim: string; canal: SalesChannel; prioridade: number; ativo: boolean }
-
-const SALES_CHANNELS: Array<{ value: SalesChannel; label: string }> = [
-  { value: 'SALAO', label: 'Salão' }, { value: 'BALCAO', label: 'Balcão' },
-  { value: 'DELIVERY', label: 'Delivery' }, { value: 'AUTOATENDIMENTO', label: 'Autoatendimento' },
-]
-const WEEK_DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-const minutesToTime = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
-const timeToMinutes = (value: string) => { const [hours, minutes] = value.split(':').map(Number); return hours * 60 + minutes }
-const toLocalDateTime = (value: string) => { const date = new Date(value); const offset = date.getTimezoneOffset(); return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16) }
-
-function categoryColorStyle(categoryId: number, selected = false) {
-  // O passo áureo distribui categorias vizinhas em matizes bem separados.
-  const hue = Math.round((categoryId * 137.508) % 360)
-  return {
-    '--category-bg': `hsl(${hue} 82% ${selected ? '89%' : '95%'})`,
-    '--category-border': `hsl(${hue} 62% ${selected ? '62%' : '84%'})`,
-    '--category-text': `hsl(${hue} 68% 30%)`,
-    '--category-bg-dark': `hsl(${hue} 42% ${selected ? '24%' : '18%'})`,
-    '--category-border-dark': `hsl(${hue} 48% ${selected ? '52%' : '36%'})`,
-    '--category-text-dark': `hsl(${hue} 82% 82%)`,
-  } as CSSProperties
-}
-
-function parseStringList(value?: string | null): string[] {
-  if (!value) return []
-  try {
-    const parsed: unknown = JSON.parse(value)
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
-      : []
-  } catch {
-    return []
-  }
-}
+import { SALES_CHANNELS, WEEK_DAYS, categoryColorStyle, minutesToTime, parseStringList, timeToMinutes, toLocalDateTime, type AvailabilityRule, type ComplementoGrupo, type Dispositivo, type PromotionRule, type SalesChannel, type SalesHistory, type TipoTamanho } from './product-page-model'
 
 export default function ProdutosPage() {
   const { showToast } = useToast()
@@ -565,126 +499,10 @@ export default function ProdutosPage() {
   const handleImportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    
     try {
       setImportStatus('Lendo arquivo...')
       const text = await file.text()
-      const json = JSON.parse(text)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const items: any[] = Array.isArray(json) ? json : Array.isArray(json?.items) ? json.items : []
-      
-      if (!items.length) {
-        setImportStatus('Arquivo inválido ou vazio')
-        return
-      }
-
-      const existingProducts = await fetchAllProducts()
-      const existingByName = new Map(existingProducts.map(product => [product.nome.toLowerCase(), product.id]))
-      const selectedCategory = categorias.find(category => String(category.id) === categoriaId)
-      const categoryIdsByName = new Map(categorias.map(category => [importCategoryKey(category.nome), category.id]))
-      const categoriesById = new Map(categorias.map(category => [category.id, category]))
-      const reactivatedCategoryIds = new Set<number>()
-
-      const ensureImportedCategory = async (item: unknown): Promise<number> => {
-        const descriptor = categoryForImportedItem(
-          item,
-          selectedCategory
-            ? {
-                id: selectedCategory.id,
-                nome: selectedCategory.nome,
-                setor: selectedCategory.setor ?? 'COZINHA',
-                imagem: selectedCategory.imagem,
-                ordem: selectedCategory.ordem,
-              }
-            : undefined,
-        )
-        const key = importCategoryKey(descriptor.nome)
-        const existingId = categoryIdsByName.get(key)
-        if (existingId !== undefined) {
-          const existing = categoriesById.get(existingId)
-          if (existing?.ativo === false && !reactivatedCategoryIds.has(existingId)) {
-            await apiFetch(`/categories/${existingId}/ativo`, { method: 'PATCH', body: { ativo: true } })
-            reactivatedCategoryIds.add(existingId)
-          }
-          return existingId
-        }
-
-        const created = await apiFetch<Categoria>('/categories', {
-          method: 'POST',
-          body: {
-            nome: descriptor.nome,
-            setor: descriptor.setor,
-            imagem: descriptor.imagem,
-            ordem: descriptor.ordem,
-          },
-        })
-        categoryIdsByName.set(key, created.id)
-        categoriesById.set(created.id, created)
-        return created.id
-      }
-
-      let added = 0
-      let updated = 0
-      let failed = 0
-
-      for (const i of items) {
-        try {
-          const existingId = existingByName.get(i.nome.toLowerCase())
-          const importedCategoryId = await ensureImportedCategory(i)
-          
-          const formData = new FormData()
-          formData.append('nome', i.nome)
-          
-          let price = 0
-          if (typeof i.preco === 'number') {
-            price = i.preco
-          } else if (typeof i.preco === 'string') {
-            price = parseFloat(i.preco.replace(',', '.')) || 0
-          }
-          formData.append('preco', String(price))
-
-          formData.append('categoriaId', String(importedCategoryId))
-          formData.append('ativo', 'true')
-          formData.append('tipo', i.tipo || 'COMUM')
-          if (i.tipoTamanhoId) formData.append('tipoTamanhoId', String(i.tipoTamanhoId))
-          if (i.foto) formData.append('foto', i.foto) // Note: Base64 might need handling on server if direct string
-          formData.append('tipoOpcao', i.tipoOpcao || (i.temOpcaoTamanho ? 'tamanho_pg' : 'padrao'))
-          
-          const saboresJson = typeof i.sabores === 'string'
-            ? i.sabores
-            : JSON.stringify(i.sabores ?? [])
-          formData.append('sabores', saboresJson)
-          const observacoesJson = i.observacoes
-            ? JSON.stringify(Array.isArray(i.observacoes) ? i.observacoes : parseStringList(i.observacoes))
-            : '[]'
-          formData.append('observacoes', observacoesJson)
-          
-          formData.append('isDrink', String(!!i.isDrink))
-          formData.append('isFood', String(i.isFood !== undefined ? i.isFood : true))
-          formData.append('favorito', String(!!i.favorito))
-          formData.append('permitirObservacao', String(i.permitirObservacao !== undefined ? i.permitirObservacao : true))
-          formData.append('permiteGeloLimao', String(!!i.permiteGeloLimao))
-
-          const url = existingId ? `/products/${existingId}` : '/products'
-          const method = existingId ? 'PUT' : 'POST'
-
-          const saved = await apiFetch<{ id: number }>(url, {
-            method,
-            body: formData
-          })
-          if (existingId) {
-            updated++
-          } else {
-            added++
-            existingByName.set(i.nome.toLowerCase(), saved.id)
-          }
-        } catch (e) {
-          if (e instanceof ApiError && e.isUnauthorized) throw e
-          console.error(e)
-          failed++
-        }
-      }
-
+      const { added, updated, failed } = await importProductCatalog({ text, categories: categorias, selectedCategoryId: categoriaId ? Number(categoriaId) : undefined })
       setImportStatus(`Importação concluída: ${added} adicionados, ${updated} atualizados, ${failed} falhas`)
       if (added > 0 || updated > 0) showToast(`Importação concluída: ${added} novos, ${updated} atualizados.`, 'success')
       if (failed > 0) showToast(`${failed} itens falharam na importação.`, 'warning')
@@ -692,7 +510,7 @@ export default function ProdutosPage() {
       queryClient.invalidateQueries({ queryKey: ['products'] })
       queryClient.invalidateQueries({ queryKey: ['categories'] })
       void refetchProdutos()
-      e.target.value = '' 
+      e.target.value = ''
     } catch (err) {
       console.error(err)
       setImportStatus('Falha ao importar arquivo')

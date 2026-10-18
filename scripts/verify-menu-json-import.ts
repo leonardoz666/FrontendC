@@ -25,8 +25,8 @@ assert.equal(drinkWithoutCategory.setor, 'BAR')
 
 assert.equal(importCategoryKey('  Bebídas  '), importCategoryKey('bebidas'))
 
-const productsPage = readFileSync(resolve(process.cwd(), 'app/admin/produtos/page.tsx'), 'utf8')
-assert.match(productsPage, /categoryForImportedItem\(/, 'a tela deve resolver a categoria salva no JSON')
-assert.match(productsPage, /formData\.append\('categoriaId', String\(importedCategoryId\)\)/, 'todo produto importado deve receber uma categoria')
+const productImport = readFileSync(resolve(process.cwd(), 'app/lib/product-import.ts'), 'utf8')
+assert.match(productImport, /categoryForImportedItem\(/, 'a importação deve resolver a categoria salva no JSON')
+assert.match(productImport, /formData\.append\('categoriaId', String\(categoryId\)\)/, 'todo produto importado deve receber uma categoria')
 
 console.log('✓ importação JSON restaura categorias por nome e nunca deixa produto sem categoria')

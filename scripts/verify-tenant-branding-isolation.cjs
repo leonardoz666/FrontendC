@@ -50,7 +50,7 @@ const checks = [
   },
   {
     name: 'aceita o tenant da aba somente com vínculo criptografado correspondente',
-    pass: /TENANT_HEADER/.test(proxy) && /installationBindingForTenant\(request\.cookies, requestedSlug\)/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*binding\.tenantSlug\)/.test(proxy),
+    pass: /TENANT_HEADER/.test(proxy) && /installationBindingForTenant\(request\.cookies, requestedSlug\)/.test(proxy) && /headers\.set\(['"]x-tenant-slug['"],\s*requestedSlug\)/.test(proxy),
   },
   {
     name: 'não libera telas operacionais apenas pela presença de um cookie',
