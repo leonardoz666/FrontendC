@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import { useTenantRouter } from '@/app/lib/tenant-router'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ChefHat } from 'lucide-react'
 import { ApiError, apiFetch } from '@/app/lib/api'
 import { InlineLoader } from '@/app/components/ui/PageLoader'
@@ -133,40 +132,42 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen w-full bg-[#f5f6f8]">
-      {/* Left Side - Hero / Brand */}
-      <div
-        className="relative hidden items-end overflow-hidden bg-slate-950 lg:flex lg:w-[46%]"
-        style={branding.imagemLoginUrl ? { backgroundImage: `url(${branding.imagemLoginUrl})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
-      >
-        <div className="absolute inset-0 z-10 bg-slate-950/60" />
-        <div className="relative z-20 max-w-xl p-12 text-white xl:p-16">
-          <div className="mb-8 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-white/20 bg-white/10 p-2">
-              {branding.logoUrl ? <img src={branding.logoUrl} alt={`Logo ${establishmentName}`} className="h-full w-full object-contain" /> : <ChefHat size={32} className="text-white" />}
-          </div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-300">Operação ControlaÊ</p>
-          <h1 className="mt-3 text-4xl font-bold tracking-[-0.035em] xl:text-5xl">{establishmentName}</h1>
-          <p className="mt-5 max-w-md text-base leading-7 text-slate-300">
-            {branding.slogan}
-          </p>
-          <div className="mt-10 h-px w-20 bg-orange-500" aria-hidden="true" />
-        </div>
-      </div>
-
-      {/* Right Side - Login Form */}
-      <div className="flex flex-1 items-center justify-center p-4 sm:p-8">
-        <Card className="w-full max-w-md border-slate-200 shadow-none">
-          <CardHeader className="space-y-1 text-center lg:text-left">
-            <div className="flex justify-center lg:hidden mb-4">
-               {branding.logoUrl ? <img src={branding.logoUrl} alt={`Logo ${establishmentName}`} className="h-14 w-28 object-contain" /> : <ChefHat size={48} className="text-orange-600" />}
+    <main className="flex min-h-screen w-full items-center justify-center bg-[#f5f6f8] px-4 py-10 sm:px-6">
+      <section className="w-full max-w-[460px] overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <header
+          className="relative overflow-hidden bg-slate-950 px-6 py-5 text-white sm:px-7"
+          style={branding.imagemLoginUrl ? { backgroundImage: `url(${branding.imagemLoginUrl})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
+        >
+          {branding.imagemLoginUrl && <div className="absolute inset-0 bg-slate-950/75" aria-hidden="true" />}
+          <div className="relative flex items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white/10 p-2">
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={`Logo ${establishmentName}`}
+                  width={56}
+                  height={56}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <ChefHat size={28} aria-hidden="true" />
+              )}
             </div>
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-orange-700">Acesso da equipe</p>
-            <CardTitle className="text-center text-2xl font-bold lg:text-left">Entre no sistema</CardTitle>
-            <p className="text-gray-500 text-sm text-center lg:text-left">
-              Entre com suas credenciais para acessar o sistema
-            </p>
-          </CardHeader>
-          <CardContent>
+            <div className="min-w-0">
+              <p className="truncate text-lg font-semibold tracking-[-0.02em]">{establishmentName}</p>
+              {branding.slogan && (
+                <p className="mt-0.5 line-clamp-2 text-sm leading-5 text-slate-300">{branding.slogan}</p>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <div className="px-6 py-6 sm:px-7 sm:py-7">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold tracking-[-0.025em] text-slate-950">Entre no sistema</h1>
+            <p className="mt-1 text-sm text-slate-600">Use suas credenciais para acessar a operação.</p>
+          </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 label="Login"
@@ -204,13 +205,12 @@ export default function LoginPage() {
                 Entrar
               </Button>
             </form>
-            
-            <div className="mt-6 text-center text-xs text-gray-600">
-              &copy; {new Date().getFullYear()} {establishmentName}. Todos os direitos reservados.
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
+          <p className="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-slate-500">
+            &copy; {new Date().getFullYear()} {establishmentName}. Todos os direitos reservados.
+          </p>
+        </div>
+      </section>
     </main>
   )
 }
