@@ -469,7 +469,7 @@ export default function Sidebar({
                   onClick={() => toggleGroup(section.id)}
                   aria-expanded={isGroupOpen}
                   title={section.label}
-                  className={`sidebar-section-trigger flex min-h-9 w-full items-center rounded-lg px-3 py-2 text-[12px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand-primary)] ${isGroupActive ? 'sidebar-text' : 'sidebar-muted'}`}
+                  className={`sidebar-section-trigger flex min-h-9 w-full items-center rounded-lg px-3 py-2 text-[13px] font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand-primary)] ${isGroupActive ? 'sidebar-text' : 'sidebar-muted'}`}
                 >
                   <span className="flex-1 truncate text-left">{section.label.charAt(0) + section.label.slice(1).toLocaleLowerCase('pt-BR')}</span>
                   <ChevronDown

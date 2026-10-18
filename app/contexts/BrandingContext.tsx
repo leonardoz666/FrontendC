@@ -150,7 +150,7 @@ function applyBranding(branding: RestaurantBranding): void {
   root.style.setProperty('--sidebar-surface-hover', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .17 : .88))
   root.style.setProperty('--sidebar-surface-strong', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .07 : .48))
   root.style.setProperty('--sidebar-text', readableTextColor(branding.corNavegacao))
-  root.style.setProperty('--sidebar-text-muted', mix(branding.corNavegacao, navigationIsDark ? '#ffffff' : '#000000', navigationIsDark ? .68 : .62))
+  root.style.setProperty('--sidebar-text-muted', mix(branding.corNavegacao, navigationIsDark ? '#ffffff' : '#000000', navigationIsDark ? .76 : .72))
   root.style.setProperty('--brand-on-primary', readableTextColor(branding.corPrimaria))
   root.style.setProperty('--brand-on-accent', readableTextColor(branding.corDestaque))
   root.style.setProperty('--brand-font-family', fontFamilies[branding.fonteInterface])

@@ -11,6 +11,7 @@ colors:
   ink: "#171717"
   border: "#d1d5db"
   navigation-surface: "#e9f0f7"
+  navigation-muted: "#3f4b5a"
 typography:
   display:
     fontFamily: "Geist, Segoe UI, sans-serif"
@@ -170,6 +171,8 @@ Controles usam cantos de 8px, campos e cartões operacionais usam 12px e superf�
 Itens ativos usam a cor de destaque sólida e texto de contraste calculado. Itens inativos permanecem claros, com texto derivado da superfície e hover tonal. A marca compacta usa o monograma ou logo do tenant quando ele já foi resolvido.
 
 A superfície da barra lateral usa a cor de navegação configurada no Painel CEO. Cabeçalho, rodapé e divisórias são tons derivados automaticamente dessa base para preservar hierarquia e contraste.
+
+Os títulos dos grupos de navegação usam 13px, peso 700 e um tom secundário de alto contraste derivado da superfície. Setas acompanham a mesma cor para que rótulo e ação sejam percebidos como um único controle.
 
 ## Do's and Don'ts
 
