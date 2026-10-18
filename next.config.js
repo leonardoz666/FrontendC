@@ -1,26 +1,11 @@
 /** @type {import('next').NextConfig} */
-const { default: withPWAInit, runtimeCaching } = require('@ducanh2912/next-pwa')
+const withSerwistInit = require('@serwist/next').default
 
-const withPWA = withPWAInit({
-  dest: 'public',
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
   disable: process.env.NODE_ENV === 'development',
   register: true,
-  cacheStartUrl: false,
-  fallbacks: {
-    document: '/offline',
-  },
-  workboxOptions: {
-    skipWaiting: true,
-    clientsClaim: true,
-    runtimeCaching: [
-      {
-        urlPattern: /\/api\//,
-        handler: 'NetworkOnly',
-        options: { cacheName: 'controlae-api-network-only' },
-      },
-      ...runtimeCaching,
-    ],
-  },
 })
 
 const nextConfig = {
@@ -40,4 +25,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = withSerwist(nextConfig);

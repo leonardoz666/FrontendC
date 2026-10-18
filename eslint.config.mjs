@@ -11,7 +11,19 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   {
-    ignores: ['.next/**', 'dist/**', 'out/**', 'node_modules/**', 'public/sw.js', 'public/workbox-*.js', 'next-env.d.ts'],
+    ignores: [
+      ".impeccable/review/**",
+      ".next/**",
+      ".next-*/**",
+      "dist/**",
+      "graphify-out/**",
+      "node_modules/**",
+      "out/**",
+      "public/fallback-*.js",
+      "public/sw.js",
+      "public/workbox-*.js",
+      "next-env.d.ts",
+    ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {

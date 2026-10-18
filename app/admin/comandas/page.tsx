@@ -102,31 +102,31 @@ function Preview({ config, tab, paper }: { config: ComandaConfig; tab: Tab; pape
       aria-label={`Prévia da impressão em papel ${paper} milímetros`}
     >
       {bill && billStyle?.mostrarEstabelecimento && <p className="text-center text-sm font-bold">{config.geral.nomeEstabelecimento}</p>}
-      {bill && billStyle?.mostrarEndereco && config.geral.endereco && <p className="text-center text-[10px]">{config.geral.endereco}</p>}
-      {bill && billStyle?.mostrarDocumento && config.geral.documento && <p className="text-center text-[10px]">{config.geral.documento}</p>}
+      {bill && billStyle?.mostrarEndereco && config.geral.endereco && <p className="text-center text-xs">{config.geral.endereco}</p>}
+      {bill && billStyle?.mostrarDocumento && config.geral.documento && <p className="text-center text-xs">{config.geral.documento}</p>}
       {style.mostrarTitulo && <p className={`mt-2 break-words text-center font-bold leading-tight ${style.tituloGrande ? 'text-xl' : 'text-sm'}`}>
         {style.titulo}{orderStyle?.mostrarNumeroComanda ? ' #0005' : ''}
       </p>}
-      {style.mostrarSeparadores && style.mostrarTitulo && <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>}
+      {style.mostrarSeparadores && style.mostrarTitulo && <p className="my-2 overflow-hidden whitespace-nowrap text-xs tracking-[-.08em]" aria-hidden="true">{divider}</p>}
       <div style={{ paddingLeft: `${pad}px` }}>
         {(orderStyle?.mostrarMesa || billStyle?.mostrarMesa) && <p className={orderStyle ? 'text-lg font-bold' : 'text-xs'}>MESA: 10</p>}
         {orderStyle?.mostrarGarcom && <p className="text-lg font-bold">GARÇOM: DONO</p>}
         {orderStyle?.mostrarNumeroPedido && <p className="text-sm font-bold">PEDIDO: #108</p>}
-        {date && <p className="mt-1 text-[10px]">DATA: {date}</p>}
+        {date && <p className="mt-1 text-xs">DATA: {date}</p>}
       </div>
-      {style.mostrarSeparadores && ((orderStyle?.mostrarMesa || orderStyle?.mostrarGarcom || orderStyle?.mostrarNumeroPedido || billStyle?.mostrarMesa || date) && style.mostrarItens) && <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>}
-      {style.mostrarItens && (doc === 'parcial' ? <div className={`grid ${billStyle?.mostrarPrecoUnitario ? 'grid-cols-[2rem_minmax(0,1fr)_3rem_3.5rem]' : 'grid-cols-[2rem_minmax(0,1fr)_3.5rem]'} gap-x-1 text-[10px] leading-5`} style={{ paddingLeft: `${pad}px` }}>
+      {style.mostrarSeparadores && ((orderStyle?.mostrarMesa || orderStyle?.mostrarGarcom || orderStyle?.mostrarNumeroPedido || billStyle?.mostrarMesa || date) && style.mostrarItens) && <p className="my-2 overflow-hidden whitespace-nowrap text-xs tracking-[-.08em]" aria-hidden="true">{divider}</p>}
+      {style.mostrarItens && (doc === 'parcial' ? <div className={`grid ${billStyle?.mostrarPrecoUnitario ? 'grid-cols-[2rem_minmax(0,1fr)_3rem_3.5rem]' : 'grid-cols-[2rem_minmax(0,1fr)_3.5rem]'} gap-x-1 text-xs leading-5`} style={{ paddingLeft: `${pad}px` }}>
         <span className="font-bold">QTD</span><span className="font-bold">ITEM</span>{billStyle?.mostrarPrecoUnitario && <span className="text-right font-bold">R$</span>}<span className="text-right font-bold">TOT</span>
         <span>1</span><span className="truncate">{itemName}</span>{billStyle?.mostrarPrecoUnitario && <span className="text-right">18,00</span>}<span className="text-right">18,00</span>
         <span>2</span><span className="truncate">Suco</span>{billStyle?.mostrarPrecoUnitario && <span className="text-right">8,00</span>}<span className="text-right">16,00</span>
       </div> : <div style={{ paddingLeft: `${pad}px` }}>
         <p className={`${style.itensGrandes ? 'text-lg' : 'text-xs'} ${style.itensEmNegrito ? 'font-bold' : ''}`}>01X&nbsp; {itemName}</p>
-        {billStyle?.mostrarPrecoUnitario && <p className="mt-1 text-[10px]">1 x R$ 18,00</p>}
+        {billStyle?.mostrarPrecoUnitario && <p className="mt-1 text-xs">1 x R$ 18,00</p>}
         {bill && <p className="text-right text-xs">R$ 18,00</p>}
-        {orderStyle?.mostrarObservacoes && <p className="mt-3 text-[10px]">OBS: SEM PIMENTA</p>}
+        {orderStyle?.mostrarObservacoes && <p className="mt-3 text-xs">OBS: SEM PIMENTA</p>}
       </div>)}
       {bill && <>
-        {style.mostrarSeparadores && style.mostrarItens && <p className="my-2 overflow-hidden whitespace-nowrap text-[9px] tracking-[-.08em]">{divider}</p>}
+        {style.mostrarSeparadores && style.mostrarItens && <p className="my-2 overflow-hidden whitespace-nowrap text-xs tracking-[-.08em]" aria-hidden="true">{divider}</p>}
         <div className="space-y-1 text-right text-xs">
           {billStyle?.mostrarSubtotal && <p>SUBTOTAL: R$ 18,00</p>}
           {billStyle?.mostrarServico && <p>SERVIÇO: R$ 1,80</p>}
@@ -135,9 +135,9 @@ function Preview({ config, tab, paper }: { config: ComandaConfig; tab: Tab; pape
         </div>
         {billStyle?.mostrarPagamento && <div className="mt-4 text-xs"><p>FORMA PAGTO: PIX</p><p>VALOR PAGO: R$ 19,80</p></div>}
         {billStyle?.mostrarSaldo && <p className="mt-4 text-xs font-bold">SALDO RESTANTE: R$ 19,80</p>}
-        {billStyle?.mostrarRodape && <div className="mt-6 whitespace-pre-line text-center text-[10px]">{config.geral.rodape}</div>}
+        {billStyle?.mostrarRodape && <div className="mt-6 whitespace-pre-line text-center text-xs">{config.geral.rodape}</div>}
       </>}
-      <p className="mt-8 text-center text-[9px] text-slate-400">corte</p>
+      <p className="mt-8 text-center text-xs text-slate-500">corte</p>
     </div>
   </div>
 }
@@ -255,7 +255,7 @@ export default function ComandasPage() {
         <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <nav className="grid grid-cols-2 border-b border-slate-200 bg-slate-50 lg:grid-cols-4" aria-label="Tipos de comanda">
             {tabs.map(item => <button key={item.id} type="button" onClick={() => { setTab(item.id); setResetArmed(false) }} className={`min-h-16 px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-orange-500 ${tab === item.id ? 'bg-white text-orange-700 shadow-[inset_0_-3px_0_#ea580c]' : 'text-slate-600 hover:bg-white hover:text-slate-950'}`}>
-              <span className="block text-sm font-bold">{item.label}</span><span className="mt-0.5 block text-[11px]">{item.detail}</span>
+              <span className="block text-sm font-bold">{item.label}</span><span className="mt-0.5 block text-xs">{item.detail}</span>
             </button>)}
           </nav>
 
@@ -317,7 +317,7 @@ export default function ComandasPage() {
                   <Send size={16} />Imprimir teste de {tab === 'geral' ? 'pedido' : tab}
                 </Button>
               </div>
-              <p className="mt-2 text-[11px] leading-5 text-slate-400">Usa as alterações visíveis agora, mesmo antes de salvar.</p>
+              <p className="mt-2 text-xs leading-5 text-slate-400">Usa as alterações visíveis agora, mesmo antes de salvar.</p>
             </div>
             <div className="flex gap-2 border-t border-slate-800 px-4 py-3 text-xs leading-5 text-slate-300"><SlidersHorizontal className="mt-0.5 h-4 w-4 shrink-0" /><p>A largura final vem da impressora cadastrada. A prévia serve para conferir conteúdo e destaque.</p></div>
           </div>

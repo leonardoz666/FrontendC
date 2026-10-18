@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "sfmono-regular",
+        "createdAt": "2026-10-18T02:38:10.881Z",
+        "reason": "A prévia de impressão térmica usa uma fonte monoespaçada específica para representar o papel; a UI do produto continua seguindo DESIGN.md."
+      }
+    ]
+  }
+}
