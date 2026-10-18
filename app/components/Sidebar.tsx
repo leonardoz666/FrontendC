@@ -313,11 +313,11 @@ export default function Sidebar({
         href={item.href}
         title={item.label}
         aria-current={isActive ? 'page' : undefined}
-        className={`group relative flex h-10 items-center gap-3 rounded-lg px-3 text-[13px] leading-5 transition-[background-color,color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)] ${
+        className={`sidebar-nav-item group relative flex h-10 items-center gap-3 rounded-lg border border-transparent px-3 text-[13px] leading-5 transition-[background-color,border-color,box-shadow,color,transform] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)] ${
           standalone ? 'font-semibold' : 'font-medium'
         } ${
           isActive
-            ? 'bg-[var(--brand-accent)] font-semibold text-[var(--brand-on-accent)]'
+            ? 'sidebar-nav-item--active bg-[var(--brand-accent)] font-semibold text-[var(--brand-on-accent)]'
             : 'sidebar-text hover:bg-[var(--sidebar-surface-hover)]'
         } ${isCollapsed ? 'md:justify-center md:px-0' : ''}`}
       >
@@ -453,7 +453,7 @@ export default function Sidebar({
           )}
 
           {dashboardItem && (
-            <div className={`mb-2 ${isCollapsed ? 'md:hidden' : ''}`}>
+            <div className={`sidebar-dashboard-slot mb-3 border-b border-[var(--sidebar-border)] pb-3 ${isCollapsed ? 'md:hidden' : ''}`}>
               {renderItem(dashboardItem, true)}
             </div>
           )}
@@ -463,20 +463,22 @@ export default function Sidebar({
             const isGroupOpen = Boolean(normalizedSearch) || (openGroups[section.id] ?? isGroupActive)
 
             return (
-              <div key={section.id} className={`mb-1 ${isCollapsed ? 'md:hidden' : ''}`}>
+              <div key={section.id} className={`mb-1.5 ${isCollapsed ? 'md:hidden' : ''}`}>
                 <button
                   type="button"
                   onClick={() => toggleGroup(section.id)}
                   aria-expanded={isGroupOpen}
                   title={section.label}
-                  className={`sidebar-section-trigger flex min-h-9 w-full items-center rounded-lg px-3 py-2 text-[13px] font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand-primary)] ${isGroupActive ? 'sidebar-text' : 'sidebar-muted'}`}
+                  className={`sidebar-section-trigger flex min-h-10 w-full items-center rounded-lg border border-transparent px-3 py-2 text-[13px] font-bold transition-[background-color,border-color,box-shadow,color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand-primary)] ${isGroupActive ? 'sidebar-section-trigger--active sidebar-text' : 'sidebar-muted'}`}
                 >
                   <span className="flex-1 truncate text-left">{section.label.charAt(0) + section.label.slice(1).toLocaleLowerCase('pt-BR')}</span>
-                  <ChevronDown
-                    size={14}
-                    strokeWidth={2.5}
-                    className={`shrink-0 transition-transform duration-200 ${isGroupOpen ? '' : '-rotate-90'}`}
-                  />
+                  <span className="sidebar-section-chevron grid size-6 shrink-0 place-items-center rounded-md transition-colors" aria-hidden="true">
+                    <ChevronDown
+                      size={14}
+                      strokeWidth={2.5}
+                      className={`transition-transform duration-200 ${isGroupOpen ? '' : '-rotate-90'}`}
+                    />
+                  </span>
                 </button>
 
                 <div className={isGroupOpen ? 'mt-0.5 space-y-0.5' : 'hidden'}>

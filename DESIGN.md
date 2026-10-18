@@ -174,6 +174,8 @@ A superfície da barra lateral usa a cor de navegação configurada no Painel CE
 
 Os títulos dos grupos de navegação usam 13px, peso 700 e um tom secundário de alto contraste derivado da superfície. Setas acompanham a mesma cor para que rótulo e ação sejam percebidos como um único controle.
 
+O acesso ao Dashboard permanece em caixa normal e funciona como âncora da navegação: quando ativo, recebe superfície de destaque, contorno interno e sombra curta. Uma divisória o separa dos grupos, cujas setas ocupam pequenos campos tonais; grupos ativos ganham profundidade discreta sem transformar toda a barra em uma pilha de cartões.
+
 ## Do's and Don'ts
 
 ### Do:
