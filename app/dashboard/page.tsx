@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
 import { PageLoader } from '@/app/components/ui/PageLoader'
 import {
@@ -47,7 +47,7 @@ type DashboardStats = {
 }
 
 export default function DashboardPage() {
-    const router = useRouter()
+    const router = useTenantRouter()
     const [loading, setLoading] = useState(true)
     const [stats, setStats] = useState<DashboardStats | null>(null)
     const [period, setPeriod] = useState<'today' | 'week' | 'month'>('today')

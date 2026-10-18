@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, DownloadCloud, FileSearch, Upload } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'

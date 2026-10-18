@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, use, useMemo, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import Image from 'next/image'
 import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Check, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban, Pencil, Copy } from 'lucide-react'
 import { createPortal } from 'react-dom'
@@ -82,7 +82,7 @@ function OrderProductImage({ produto }: { produto: Produto }) {
 }
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
-  const router = useRouter()
+  const router = useTenantRouter()
   const unwrappedParams = use(params)
   const mesaId = Number(unwrappedParams.id)
   const { showToast } = useToast()

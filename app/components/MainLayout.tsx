@@ -1,8 +1,8 @@
 'use client'
 /* eslint-disable @next/next/no-img-element -- a marca do tenant pode ser uma data URL */
 
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import Link from '@/app/components/TenantLink'
+import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { LogOut, Menu, MessageCircle } from 'lucide-react'
 import Sidebar from './Sidebar'
@@ -19,6 +19,8 @@ import {
   type NavUser,
 } from '@/app/lib/navigation'
 import { useBranding } from '@/app/contexts/BrandingContext'
+import { useTenantRouter } from '@/app/lib/tenant-router'
+import { operationalPathname } from '@/app/lib/tenant-navigation'
 
 /**
  * Suporte (RF-UI-04): `NEXT_PUBLIC_SUPORTE_WHATSAPP` aceita a URL completa do WhatsApp
@@ -34,8 +36,8 @@ function resolveSupportHref(raw: string | undefined): string | null {
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { branding } = useBranding()
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = operationalPathname(usePathname())
+  const router = useTenantRouter()
   const { showToast } = useToast()
   const isLoginPage = pathname === '/login'
   const isInstallationPage = pathname === '/instalacao'

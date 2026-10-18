@@ -1,6 +1,7 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
+import { tenantPageUrl } from '@/app/lib/tenant-navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowDownToLine,
@@ -173,7 +174,7 @@ export default function CaixaDashboard({ fechamento = false }: CashPanelProps) {
     if (ok) {
       setSaldoInformado('')
       setObservacao('')
-      window.location.assign('/caixa/historico')
+      window.location.assign(tenantPageUrl('/caixa/historico'))
     }
   }
 

@@ -19,7 +19,10 @@ const themeInitScript = `
   (function () {
     try {
       var queryTenant = new URLSearchParams(window.location.search).get('estabelecimento');
-      if (queryTenant && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(queryTenant)) sessionStorage.setItem('controlae:tab-tenant', queryTenant);
+      var pathMatch = window.location.pathname.match(/^\/e\/([a-z0-9]+(?:-[a-z0-9]+)*)(?:\/|$)/);
+      var pathTenant = pathMatch && pathMatch[1];
+      var requestedTenant = pathTenant || queryTenant;
+      if (requestedTenant && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(requestedTenant)) sessionStorage.setItem('controlae:tab-tenant', requestedTenant);
       var tenant = sessionStorage.getItem('controlae:tab-tenant') || 'tenant-unresolved';
       var saved = localStorage.getItem('controlae-color-theme:' + tenant);
       var dark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);

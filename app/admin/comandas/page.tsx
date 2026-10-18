@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Check, ChevronDown, Printer, RotateCcw, Save, Send, SlidersHorizontal } from 'lucide-react'
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { apiFetch } from '@/app/lib/api'
 import {
   DEFAULT_COMANDA_CONFIG,

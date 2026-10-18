@@ -13,6 +13,8 @@ O código expira em 15 minutos. Depois da validação, o FrontendC guarda um ví
 
 Cada estabelecimento possui seu próprio vínculo e sua própria sessão. O mesmo navegador pode manter vários restaurantes ativados simultaneamente; cada aba seleciona o tenant pelo link `/e/<slug>` sem compartilhar login, cache ou arquivos com as outras.
 
+Depois da ativação, o slug permanece visível em todas as páginas operacionais. A entrada `/e/<slug>` continua sendo o link distribuído pelo Painel, enquanto a navegação usa URLs canônicas como `/e/<slug>/login`, `/e/<slug>/inicio` e `/e/<slug>/admin/produtos`. O middleware reescreve essas URLs para as páginas internas compartilhadas sem duplicar a aplicação. Endereços antigos sem o prefixo são redirecionados para a forma canônica quando o vínculo do estabelecimento pode ser identificado.
+
 Configure `FRONTEND_INSTALLATION_SECRET` com pelo menos 32 caracteres no ambiente que executará o aplicativo. Distribuições diferentes devem usar segredos diferentes.
 
 ## Desenvolvimento

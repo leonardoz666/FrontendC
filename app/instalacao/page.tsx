@@ -1,7 +1,7 @@
 'use client'
 
 import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { ArrowRight, Check, Eye, EyeOff, Link2, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { PageLoader } from '@/app/components/ui/PageLoader'
 import {
@@ -13,7 +13,7 @@ import {
 type InstallationStatus = { active: boolean; establishmentUrl?: string; tenantSlug?: string; establishmentName?: string }
 
 export default function InstallationPage() {
-  const router = useRouter()
+  const router = useTenantRouter()
   const [establishmentUrl, setEstablishmentUrl] = useState('')
   const [code, setCode] = useState('')
   const [showCode, setShowCode] = useState(false)

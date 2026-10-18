@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { Eye, History, Printer, RotateCcw, Settings2, Trash2, X } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { buildPrintHtml } from '@/app/lib/export'

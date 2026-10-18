@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, CheckCircle2, Download, Plus, RefreshCw, Save, Send } from 'lucide-react'
 import { apiFetch, fetchList } from '@/app/lib/api'

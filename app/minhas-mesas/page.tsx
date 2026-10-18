@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { apiFetch } from '@/app/lib/api'
 import { Mesa, TableCard } from '@/app/components/TableCard'
 import { PageLoader } from '@/app/components/ui/PageLoader'
@@ -9,7 +9,7 @@ import { PageLoader } from '@/app/components/ui/PageLoader'
 export default function MinhasMesasPage() {
   const [mesas, setMesas] = useState<Mesa[]>([])
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const router = useTenantRouter()
 
   useEffect(() => {
     const fetchMyTables = async () => {

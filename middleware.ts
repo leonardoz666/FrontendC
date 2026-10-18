@@ -6,7 +6,10 @@ import {
   installationCookieName,
   installationGateCookieName,
   isTenantSlug,
+  operationalPathname,
   requestedTenantSlug,
+  tenantPageUrl,
+  tenantSlugFromPathname,
 } from './app/lib/tenant-navigation'
 
 const INSTALLATION_COOKIE = 'controlae_installation'
@@ -72,23 +75,23 @@ async function hasValidInstallationGate(request: NextRequest, tenantSlug?: strin
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const requestedSlug = requestedTenantSlug(request.nextUrl.searchParams)
+  const pathTenantSlug = tenantSlugFromPathname(pathname)
+  const publicTenantRoute = Boolean(pathTenantSlug && /^\/e\/[^/]+\/(?:cardapio|vagas)(?:\/|$)/.test(pathname))
+  const internalPathname = publicTenantRoute ? pathname : operationalPathname(pathname)
+  const prefixedOperationalRoute = Boolean(pathTenantSlug && internalPathname !== pathname)
+  const requestedSlug = requestedTenantSlug(request.nextUrl.searchParams, pathname)
     || request.headers.get(TENANT_HEADER)?.trim().toLowerCase()
   const boundSlugValue = request.cookies.get(TENANT_COOKIE)?.value
   const boundSlug = isTenantSlug(boundSlugValue) ? boundSlugValue : null
 
-  if (pathname === '/instalacao') {
+  if (internalPathname === '/instalacao') {
     const tenantToOpen = requestedSlug || boundSlug
     if (!tenantToOpen || !await hasValidInstallationGate(request, tenantToOpen)) return NextResponse.next()
 
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    url.search = ''
-    url.searchParams.set('estabelecimento', tenantToOpen)
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(new URL(tenantPageUrl('/login', tenantToOpen), request.url))
   }
 
-  if (pathname === '/login' && requestedSlug && !await hasValidInstallationGate(request, requestedSlug)) {
+  if (internalPathname === '/login' && requestedSlug && !await hasValidInstallationGate(request, requestedSlug)) {
     const url = request.nextUrl.clone()
     url.pathname = '/instalacao'
     url.search = ''
@@ -97,17 +100,37 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  const installationRoute = pathname === '/offline'
-    || pathname.startsWith('/api/installation/')
-    || pathname.startsWith('/api/public/')
-    || pathname.startsWith('/e/')
-  if (installationRoute || await hasValidInstallationGate(request, requestedSlug)) return NextResponse.next()
-  if (pathname.startsWith('/api/') || pathname.startsWith('/uploads/')) {
+  const installationRoute = internalPathname === '/offline'
+    || internalPathname.startsWith('/api/installation/')
+    || internalPathname.startsWith('/api/public/')
+    || publicTenantRoute
+    || (pathTenantSlug && !prefixedOperationalRoute)
+  if (installationRoute) return NextResponse.next()
+
+  if (prefixedOperationalRoute && requestedSlug && await hasValidInstallationGate(request, requestedSlug)) {
+    const url = request.nextUrl.clone()
+    url.pathname = internalPathname
+    url.searchParams.set('estabelecimento', requestedSlug)
+    return NextResponse.rewrite(url)
+  }
+
+  if (internalPathname.startsWith('/api/') || internalPathname.startsWith('/uploads/')) {
+    if (await hasValidInstallationGate(request, requestedSlug)) return NextResponse.next()
     return NextResponse.json({ code: 'INSTALLATION_REQUIRED', error: 'Ative este aplicativo antes de continuar' }, { status: 428 })
   }
+
+  const tenantToOpen = requestedSlug || boundSlug
+  if (tenantToOpen && await hasValidInstallationGate(request, tenantToOpen)) {
+    const canonicalSearch = new URLSearchParams(request.nextUrl.searchParams)
+    canonicalSearch.delete('estabelecimento')
+    const query = canonicalSearch.toString()
+    const canonicalPath = tenantPageUrl(`${internalPathname}${query ? `?${query}` : ''}`, tenantToOpen)
+    return NextResponse.redirect(new URL(canonicalPath, request.url))
+  }
+
   const url = request.nextUrl.clone()
   url.pathname = '/instalacao'
-  url.searchParams.set('retorno', pathname)
+  url.searchParams.set('retorno', internalPathname)
   return NextResponse.redirect(url)
 }
 

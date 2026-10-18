@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { User } from 'lucide-react'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
 import { PageLoader } from '@/app/components/ui/PageLoader'
@@ -20,7 +20,7 @@ type Mesa = {
 export default function MesasAbertasPage() {
   const [mesas, setMesas] = useState<Mesa[]>([])
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const router = useTenantRouter()
 
   useEffect(() => {
     let cancelled = false

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Plus, X, ListPlus, Lock } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { useToast } from '@/contexts/ToastContext'
 import { TableCard, Mesa } from '@/components/TableCard'
 import { connectTableSocket } from '@/app/lib/table-socket'
@@ -62,7 +62,7 @@ export default function MesasPage() {
   const [lotePrevia, setLotePrevia] = useState<{ criadas: number; ignoradas: number; numerosIgnorados: number[] } | null>(null)
   const [loteCarregando, setLoteCarregando] = useState(false)
   const [loteErro, setLoteErro] = useState('')
-  const router = useRouter()
+  const router = useTenantRouter()
 
   useEffect(() => {
     const existingTarget = document.getElementById('waiter-header-status')

@@ -5,13 +5,14 @@ import { usePathname } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { subscribeLocalDataChanges } from '@/app/lib/data-sync'
 import { connectTableSocket } from '@/app/lib/table-socket'
+import { operationalPathname } from '@/app/lib/tenant-navigation'
 
 // Agrupa importações e ações em lote para não refazer todas as consultas a
 // cada item salvo individualmente.
 const INVALIDATION_DELAY_MS = 500
 
 export function DataSyncBridge() {
-  const pathname = usePathname()
+  const pathname = operationalPathname(usePathname())
   const queryClient = useQueryClient()
 
   useEffect(() => {

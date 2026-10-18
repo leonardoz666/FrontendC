@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Ban, Clock3, Gift, LoaderCircle, Plus, Printer, ReceiptText, RefreshCw, X } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'

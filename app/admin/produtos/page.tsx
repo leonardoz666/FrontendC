@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
 import { DataTable, type DataTableColumn } from '@/components/ui/DataTable'

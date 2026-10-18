@@ -8,6 +8,9 @@ import {
   authCookieName,
   installationCookieName,
   installationGateCookieName,
+  operationalPathname,
+  tenantPageUrl,
+  tenantSlugFromPathname,
 } from '../app/lib/tenant-navigation'
 import { middleware } from '../middleware'
 
@@ -40,10 +43,36 @@ const request = (url: string, headers: Record<string, string> = {}) => new NextR
 })
 
 async function verify() {
-  const piraoLogin = await middleware(request('https://frontend-c-kappa.vercel.app/login?estabelecimento=rei-do-pirao'))
-  const carneLogin = await middleware(request('https://frontend-c-kappa.vercel.app/login?estabelecimento=rei-da-carne-de-sol'))
-  assert.equal(piraoLogin.status, 200, 'Pirão deve abrir com seu próprio vínculo')
-  assert.equal(carneLogin.status, 200, 'Carne de Sol deve abrir com seu próprio vínculo')
+  assert.equal(tenantSlugFromPathname('/e/rei-do-pirao/admin/produtos'), 'rei-do-pirao')
+  assert.equal(operationalPathname('/e/rei-do-pirao/admin/produtos'), '/admin/produtos')
+  assert.equal(
+    tenantPageUrl('/admin/produtos?pagina=2', 'rei-do-pirao'),
+    '/e/rei-do-pirao/admin/produtos?pagina=2',
+    'links operacionais devem manter o estabelecimento visível',
+  )
+  assert.equal(tenantPageUrl('/', 'rei-do-pirao'), '/e/rei-do-pirao/inicio')
+  assert.equal(tenantPageUrl('/api/products', 'rei-do-pirao'), '/api/products', 'rotas técnicas não recebem prefixo')
+
+  const piraoLogin = await middleware(request('https://frontend-c-kappa.vercel.app/e/rei-do-pirao/login'))
+  const carneLogin = await middleware(request('https://frontend-c-kappa.vercel.app/e/rei-da-carne-de-sol/login'))
+  assert.match(piraoLogin.headers.get('x-middleware-rewrite') || '', /\/login\?estabelecimento=rei-do-pirao$/)
+  assert.match(carneLogin.headers.get('x-middleware-rewrite') || '', /\/login\?estabelecimento=rei-da-carne-de-sol$/)
+
+  const piraoProducts = await middleware(request('https://frontend-c-kappa.vercel.app/e/rei-do-pirao/admin/produtos'))
+  assert.match(
+    piraoProducts.headers.get('x-middleware-rewrite') || '',
+    /\/admin\/produtos\?estabelecimento=rei-do-pirao$/,
+    'a URL explícita deve resolver a página interna preservando o tenant',
+  )
+
+  const piraoHome = await middleware(request('https://frontend-c-kappa.vercel.app/e/rei-do-pirao/inicio'))
+  assert.match(piraoHome.headers.get('x-middleware-rewrite') || '', /\/?estabelecimento=rei-do-pirao$/)
+
+  const legacyLogin = await middleware(request('https://frontend-c-kappa.vercel.app/login?estabelecimento=rei-do-pirao'))
+  assert.equal(legacyLogin.headers.get('location'), 'https://frontend-c-kappa.vercel.app/e/rei-do-pirao/login')
+
+  const publicMenu = await middleware(request('https://frontend-c-kappa.vercel.app/e/rei-do-pirao/cardapio'))
+  assert.equal(publicMenu.headers.get('x-middleware-next'), '1', 'cardápio público não deve ser reescrito')
 
   const unknown = await middleware(request('https://frontend-c-kappa.vercel.app/login?estabelecimento=novo-restaurante'))
   assert.equal(unknown.status, 307)

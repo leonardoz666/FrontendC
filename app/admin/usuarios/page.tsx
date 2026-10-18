@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -99,7 +99,7 @@ export default function AdminUsersPage() {
   
   const [error, setError] = useState('')
   const [, setSuccess] = useState('')
-  const router = useRouter()
+  const router = useTenantRouter()
   const queryClient = useQueryClient()
   const lista = useListaCrud('/users')
   const statusResource = statusFilter === 'TODOS'

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { installationBindingForTenant } from '@/app/lib/installation-binding'
+import { tenantPageUrl } from '@/app/lib/tenant-navigation'
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
   const establishmentUrl = `${request.nextUrl.origin}/e/${slug}`
   const binding = installationBindingForTenant(request.cookies, slug)
   if (binding) {
-    return NextResponse.redirect(new URL(`/login?estabelecimento=${encodeURIComponent(slug)}`, request.url))
+    return NextResponse.redirect(new URL(tenantPageUrl('/login', slug), request.url))
   }
   const destination = new URL('/instalacao', request.url)
   destination.searchParams.set('link', establishmentUrl)

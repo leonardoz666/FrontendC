@@ -1,7 +1,7 @@
 'use client'
 /* eslint-disable @next/next/no-img-element -- a marca do tenant pode ser uma data URL */
 
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { usePathname } from 'next/navigation'
 import {
   Activity,
@@ -63,6 +63,7 @@ import {
   type NavUser,
 } from '@/app/lib/navigation'
 import { useBranding } from '@/app/contexts/BrandingContext'
+import { operationalPathname } from '@/app/lib/tenant-navigation'
 
 const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   Activity,
@@ -123,7 +124,7 @@ export default function Sidebar({
   onToggleCollapse,
 }: SidebarProps) {
   const { branding } = useBranding()
-  const pathname = usePathname()
+  const pathname = operationalPathname(usePathname())
   const [fetchedUser, setFetchedUser] = useState<NavUser | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selfCollapsed, setSelfCollapsed] = useState(false)

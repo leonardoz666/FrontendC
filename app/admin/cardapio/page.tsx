@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowLeft, ArrowUp, GripVertical, LockKeyhole, PackagePlus, Puzzle, RefreshCw, Save, Trash2, Utensils } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { apiFetch, fetchAllList, fetchList } from '@/app/lib/api'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { PageLoader } from '@/app/components/ui/PageLoader'
@@ -48,7 +48,7 @@ function ordenarPorOrdemNome<T extends { nome: string; ordem?: number }>(itens: 
 }
 
 export default function OrganizarCardapioPage() {
-  const router = useRouter()
+  const router = useTenantRouter()
   const { showToast } = useToast()
   const [modo, setModo] = useState<Modo>('produtos')
   const [categorias, setCategorias] = useState<Categoria[]>([])

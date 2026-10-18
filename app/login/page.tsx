@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element -- a marca do tenant pode ser uma data URL */
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -65,7 +65,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [locationStatus, setLocationStatus] = useState('')
   const establishmentName = branding.nomeExibicao
-  const router = useRouter()
+  const router = useTenantRouter()
 
   useEffect(() => {
     let cancelled = false

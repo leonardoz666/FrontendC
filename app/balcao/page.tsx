@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/app/components/TenantLink'
 import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, ClipboardList, LoaderCircle, Minus, Plus, Search, ShoppingCart, Star, Store, Trash2, UserRound, X } from 'lucide-react'

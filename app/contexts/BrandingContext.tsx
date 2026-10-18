@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { apiFetch, invalidateAuthMeCache } from '@/app/lib/api'
 import { currentTenantSlug } from '@/app/lib/offline'
+import { operationalPathname, tenantSlugFromPathname } from '@/app/lib/tenant-navigation'
 import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
 import { parseTenantModules, type ModuleKey } from '@/app/lib/modules'
 
@@ -157,10 +158,11 @@ function applyBranding(branding: RestaurantBranding): void {
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
-  const pathname = usePathname()
+  const visiblePathname = usePathname()
+  const pathname = operationalPathname(visiblePathname)
   const isInstallationPage = pathname === '/instalacao'
   const queryClient = useQueryClient()
-  const tenantHint = searchParams.get('estabelecimento') || currentTenantSlug()
+  const tenantHint = tenantSlugFromPathname(visiblePathname) || searchParams.get('estabelecimento') || currentTenantSlug()
   const [branding, setBrandingState] = useState<RestaurantBranding | null>(isInstallationPage ? DEFAULT_BRANDING : null)
   const [resolvedTenant, setResolvedTenant] = useState<string | null>(isInstallationPage ? tenantHint : null)
   const [carregando, setCarregando] = useState(!isInstallationPage)

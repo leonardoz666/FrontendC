@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTenantRouter } from '@/app/lib/tenant-router'
 import { Delete as DeleteIcon } from 'lucide-react'
 import { useToast } from '@/contexts/ToastContext'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
@@ -22,7 +22,7 @@ export default function Home() {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [targetTable, setTargetTable] = useState<Mesa | null>(null)
   const [openingTable, setOpeningTable] = useState(false)
-  const router = useRouter()
+  const router = useTenantRouter()
 
   // Haptic feedback for tactile response on mobile
   const triggerHaptic = useCallback((ms = 15) => {

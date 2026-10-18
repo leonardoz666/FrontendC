@@ -11,7 +11,7 @@ import {
   queueApiMutation,
   readCachedApiPayload,
 } from './offline'
-import { TENANT_HEADER } from './tenant-navigation'
+import { LOGIN_PATH as TENANT_LOGIN_PATH, TENANT_HEADER, operationalPathname, tenantPageUrl } from './tenant-navigation'
 
 /**
  * Cliente HTTP do frontend.
@@ -25,7 +25,7 @@ import { TENANT_HEADER } from './tenant-navigation'
  */
 
 export const API_PREFIX = '/api'
-export const LOGIN_PATH = '/login'
+export const LOGIN_PATH = TENANT_LOGIN_PATH
 
 const TRANSIENT_GET_STATUSES = new Set([429, 502, 503, 504])
 const TRANSIENT_GET_DELAYS_MS = [1000, 3000, 6000]
@@ -102,10 +102,10 @@ export function redirectToLogin(): void {
   }
   // Não redireciona a partir da própria tela de login: isso apagaria a mensagem
   // de "credenciais inválidas" devolvida pelo POST /api/auth/login.
-  if (window.location.pathname.startsWith(LOGIN_PATH)) {
+  if (operationalPathname(window.location.pathname) === LOGIN_PATH) {
     return
   }
-  window.location.replace(LOGIN_PATH)
+  window.location.replace(tenantPageUrl(LOGIN_PATH))
 }
 
 async function readResponseBody(response: Response): Promise<unknown> {
