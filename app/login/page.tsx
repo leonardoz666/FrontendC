@@ -57,6 +57,12 @@ function paginaInicial(role?: string): string {
   return role === 'ESTOQUISTA' ? '/admin/estoque' : '/'
 }
 
+const LOGIN_IMAGE_POSITIONS = {
+  ESQUERDA: 'left center',
+  CENTRO: 'center',
+  DIREITA: 'right center',
+} as const
+
 export default function LoginPage() {
   const { branding } = useBranding()
   const [login, setLogin] = useState('')
@@ -136,7 +142,11 @@ export default function LoginPage() {
     <main className="flex min-h-screen w-full bg-gray-50">
       <section
           className="relative hidden items-center justify-center overflow-hidden bg-orange-600 lg:flex lg:w-1/2"
-          style={branding.imagemLoginUrl ? { backgroundImage: `url(${branding.imagemLoginUrl})`, backgroundPosition: 'center', backgroundSize: 'cover' } : undefined}
+          style={branding.imagemLoginUrl ? {
+            backgroundImage: `url(${branding.imagemLoginUrl})`,
+            backgroundPosition: LOGIN_IMAGE_POSITIONS[branding.imagemLoginPosicao],
+            backgroundSize: 'cover',
+          } : undefined}
         >
         <div className="absolute inset-0 z-10 bg-black/10" aria-hidden="true" />
         <div className="relative z-20 p-12 text-center text-white">

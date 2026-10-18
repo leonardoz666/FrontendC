@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:ci": "npm run test:payment && npm run test:product-catalog && npm run test:product-form && npm run test:flavor-size-pricing && npm run test:table-transfer && npm run test:category-printer && npm run test:data-sync && npm run test:offline && npm run test:menu-json-import && npm run test:printer-agent-config && npm run test:api && npm run test:auth-session-cache && npm run test:stock-lot-contrast && npm run test:no-native-confirms && npm run test:tenant-branding && npm run test:data-table-stability && npm run test:multi-tenant-installation",
+    "test:ci": "npm run test:payment && npm run test:product-catalog && npm run test:product-form && npm run test:flavor-size-pricing && npm run test:table-transfer && npm run test:category-printer && npm run test:data-sync && npm run test:offline && npm run test:menu-json-import && npm run test:printer-agent-config && npm run test:api && npm run test:auth-session-cache && npm run test:stock-lot-contrast && npm run test:no-native-confirms && npm run test:tenant-branding && npm run test:data-table-stability && npm run test:module-coverage && npm run test:multi-tenant-installation",
     "test:payment": "node scripts/verify-payment.cjs",
     "test:product-catalog": "node scripts/verify-product-catalog.cjs",
     "test:product-form": "node scripts/verify-product-form.cjs",
@@ -22,6 +22,7 @@
     "build": "npm run typecheck && node --disable-warning=DEP0060 node_modules/next/dist/bin/next build",
     "test:tenant-branding": "node scripts/verify-tenant-branding-isolation.cjs",
     "test:data-table-stability": "node scripts/verify-data-table-callback-stability.cjs",
+    "test:module-coverage": "node scripts/verify-module-coverage.cjs",
     "test:multi-tenant-installation": "ts-node --project scripts/tsconfig.json scripts/verify-multi-tenant-installation.ts",
     "test:auth-session-cache": "ts-node --project scripts/tsconfig.json scripts/verify-auth-session-cache.ts",
     "typecheck": "tsc --noEmit",

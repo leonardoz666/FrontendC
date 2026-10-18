@@ -17,6 +17,7 @@ export type RestaurantBranding = {
   logoCompactaUrl: string
   faviconUrl: string
   imagemLoginUrl: string
+  imagemLoginPosicao: 'ESQUERDA' | 'CENTRO' | 'DIREITA'
   corPrimaria: string
   corSecundaria: string
   corDestaque: string
@@ -34,6 +35,7 @@ export const DEFAULT_BRANDING: RestaurantBranding = {
   logoCompactaUrl: '',
   faviconUrl: '',
   imagemLoginUrl: '',
+  imagemLoginPosicao: 'CENTRO',
   corPrimaria: '#ea580c',
   corSecundaria: '#0f172a',
   corDestaque: '#f97316',
@@ -51,6 +53,7 @@ const NEUTRAL_BRANDING: RestaurantBranding = {
   logoCompactaUrl: '',
   faviconUrl: '',
   imagemLoginUrl: '',
+  imagemLoginPosicao: 'CENTRO',
   corPrimaria: '#475569',
   corSecundaria: '#0f172a',
   corDestaque: '#64748b',
@@ -76,6 +79,7 @@ function normalizedBranding(value?: BrandingPayload): RestaurantBranding {
   const nome = value?.nome?.trim() || DEFAULT_BRANDING.nome
   const fonteInterface = value?.fonteInterface
   const temaPadrao = value?.temaPadrao
+  const imagemLoginPosicao = value?.imagemLoginPosicao
   return {
     nome,
     nomeExibicao: value?.nomeExibicao?.trim() || nome,
@@ -84,6 +88,9 @@ function normalizedBranding(value?: BrandingPayload): RestaurantBranding {
     logoCompactaUrl: tenantResourceUrl(value?.logoCompactaUrl?.trim() || ''),
     faviconUrl: tenantResourceUrl(value?.faviconUrl?.trim() || ''),
     imagemLoginUrl: tenantResourceUrl(value?.imagemLoginUrl?.trim() || ''),
+    imagemLoginPosicao: imagemLoginPosicao && ['ESQUERDA', 'CENTRO', 'DIREITA'].includes(imagemLoginPosicao)
+      ? imagemLoginPosicao
+      : DEFAULT_BRANDING.imagemLoginPosicao,
     corPrimaria: value?.corPrimaria || DEFAULT_BRANDING.corPrimaria,
     corSecundaria: value?.corSecundaria || DEFAULT_BRANDING.corSecundaria,
     corDestaque: value?.corDestaque || DEFAULT_BRANDING.corDestaque,
@@ -142,9 +149,10 @@ function applyBranding(branding: RestaurantBranding): void {
   root.style.setProperty('--sidebar-surface', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .1 : .68))
   root.style.setProperty('--sidebar-surface-hover', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .17 : .88))
   root.style.setProperty('--sidebar-surface-strong', mix(branding.corNavegacao, '#ffffff', navigationIsDark ? .07 : .48))
-  root.style.setProperty('--sidebar-text', navigationIsDark ? '#ffffff' : '#0f172a')
+  root.style.setProperty('--sidebar-text', readableTextColor(branding.corNavegacao))
   root.style.setProperty('--sidebar-text-muted', mix(branding.corNavegacao, navigationIsDark ? '#ffffff' : '#000000', navigationIsDark ? .68 : .62))
   root.style.setProperty('--brand-on-primary', readableTextColor(branding.corPrimaria))
+  root.style.setProperty('--brand-on-accent', readableTextColor(branding.corDestaque))
   root.style.setProperty('--brand-font-family', fontFamilies[branding.fonteInterface])
   root.style.setProperty('--color-slate-950', mix(branding.corSecundaria, '#000000', .16))
   root.style.setProperty('--color-slate-900', branding.corSecundaria)

@@ -14,6 +14,7 @@ import OfflineStatus from './OfflineStatus'
 import { clearOfflineData, getOfflineStatus } from '@/app/lib/offline'
 import {
   ROUTE_SHORTCUTS,
+  moduleForPathname,
   readStoredCollapsed,
   writeStoredCollapsed,
   type NavUser,
@@ -35,7 +36,7 @@ function resolveSupportHref(raw: string | undefined): string | null {
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const { branding } = useBranding()
+  const { branding, carregando: isBrandingLoading } = useBranding()
   const pathname = operationalPathname(usePathname())
   const router = useTenantRouter()
   const { showToast } = useToast()
@@ -55,19 +56,21 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isStockRouteBlocked = !isPublicPage && isStockkeeper && (isSimplifiedStockkeeper ? !simplifiedStockRoute : !isStockRoute)
   const sidebarOffset = isPublicPage || !user || isWaiter || isSimplifiedStockkeeper ? '' : isStockkeeper || !isCollapsed ? 'md:ml-[272px]' : 'md:ml-[76px]'
   const supportHref = isPublicPage || !user ? null : resolveSupportHref(process.env.NEXT_PUBLIC_SUPORTE_WHATSAPP)
+  const activeModule = moduleForPathname(pathname)
+  const isModuleRouteBlocked = !isPublicPage && !isBrandingLoading && Boolean(user && activeModule && !branding.modulosAtivos.includes(activeModule))
 
   // Estado recolhido persistido: lido após a montagem para não divergir do SSR.
   useEffect(() => {
-    setIsCollapsed(readStoredCollapsed())
+    setIsCollapsed(readStoredCollapsed(null))
   }, [])
 
   const toggleCollapsed = useCallback(() => {
     setIsCollapsed(prev => {
       const next = !prev
-      writeStoredCollapsed(next)
+      writeStoredCollapsed(user, next)
       return next
     })
-  }, [])
+  }, [user])
 
   // Usuário logado: alimenta o cabeçalho e a Sidebar (uma única chamada a /api/auth/me).
   useEffect(() => {
@@ -84,7 +87,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             ? data.user.uiPreferences ?? {}
             : await initializeUiPreferences(data.user.id, data.user.uiPreferences)
           if (!cancelled) {
-            setIsCollapsed(preferences.sidebarCollapsed ?? readStoredCollapsed())
+            setIsCollapsed(preferences.sidebarCollapsed ?? readStoredCollapsed(data.user))
             setUser(data.user)
           }
         } else if (!cancelled) {
@@ -124,6 +127,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       event.preventDefault()
 
+      const shortcutModule = moduleForPathname(shortcut.href)
+      if (shortcutModule && !branding.modulosAtivos.includes(shortcutModule)) {
+        showToast(`${shortcut.label}: módulo não habilitado para este estabelecimento`, 'warning')
+        return
+      }
+
       if (shortcut.disabled) {
         showToast(`${shortcut.label}: módulo ainda não disponível`, 'warning')
         return
@@ -134,7 +143,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isPublicPage, isStockkeeper, router, showToast])
+  }, [branding.modulosAtivos, isPublicPage, isStockkeeper, router, showToast])
 
   const handleLogout = async () => {
     const offlineStatus = await getOfflineStatus().catch(() => ({ pending: 0 }))
@@ -190,10 +199,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
               <nav className="col-start-1 row-start-1 grid min-w-0 w-full grid-cols-3 items-stretch justify-center gap-1.5 sm:gap-2 xl:col-start-2 xl:flex xl:w-auto xl:flex-none xl:items-center" aria-label="Navegação do garçom">
                 {[
-                  { href: '/', label: 'Início', mobileLabel: 'Início' },
-                  { href: '/mesas', label: 'Mapa de Mesas', mobileLabel: 'Mesas' },
-                  { href: '/minhas-mesas', label: 'Minhas Mesas', mobileLabel: 'Minhas' },
-                ].map(item => (
+                  { href: '/', label: 'Início', mobileLabel: 'Início', module: null },
+                  { href: '/mesas', label: 'Mapa de Mesas', mobileLabel: 'Mesas', module: 'MESAS' as const },
+                  { href: '/minhas-mesas', label: 'Minhas Mesas', mobileLabel: 'Minhas', module: 'MESAS' as const },
+                ].filter(item => !item.module || branding.modulosAtivos.includes(item.module)).map(item => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -279,7 +288,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       )}
 
       <main className={`min-w-0 flex-1 transition-[margin] duration-300 ${sidebarOffset}`}>
-        {!isStockRouteBlocked && children}
+        {!isStockRouteBlocked && !isModuleRouteBlocked && children}
+        {!isStockRouteBlocked && isModuleRouteBlocked && (
+          <section className="mx-auto flex min-h-[60vh] max-w-xl items-center px-6 py-12 text-center" role="status">
+            <div className="w-full rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h1 className="text-xl font-bold text-slate-950">Módulo não habilitado</h1>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Esta área foi desativada para o estabelecimento no Painel ControlaÊ.</p>
+              <Link href="/" className="mt-6 inline-flex min-h-10 items-center justify-center rounded-lg bg-[var(--brand-primary)] px-4 text-sm font-semibold text-[var(--brand-on-primary)]">Voltar ao início</Link>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   )

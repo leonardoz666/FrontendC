@@ -24,6 +24,10 @@ function visibilityStorageKey(userId: number | string): string {
   return `controlae.sidebar.visibility:${userId}`
 }
 
+export function sidebarCollapsedStorageKey(userId: number | string): string {
+  return `${SIDEBAR_COLLAPSED_STORAGE_KEY}:${userId}`
+}
+
 function parseObject(raw: string | null): Record<string, unknown> | null {
   if (!raw) return null
   try {
@@ -45,8 +49,16 @@ function collectLocalPreferences(userId: number | string): UiPreferences {
   const visibility = parseObject(window.localStorage.getItem(visibilityStorageKey(userId)))
   if (visibility) preferences.sidebarVisibility = visibility as unknown as SidebarVisibilityPreference
 
-  const collapsed = window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)
-  if (collapsed !== null) preferences.sidebarCollapsed = collapsed === '1'
+  const collapsedKey = sidebarCollapsedStorageKey(userId)
+  const collapsed = window.localStorage.getItem(collapsedKey)
+  const legacyCollapsed = window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)
+  if (collapsed !== null) {
+    preferences.sidebarCollapsed = collapsed === '1'
+  } else if (legacyCollapsed !== null) {
+    preferences.sidebarCollapsed = legacyCollapsed === '1'
+    window.localStorage.setItem(collapsedKey, legacyCollapsed)
+    window.localStorage.removeItem(SIDEBAR_COLLAPSED_STORAGE_KEY)
+  }
 
   const pageSizes: Record<string, number> = {}
   for (let index = 0; index < window.localStorage.length; index += 1) {
@@ -70,10 +82,11 @@ function applyPreferencesLocally(userId: number | string, preferences: UiPrefere
     window.localStorage.removeItem(visibilityKey)
   }
 
+  const collapsedKey = sidebarCollapsedStorageKey(userId)
   if (preferences.sidebarCollapsed !== undefined) {
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, preferences.sidebarCollapsed ? '1' : '0')
+    window.localStorage.setItem(collapsedKey, preferences.sidebarCollapsed ? '1' : '0')
   } else {
-    window.localStorage.removeItem(SIDEBAR_COLLAPSED_STORAGE_KEY)
+    window.localStorage.removeItem(collapsedKey)
   }
 
   window.localStorage.removeItem(LEGACY_SIDEBAR_GROUPS_STORAGE_KEY)

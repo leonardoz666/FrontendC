@@ -89,8 +89,8 @@ A paleta une um laranja energético a azuis profundos e superfícies claras; cor
 
 ### Primary
 
-- **Laranja ControlaÊ:** ação primária, item ativo, foco e pequenos acentos de marca.
-- **Laranja Vivo:** seleção, cursor e detalhes de apoio; não compete com a ação principal.
+- **Laranja ControlaÊ:** ação primária, foco e pequenos acentos de marca.
+- **Laranja Vivo:** seleção ativa na navegação, cursor e detalhes de apoio; não compete com a ação principal.
 
 ### Secondary
 
@@ -163,7 +163,7 @@ Controles usam cantos de 8px, campos e cartões operacionais usam 12px e superf�
 
 ### Navigation
 
-Itens ativos usam laranja sólido e texto branco. Itens inativos permanecem claros, com texto azul-ardósia e hover tonal. A marca compacta usa o monograma ou logo do tenant quando ele já foi resolvido.
+Itens ativos usam a cor de destaque sólida e texto de contraste calculado. Itens inativos permanecem claros, com texto derivado da superfície e hover tonal. A marca compacta usa o monograma ou logo do tenant quando ele já foi resolvido.
 
 A superfície da barra lateral usa a cor de navegação configurada no Painel CEO. Cabeçalho, rodapé e divisórias são tons derivados automaticamente dessa base para preservar hierarquia e contraste.
 

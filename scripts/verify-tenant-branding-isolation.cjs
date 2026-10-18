@@ -8,6 +8,9 @@ const api = fs.readFileSync(path.join(root, 'app/lib/api.ts'), 'utf8')
 const proxy = fs.readFileSync(path.join(root, 'app/lib/backend-proxy.ts'), 'utf8')
 const login = fs.readFileSync(path.join(root, 'app/login/page.tsx'), 'utf8')
 const sidebar = fs.readFileSync(path.join(root, 'app/components/Sidebar.tsx'), 'utf8')
+const mainLayout = fs.readFileSync(path.join(root, 'app/components/MainLayout.tsx'), 'utf8')
+const navigation = fs.readFileSync(path.join(root, 'app/lib/navigation.ts'), 'utf8')
+const uiPreferences = fs.readFileSync(path.join(root, 'app/lib/uiPreferences.ts'), 'utf8')
 const theme = fs.readFileSync(path.join(root, 'app/contexts/ThemeContext.tsx'), 'utf8')
 const middleware = fs.readFileSync(path.join(root, 'middleware.ts'), 'utf8')
 const installationActivation = fs.readFileSync(path.join(root, 'app/api/installation/activate/route.ts'), 'utf8')
@@ -73,17 +76,37 @@ const checks = [
     pass: /branding\.imagemLoginUrl/.test(login) && /backgroundImage/.test(login),
   },
   {
+    name: 'respeita o enquadramento da imagem configurado pelo Painel CEO',
+    pass: /LOGIN_IMAGE_POSITIONS\[branding\.imagemLoginPosicao\]/.test(login)
+      && /imagemLoginPosicao/.test(provider),
+  },
+  {
     name: 'usa a logo compacta na navegação',
     pass: /branding\.logoCompactaUrl\s*\|\|\s*branding\.logoUrl/.test(sidebar),
+  },
+  {
+    name: 'preserva o estado recolhido separadamente para cada usuário',
+    pass: /sidebarCollapsedStorageKey\(userId\)/.test(uiPreferences)
+      && /readStoredCollapsed\(data\.user\)/.test(mainLayout)
+      && /writeStoredCollapsed\(user, next\)/.test(mainLayout)
+      && /sidebarCollapsedStorageKey\(identity\)/.test(navigation),
   },
   {
     name: 'deriva superfícies e textos da cor configurada para a navegação',
     pass: /--sidebar-surface/.test(provider)
       && /--sidebar-text-muted/.test(provider)
       && /navigationIsDark/.test(provider)
+      && /--sidebar-text['"],\s*readableTextColor\(branding\.corNavegacao\)/.test(provider)
       && /sidebar-field/.test(sidebar)
       && /sidebar-section-trigger/.test(sidebar)
       && /var\(--sidebar-surface-hover\)/.test(sidebar),
+  },
+  {
+    name: 'usa a cor de destaque nas seleções da navegação',
+    pass: /--brand-on-accent['"],\s*readableTextColor\(branding\.corDestaque\)/.test(provider)
+      && /bg-\[var\(--brand-accent\)\]/.test(sidebar)
+      && /text-\[var\(--brand-on-accent\)\]/.test(sidebar)
+      && /bg-\[var\(--brand-primary\)\]/.test(sidebar),
   },
   {
     name: 'isola a preferência de tema por estabelecimento',

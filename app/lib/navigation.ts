@@ -2,6 +2,7 @@ import {
   persistUiPreferences,
   SIDEBAR_COLLAPSED_STORAGE_KEY,
   SIDEBAR_VISIBILITY_EVENT,
+  sidebarCollapsedStorageKey,
   type SidebarVisibilityPreference,
   type UiPreferences,
 } from './uiPreferences'
@@ -121,24 +122,28 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Dashboard',
         icon: 'ChartColumn',
         permission: 'relatorios.visualizar',
+        module: 'RELATORIOS',
       },
       {
         href: '/relatorios',
         label: 'Central de Relatórios',
         icon: 'FileSpreadsheet',
         permission: 'relatorios.visualizar',
+        module: 'RELATORIOS',
       },
       {
         href: '/operacao',
         label: 'Pulso da Operação',
         icon: 'Activity',
         permission: 'relatorios.visualizar',
+        module: 'RELATORIOS',
       },
       {
         href: '/admin/avaliacoes',
         label: 'Avaliações',
         icon: 'ClipboardCheck',
         permission: 'relatorios.visualizar',
+        module: 'MARKETING',
       },
     ],
   },
@@ -154,6 +159,7 @@ export const NAV_GROUPS: NavGroup[] = [
         permission: 'mesas.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE', 'CAIXA', 'GARCOM'],
         shortcut: 'F8',
+        module: 'MESAS',
       },
       {
         href: '/balcao',
@@ -168,6 +174,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Minhas Mesas',
         icon: 'Users',
         roles: ['GARCOM', 'GERENTE', 'DONO'],
+        module: 'MESAS',
       },
       {
         href: '/admin/mesas/qrcodes',
@@ -175,6 +182,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'QrCode',
         permission: 'cadastros.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'MESAS',
       },
     ],
   },
@@ -188,12 +196,14 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Clientes',
         icon: 'Users',
         permission: 'clientes.visualizar',
+        module: 'CRM',
       },
       {
         href: '/admin/fornecedores',
         label: 'Fornecedores',
         icon: 'Truck',
         permission: 'cadastros.visualizar',
+        module: 'CADASTROS',
       },
     ],
   },
@@ -271,24 +281,28 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Centros de Custo',
         icon: 'Target',
         permission: 'cadastros.visualizar',
+        module: 'FINANCEIRO',
       },
       {
         href: '/admin/contas-bancarias',
         label: 'Contas Bancárias',
         icon: 'Landmark',
         permission: 'cadastros.visualizar',
+        module: 'FINANCEIRO',
       },
       {
         href: '/admin/plano-contas',
         label: 'Plano de Contas',
         icon: 'ListTree',
         permission: 'cadastros.visualizar',
+        module: 'FINANCEIRO',
       },
       {
         href: '/admin/formas-pagamento',
         label: 'Formas de Pagamento',
         icon: 'Wallet',
         permission: 'cadastros.visualizar',
+        module: 'FINANCEIRO',
       },
     ],
   },
@@ -302,12 +316,14 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Praças',
         icon: 'MapPin',
         permission: 'cadastros.visualizar',
+        module: 'IMPRESSAO',
       },
       {
         href: '/admin/pracas/vincular',
         label: 'Vincular Impressora',
         icon: 'Printer',
         permission: 'cadastros.visualizar',
+        module: 'IMPRESSAO',
       },
       {
         href: '/admin/impressoras',
@@ -315,6 +331,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'Printer',
         permission: 'cadastros.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'IMPRESSAO',
       },
       {
         href: '/admin/comandas',
@@ -322,6 +339,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'ClipboardList',
         permission: 'cadastros.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'IMPRESSAO',
       },
       {
         href: '/admin/equipamentos',
@@ -343,6 +361,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'Package',
         permission: 'produtos.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE', 'CAIXA', 'GARCOM', 'COZINHA'],
+        module: 'CARDAPIO',
       },
       {
         href: '/admin/categorias',
@@ -350,6 +369,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'Tags',
         permission: 'produtos.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'CARDAPIO',
       },
       {
         href: '/admin/cardapio/tipos-tamanho',
@@ -357,6 +377,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'ListTree',
         permission: 'produtos.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'CARDAPIO',
       },
       {
         href: '/admin/cardapio/complementos',
@@ -364,6 +385,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'PackageSearch',
         permission: 'produtos.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'CARDAPIO',
       },
       {
         href: '/admin/cardapio/ranking-vendas',
@@ -371,18 +393,21 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'ChartColumn',
         permission: 'relatorios.visualizar',
         roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'CARDAPIO',
       },
       {
         href: '/admin/cardapio',
         label: 'Organizar Cardápio',
         icon: 'UtensilsCrossed',
         permission: 'cardapio.publicar',
+        module: 'CARDAPIO',
       },
       {
         href: '/admin/cardapio/importar',
         label: 'Importar Cardápio',
         icon: 'FileSpreadsheet',
         permission: 'cardapio.importar',
+        module: 'CARDAPIO',
       },
     ],
   },
@@ -410,54 +435,63 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Visão Geral',
         icon: 'Boxes',
         permission: 'estoque.visualizar',
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoque/insumos',
         label: 'Insumos',
         icon: 'PackageSearch',
         permission: 'estoque.visualizar',
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoques',
         label: 'Locais de estoque',
         icon: 'Warehouse',
         anyPermission: ['cadastros.visualizar', 'estoque.visualizar'],
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoque/movimentacoes',
         label: 'Movimentações',
         icon: 'History',
         permission: 'estoque.visualizar',
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoque/lotes',
         label: 'Lotes para revisão',
         icon: 'ClipboardList',
         permission: 'estoque.revisar',
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoque/distribuicoes',
         label: 'Saídas e devoluções',
         icon: 'Truck',
         permission: 'estoque.movimentar',
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoque/inventario',
         label: 'Inventário',
         icon: 'ClipboardCheck',
         permission: 'estoque.movimentar',
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoque/ficha-tecnica',
         label: 'Ficha Técnica',
         icon: 'ClipboardCheck',
         permission: 'estoque.visualizar',
+        module: 'ESTOQUE',
       },
       {
         href: '/admin/estoque/grupos',
         label: 'Grupos e subgrupos',
         icon: 'Tags',
         permission: 'estoque.visualizar',
+        module: 'ESTOQUE',
       },
     ],
   },
@@ -471,30 +505,35 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Registro de Ponto',
         icon: 'Clock',
         permission: 'ponto.visualizar',
+        module: 'PONTO',
       },
       {
         href: '/ponto/batida',
         label: 'Batida por Câmera',
         icon: 'Camera',
         permission: 'ponto.registrar',
+        module: 'PONTO',
       },
       {
         href: '/ponto/espelho',
         label: 'Espelho de Ponto',
         icon: 'CalendarDays',
         permission: 'ponto.visualizar',
+        module: 'PONTO',
       },
       {
         href: '/ponto#ajustes',
         label: 'Ajustes',
         icon: 'Pencil',
         permission: 'ponto.ajustar',
+        module: 'PONTO',
       },
       {
         href: '/ponto/auditoria',
         label: 'Auditoria',
         icon: 'Shield',
         permission: 'ponto.auditar',
+        module: 'PONTO',
       },
     ],
   },
@@ -509,6 +548,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'Wallet',
         roles: ['ADMIN', 'DONO', 'GERENTE', 'CAIXA'],
         anyPermission: ['relatorios.caixa', 'caixa.abrir'],
+        module: 'CAIXA',
       },
       {
         href: '/caixa/fechamento',
@@ -516,24 +556,28 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'Landmark',
         roles: ['ADMIN', 'DONO', 'GERENTE', 'CAIXA'],
         anyPermission: ['relatorios.caixa', 'caixa.fechar'],
+        module: 'CAIXA',
       },
       {
         href: '/caixa/historico',
         label: 'Histórico de Caixas',
         icon: 'History',
         permission: 'relatorios.caixa',
+        module: 'CAIXA',
       },
       {
         href: '/fiscal/notas',
         label: 'Notas Fiscais',
         icon: 'FileText',
         permission: 'fiscal.visualizar',
+        module: 'FISCAL',
       },
       {
         href: '/fiscal/radar-xml',
         label: 'Radar XML SEFAZ',
         icon: 'PackageSearch',
         permission: 'fiscal.visualizar',
+        module: 'FISCAL',
       },
     ],
   },
@@ -547,6 +591,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Painel',
         icon: 'Settings',
         roles: ['ADMIN', 'DONO'],
+        module: 'ADMINISTRACAO',
       },
       {
         href: '/admin/usuarios',
@@ -554,18 +599,21 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'UserCog',
         permission: 'usuarios.visualizar',
         roles: ['ADMIN', 'DONO'],
+        module: 'ADMINISTRACAO',
       },
       {
         href: '/admin/visibilidade',
         label: 'Visibilidade',
         icon: 'Eye',
         roles: ['ADMIN', 'DONO'],
+        module: 'ADMINISTRACAO',
       },
       {
         href: '/admin/fiscal',
         label: 'Configuração Fiscal',
         icon: 'FileText',
         permission: 'fiscal.configurar',
+        module: 'FISCAL',
       },
     ],
   },
@@ -651,19 +699,21 @@ export function writeStoredSidebarVisibility(
 }
 
 /** Estado recolhido da sidebar, persistido pelo MainLayout. */
-export function readStoredCollapsed(): boolean {
+export function readStoredCollapsed(user: NavUser | null | undefined): boolean {
   if (typeof window === 'undefined') return false
   try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === '1'
+    const identity = user?.id ?? user?.role ?? 'default'
+    return window.localStorage.getItem(sidebarCollapsedStorageKey(identity)) === '1'
   } catch {
     return false
   }
 }
 
-export function writeStoredCollapsed(collapsed: boolean): void {
+export function writeStoredCollapsed(user: NavUser | null | undefined, collapsed: boolean): void {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? '1' : '0')
+    const identity = user?.id ?? user?.role ?? 'default'
+    window.localStorage.setItem(sidebarCollapsedStorageKey(identity), collapsed ? '1' : '0')
   } catch {
     // localStorage indisponível (modo privado/quota): o estado só não é persistido.
   }
@@ -814,4 +864,21 @@ export function findActiveNavItem(
     }
   }
   return best
+}
+
+const NON_NAV_MODULE_ROUTES: ReadonlyArray<{ prefix: string; module: ModuleKey }> = [
+  { prefix: '/mesas-abertas', module: 'MESAS' },
+  { prefix: '/admin/historico', module: 'RELATORIOS' },
+  { prefix: '/admin/dispositivos', module: 'IMPRESSAO' },
+  { prefix: '/admin/estoque/registro', module: 'ESTOQUE' },
+]
+
+/** Módulo necessário para uma rota operacional, inclusive telas auxiliares fora do menu. */
+export function moduleForPathname(pathname: string | null | undefined): ModuleKey | null {
+  if (!pathname) return null
+  const auxiliary = NON_NAV_MODULE_ROUTES.find(rule => isHrefActive(pathname, rule.prefix))
+  if (auxiliary) return auxiliary.module
+  const active = findActiveNavItem(pathname)
+  if (active?.item.module) return active.item.module
+  return null
 }

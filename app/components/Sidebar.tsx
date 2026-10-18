@@ -247,8 +247,8 @@ export default function Sidebar({
   // Fallback de colapso/persistência quando a Sidebar é usada fora do MainLayout.
   useEffect(() => {
     if (collapsedProp !== undefined) return
-    setSelfCollapsed(readStoredCollapsed())
-  }, [collapsedProp])
+    setSelfCollapsed(readStoredCollapsed(user))
+  }, [collapsedProp, user])
 
   const isCollapsed = collapsedProp !== undefined ? collapsedProp : selfCollapsed
 
@@ -259,7 +259,7 @@ export default function Sidebar({
     }
     setSelfCollapsed(prev => {
       const next = !prev
-      writeStoredCollapsed(next)
+      writeStoredCollapsed(user, next)
       return next
     })
   }
@@ -317,7 +317,7 @@ export default function Sidebar({
           standalone ? 'font-semibold' : 'font-medium'
         } ${
           isActive
-            ? 'bg-[var(--brand-primary)] font-semibold text-[var(--brand-on-primary)]'
+            ? 'bg-[var(--brand-accent)] font-semibold text-[var(--brand-on-accent)]'
             : 'sidebar-text hover:bg-[var(--sidebar-surface-hover)]'
         } ${isCollapsed ? 'md:justify-center md:px-0' : ''}`}
       >
@@ -422,9 +422,10 @@ export default function Sidebar({
                   key={shortcut.href}
                   href={shortcut.href}
                   title={shortcut.label}
+                  aria-current={activeShortcut ? 'page' : undefined}
                   className={`flex min-h-9 min-w-0 items-center justify-center rounded-lg px-2 text-center text-[11px] font-semibold leading-3 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--brand-primary)] ${
                     activeShortcut
-                      ? 'bg-[var(--brand-primary)] text-[var(--brand-on-primary)]'
+                      ? 'bg-[var(--brand-accent)] text-[var(--brand-on-accent)]'
                       : 'sidebar-muted hover:bg-[var(--sidebar-surface-hover)] hover:text-[var(--sidebar-text)]'
                   }`}
                 >
