@@ -72,13 +72,14 @@ export default function MesasAbertasPage() {
               const isFechamento = mesa.status === 'FECHAMENTO'
               const statusLabel = isFechamento ? 'FECHAMENTO' : 'Em Andamento'
               const statusColorClass = isFechamento ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-800'
-              const borderColorClass = isFechamento ? 'border-red-500' : 'border-yellow-400'
+              const borderColorClass = isFechamento ? 'border-red-300' : 'border-yellow-300'
 
               return (
-                <div 
+                <button
+                  type="button"
                   key={mesa.id}
                   onClick={() => router.push(`/mesas/${mesa.id}`)}
-                  className={`bg-white p-6 rounded-lg shadow-md border-l-4 ${borderColorClass} cursor-pointer hover:shadow-lg transition-all`}
+                  className={`w-full rounded-lg border bg-white p-6 text-left transition-colors hover:bg-slate-50 ${borderColorClass}`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <h2 className="text-2xl font-bold text-gray-800">Mesa {mesa.numero}</h2>
@@ -102,7 +103,7 @@ export default function MesasAbertasPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
               )
             })}
           </div>

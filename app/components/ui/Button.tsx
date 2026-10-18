@@ -16,11 +16,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary: 'bg-orange-600 text-white hover:bg-orange-700 shadow-sm',
-      secondary: 'bg-gray-800 text-white hover:bg-gray-900 shadow-sm',
-      outline: 'border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700',
+      primary: 'border border-orange-700 bg-orange-600 text-white hover:bg-orange-700',
+      secondary: 'border border-slate-900 bg-slate-800 text-white hover:bg-slate-900',
+      outline: 'border border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50 text-slate-700',
       ghost: 'bg-transparent hover:bg-gray-100 text-gray-700',
-      danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
+      danger: 'border border-red-700 bg-red-600 text-white hover:bg-red-700',
     }
 
     const sizes = {
@@ -35,7 +35,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&>svg]:shrink-0',
+          'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&>svg]:shrink-0',
           variants[variant],
           sizes[size],
           className

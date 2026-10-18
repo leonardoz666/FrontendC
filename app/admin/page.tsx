@@ -39,49 +39,49 @@ export default function AdminDashboard() {
       label: 'Produtos',
       description: 'Gerenciar cardápio e itens',
       icon: UtensilsCrossed,
-      color: 'bg-orange-500'
+      color: 'bg-orange-100 text-orange-700'
     },
     {
       href: '/admin/categorias',
       label: 'Categorias',
       description: 'Organizar setores e tipos',
       icon: Tags,
-      color: 'bg-blue-500'
+      color: 'bg-slate-100 text-slate-700'
     },
     {
       href: '/admin/usuarios',
       label: 'Usuários',
       description: 'Gerenciar equipe e permissões',
       icon: Users,
-      color: 'bg-green-500'
+      color: 'bg-slate-100 text-slate-700'
     },
     {
       href: '/admin/impressoras',
       label: 'Impressoras',
       description: 'Configurar impressão de pedidos',
       icon: Printer,
-      color: 'bg-purple-500'
+      color: 'bg-slate-100 text-slate-700'
     },
     {
       href: '/admin/comandas',
       label: 'Comandas',
       description: 'Personalizar pedidos, parciais e fechamentos',
       icon: ClipboardList,
-      color: 'bg-orange-600'
+      color: 'bg-slate-100 text-slate-700'
     },
     {
       href: '/admin/visibilidade',
       label: 'Visibilidade',
       description: 'Escolher o que aparece na barra lateral',
       icon: Eye,
-      color: 'bg-slate-700'
+      color: 'bg-slate-100 text-slate-700'
     },
     {
       href: '/admin/historico',
       label: 'Histórico',
       description: 'Consultar pedidos e cancelamentos por dia',
       icon: History,
-      color: 'bg-red-600'
+      color: 'bg-slate-100 text-slate-700'
     }
   ]
 
@@ -122,8 +122,12 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Painel Administrativo</h1>
+    <main className="min-h-screen bg-[#f5f6f8] p-4 sm:p-6 lg:p-8">
+      <header className="mb-6 border-b border-slate-200 pb-5">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-orange-700">Configuração</p>
+        <h1 className="mt-1 text-2xl font-bold tracking-[-0.025em] text-slate-950">Painel administrativo</h1>
+        <p className="mt-1 text-sm text-slate-600">Cadastros e regras que sustentam a operação.</p>
+      </header>
       
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {adminLinks.map((link) => {
@@ -134,12 +138,12 @@ export default function AdminDashboard() {
               href={link.href}
               className="block group"
             >
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 h-full">
-                <div className={`${link.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4 text-white shadow-md group-hover:scale-110 transition-transform`}>
-                  <Icon size={24} />
+              <div className="h-full rounded-xl border border-slate-200 bg-white p-5 transition-colors duration-150 group-hover:border-orange-300 group-hover:bg-orange-50/40">
+                <div className={`${link.color} mb-4 flex h-10 w-10 items-center justify-center rounded-lg`}>
+                  <Icon size={20} aria-hidden="true" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-800 mb-2">{link.label}</h2>
-                <p className="text-sm text-gray-500">{link.description}</p>
+                <h2 className="mb-1 text-base font-bold text-slate-900">{link.label}</h2>
+                <p className="text-sm leading-5 text-slate-500">{link.description}</p>
               </div>
             </Link>
           )
@@ -221,6 +225,6 @@ export default function AdminDashboard() {
           />
         </label>
       </ConfirmationModal>
-    </div>
+    </main>
   )
 }

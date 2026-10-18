@@ -98,7 +98,7 @@ export function RequestBillModal({ isOpen, mesaId, onClose, onRequestSuccess }: 
                 max={99}
                 value={splitPeople}
                 onChange={(event) => setSplitPeople(event.target.value)}
-                className="h-14 w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-lg font-bold text-black outline-none transition-all focus:border-orange-500 focus:ring-4 focus:ring-orange-100"
+                className="h-14 w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-4 text-lg font-bold text-black outline-none transition-[color,background-color,border-color,box-shadow] focus:border-orange-500 focus:ring-4 focus:ring-orange-100"
               />
             </div>
           </div>

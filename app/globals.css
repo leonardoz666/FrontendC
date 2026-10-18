@@ -1,11 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f6f8;
+  --foreground: #172033;
   --brand-primary: #ea580c;
   --brand-secondary: #0f172a;
   --brand-accent: #f97316;
+  --brand-on-primary: #ffffff;
+  --surface: #ffffff;
+  --surface-subtle: #f8fafc;
+  --surface-muted: #eef1f4;
+  --line: #d8dee7;
+  --line-strong: #c3ccd8;
+  --text-muted: #64748b;
+  --radius-control: 8px;
+  --radius-field: 10px;
+  --radius-surface: 12px;
+  --shadow-raised: 0 10px 30px rgba(15, 23, 42, .12);
   --brand-font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
   accent-color: var(--brand-accent);
   caret-color: var(--brand-primary);
@@ -33,6 +44,50 @@ body {
   font-family: var(--brand-font-family);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+:where([role="dialog"], [role="alertdialog"]) {
+  overscroll-behavior: contain;
+}
+
+button,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* A aplicação é operacional: superfícies usam borda e contraste, não volume
+   decorativo. Estas normalizações alcançam telas legadas ainda em Tailwind. */
+.rounded-2xl { border-radius: var(--radius-surface); }
+.rounded-3xl { border-radius: 16px; }
+.shadow-xl,
+.shadow-2xl { box-shadow: var(--shadow-raised); }
+.backdrop-blur-sm { backdrop-filter: none; }
+
+@media (pointer: coarse) {
+  :where(button, a, input, select):not([type="checkbox"]):not([type="radio"]) {
+    min-height: 44px;
+  }
 }
 
 /* A ativação acontece antes de existir um tema de estabelecimento. Ela usa uma

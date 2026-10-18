@@ -35,32 +35,32 @@ export function TableCard({ mesa, onClick, fallbackUsuarioNome }: TableCardProps
   const isOcupada = mesa.status === 'OCUPADA'
   const isFechamento = mesa.status === 'FECHAMENTO'
 
-  let borderColor = 'border-emerald-400/50'
-  let backgroundColor = 'bg-gradient-to-br from-emerald-400 to-emerald-500'
-  let numberColor = 'text-white'
-  let badgeClass = 'bg-white/25 text-white'
-  let dotClass = 'bg-white/45'
-  let footerColor = 'border-emerald-600/25 bg-emerald-600/30'
-  let textColor = 'text-white'
+  let borderColor = 'border-emerald-300'
+  let backgroundColor = 'bg-emerald-50'
+  let numberColor = 'text-emerald-950'
+  let badgeClass = 'bg-emerald-100 text-emerald-800'
+  let dotClass = 'bg-emerald-500'
+  let footerColor = 'border-emerald-200 bg-emerald-100/70'
+  let textColor = 'text-emerald-950'
   let statusText = 'LIVRE'
 
   if (isOcupada) {
-    borderColor = 'border-amber-400/60'
-    backgroundColor = 'bg-gradient-to-br from-amber-300 via-amber-300 to-amber-400'
+    borderColor = 'border-amber-300'
+    backgroundColor = 'bg-amber-50'
     numberColor = 'text-slate-950'
-    badgeClass = 'bg-white/35 text-slate-900'
-    dotClass = 'bg-amber-800/50'
-    footerColor = 'border-amber-600/20 bg-amber-500/20'
+    badgeClass = 'bg-amber-100 text-amber-900'
+    dotClass = 'bg-amber-500'
+    footerColor = 'border-amber-200 bg-amber-100/70'
     textColor = 'text-slate-950'
     statusText = 'EM ANDAMENTO'
   } else if (isFechamento) {
-    borderColor = 'border-red-600/70'
-    backgroundColor = 'bg-gradient-to-br from-red-600 via-red-600 to-red-700'
-    numberColor = 'text-white'
-    badgeClass = 'bg-red-500 text-white shadow-sm'
-    dotClass = 'bg-red-300/70'
-    footerColor = 'border-red-800/30 bg-red-900/25'
-    textColor = 'text-white'
+    borderColor = 'border-red-300'
+    backgroundColor = 'bg-red-50'
+    numberColor = 'text-red-950'
+    badgeClass = 'bg-red-100 text-red-800'
+    dotClass = 'bg-red-500'
+    footerColor = 'border-red-200 bg-red-100/70'
+    textColor = 'text-red-950'
     statusText = 'FECHANDO'
   }
 
@@ -74,8 +74,8 @@ export function TableCard({ mesa, onClick, fallbackUsuarioNome }: TableCardProps
       aria-label={`Mesa ${mesa.numero}, ${statusText.toLocaleLowerCase('pt-BR')}`}
       className={clsx(
         'group flex min-h-[118px] w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left',
-        'shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-[transform,box-shadow] duration-200',
-        'hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.16)]',
+        'transition-[background-color,border-color] duration-150',
+        'hover:border-slate-400',
         'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-orange-500/45',
         borderColor,
         backgroundColor

@@ -85,172 +85,91 @@ export default function DashboardPage() {
     const currentStats = stats ? stats[period] : null
     const maxHourlySale = stats ? Math.max(...stats.hourlySales.map(h => h.total), 1) : 1
 
-    return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                        <p className="text-gray-500 mt-1">Visão geral das vendas e operações</p>
-                    </div>
+    const metrics = [
+        { label: 'Vendas', value: `R$ ${currentStats?.total.toFixed(2).replace('.', ',') || '0,00'}`, icon: DollarSign },
+        { label: 'Pedidos', value: String(currentStats?.orders || 0), icon: ShoppingCart },
+        { label: 'Ticket médio', value: `R$ ${currentStats?.avgTicket.toFixed(2).replace('.', ',') || '0,00'}`, icon: TrendingUp },
+        { label: 'Mesas atendidas hoje', value: String(stats?.today.tables || 0), icon: Users },
+    ]
 
-                    {/* Period Toggle */}
-                    <div className="bg-white rounded-xl p-1 shadow-sm border border-gray-200 flex gap-1">
+    const comparison = stats?.comparison.todayVsYesterday ?? 0
+
+    return (
+        <main className="min-h-screen bg-[#f5f6f8] px-4 py-5 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl">
+                <header className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.12em] text-orange-700">Operação</p>
+                        <h1 className="mt-1 text-2xl font-bold tracking-[-0.025em] text-slate-950 sm:text-3xl">Resumo do negócio</h1>
+                        <p className="mt-1 text-sm text-slate-600">Vendas e atendimento em uma leitura direta.</p>
+                    </div>
+                    <div className="inline-flex self-start rounded-lg border border-slate-300 bg-white p-1" role="group" aria-label="Período do resumo">
                         {(['today', 'week', 'month'] as const).map((p) => (
                             <button
+                                type="button"
                                 key={p}
                                 onClick={() => setPeriod(p)}
-                                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${period === p
-                                        ? 'bg-orange-500 text-white shadow-sm'
-                                        : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                aria-pressed={period === p}
+                                className={`min-h-9 rounded-md px-4 text-sm font-semibold transition-colors ${period === p ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'}`}
                             >
                                 {p === 'today' ? 'Hoje' : p === 'week' ? 'Semana' : 'Mês'}
                             </button>
                         ))}
                     </div>
-                </div>
+                </header>
 
-                {/* Main Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {/* Total de Vendas */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                                <DollarSign className="text-green-600" size={24} />
+                <section className="grid overflow-hidden rounded-xl border border-slate-200 bg-white sm:grid-cols-2 lg:grid-cols-4" aria-label="Indicadores principais">
+                    {metrics.map(({ label, value, icon: Icon }, index) => (
+                        <article key={label} className={`p-5 ${index > 0 ? 'border-t border-slate-200 sm:border-l sm:border-t-0' : ''} ${index === 2 ? 'sm:border-l-0 sm:border-t lg:border-l lg:border-t-0' : ''}`}>
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-700"><Icon size={18} aria-hidden="true" /></span>
+                                {index === 0 && period === 'today' && (
+                                    <span className={`inline-flex items-center gap-1 text-xs font-bold ${comparison >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                                        {comparison >= 0 ? <ArrowUpRight size={15} aria-hidden="true" /> : <ArrowDownRight size={15} aria-hidden="true" />}
+                                        {Math.abs(comparison)}% <span className="font-medium text-slate-500">vs. ontem</span>
+                                    </span>
+                                )}
                             </div>
-                            {stats?.comparison.todayVsYesterday !== undefined && period === 'today' && (
-                                <div className={`flex items-center gap-1 text-sm font-medium ${stats.comparison.todayVsYesterday >= 0 ? 'text-green-600' : 'text-red-600'
-                                    }`}>
-                                    {stats.comparison.todayVsYesterday >= 0 ? (
-                                        <ArrowUpRight size={16} />
-                                    ) : (
-                                        <ArrowDownRight size={16} />
-                                    )}
-                                    {Math.abs(stats.comparison.todayVsYesterday)}%
-                                </div>
-                            )}
+                            <p className="mt-5 text-sm font-medium text-slate-500">{label}</p>
+                            <p className="mt-1 text-2xl font-bold tabular-nums tracking-[-0.025em] text-slate-950">{value}</p>
+                        </article>
+                    ))}
+                </section>
+
+                <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                    <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+                        <div className="mb-6 flex items-center justify-between gap-4">
+                            <div>
+                                <h2 className="flex items-center gap-2 text-base font-bold text-slate-950"><BarChart3 size={18} className="text-orange-600" aria-hidden="true" /> Vendas por hora</h2>
+                                <p className="mt-1 text-sm text-slate-500">Movimento registrado no dia atual.</p>
+                            </div>
+                            <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500"><Calendar size={15} aria-hidden="true" /> Hoje</span>
                         </div>
-                        <p className="text-sm text-gray-500 mb-1">Total de Vendas</p>
-                        <p className="text-3xl font-bold text-gray-900">
-                            R$ {currentStats?.total.toFixed(2).replace('.', ',') || '0,00'}
-                        </p>
-                    </div>
-
-                    {/* Pedidos */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <ShoppingCart className="text-blue-600" size={24} />
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500 mb-1">Pedidos</p>
-                        <p className="text-3xl font-bold text-gray-900">
-                            {currentStats?.orders || 0}
-                        </p>
-                    </div>
-
-                    {/* Ticket Médio */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                                <TrendingUp className="text-purple-600" size={24} />
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500 mb-1">Ticket Médio</p>
-                        <p className="text-3xl font-bold text-gray-900">
-                            R$ {currentStats?.avgTicket.toFixed(2).replace('.', ',') || '0,00'}
-                        </p>
-                    </div>
-
-                    {/* Mesas Atendidas */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                                <Users className="text-orange-600" size={24} />
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500 mb-1">Mesas Atendidas</p>
-                        <p className="text-3xl font-bold text-gray-900">
-                            {stats?.today.tables || 0}
-                        </p>
-                    </div>
-                </div>
-
-                <div>
-                    {/* Vendas por Hora */}
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-2">
-                                <BarChart3 className="text-gray-400" size={20} />
-                                <h2 className="text-lg font-bold text-gray-900">Vendas por Hora</h2>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <Calendar size={16} />
-                                Hoje
-                            </div>
-                        </div>
-
-                        {/* Simple Bar Chart */}
-                        <div className="flex items-end justify-between h-48 gap-2">
-                            {stats?.hourlySales.map((hour, idx) => (
-                                <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                                    <div
-                                        className="w-full bg-gradient-to-t from-orange-500 to-orange-400 rounded-t-lg transition-all hover:from-orange-600 hover:to-orange-500 cursor-pointer"
-                                        style={{
-                                            height: `${(hour.total / maxHourlySale) * 100}%`,
-                                            minHeight: hour.total > 0 ? '8px' : '0px'
-                                        }}
-                                        title={`R$ ${hour.total.toFixed(2)}`}
-                                    />
-                                    <span className="text-xs text-gray-600">{hour.hour}</span>
+                        <div className="flex h-52 items-end justify-between gap-2 border-b border-slate-200" aria-label="Gráfico de vendas por hora">
+                            {stats?.hourlySales.map((hour) => (
+                                <div key={hour.hour} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                                    <div className="w-full max-w-8 rounded-t bg-orange-500 transition-colors hover:bg-orange-600" style={{ height: `${(hour.total / maxHourlySale) * 100}%`, minHeight: hour.total > 0 ? '6px' : '0px' }} title={`R$ ${hour.total.toFixed(2)}`} />
+                                    <span className="pb-2 text-[11px] font-medium text-slate-500">{hour.hour}</span>
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </section>
 
-                </div>
-
-                {/* Quick Stats Footer */}
-                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Clock size={18} />
-                            <span className="text-sm font-medium opacity-90">Horário de Pico</span>
+                    <aside className="rounded-xl border border-slate-200 bg-slate-900 p-5 text-white">
+                        <p className="text-xs font-bold uppercase tracking-[0.12em] text-orange-300">Leitura rápida</p>
+                        <div className="mt-5 space-y-5">
+                            <div>
+                                <span className="flex items-center gap-2 text-sm text-slate-300"><TrendingUp size={16} aria-hidden="true" /> Crescimento semanal</span>
+                                <strong className="mt-1 block text-2xl tabular-nums">{stats ? `${stats.comparison.weekVsLastWeek >= 0 ? '+' : ''}${stats.comparison.weekVsLastWeek}%` : '—'}</strong>
+                            </div>
+                            <div className="border-t border-slate-700 pt-5">
+                                <span className="flex items-center gap-2 text-sm text-slate-300"><Clock size={16} aria-hidden="true" /> Mesas fechadas hoje</span>
+                                <strong className="mt-1 block text-2xl tabular-nums">{stats?.today.closedTables ?? 0}</strong>
+                            </div>
                         </div>
-                        <p className="text-2xl font-bold">12:00 - 14:00</p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
-                        <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp size={18} />
-                            <span className="text-sm font-medium opacity-90">Crescimento</span>
-                        </div>
-                        <p className="text-2xl font-bold">
-                            {stats?.comparison.weekVsLastWeek !== undefined
-                                ? `${stats.comparison.weekVsLastWeek >= 0 ? '+' : ''}${stats.comparison.weekVsLastWeek}%`
-                                : 'N/A'}
-                        </p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white">
-                        <div className="flex items-center gap-2 mb-2">
-                            <ShoppingCart size={18} />
-                            <span className="text-sm font-medium opacity-90">Itens/Pedido</span>
-                        </div>
-                        <p className="text-2xl font-bold">3.5</p>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-4 text-white">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Users size={18} />
-                            <span className="text-sm font-medium opacity-90">Mesas Fechadas Hoje</span>
-                        </div>
-                        <p className="text-2xl font-bold">{stats?.today.closedTables ?? 0}</p>
-                    </div>
+                    </aside>
                 </div>
             </div>
-        </div>
+        </main>
     )
 }

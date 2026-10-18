@@ -314,10 +314,10 @@ export default function Sidebar({
           standalone ? 'h-11 rounded-lg border font-semibold' : 'h-9 rounded-md font-medium'
         } ${
           isActive
-            ? `bg-orange-600 font-semibold text-white ${standalone ? 'border-orange-700 shadow-[0_4px_10px_rgba(194,65,12,0.28)]' : 'shadow-sm'}`
+            ? 'border-orange-700 bg-orange-600 font-semibold text-white'
             : standalone
-              ? 'border-slate-300 bg-white text-slate-950 shadow-[0_3px_8px_rgba(15,23,42,0.14)] hover:-translate-y-px hover:border-orange-400 hover:bg-orange-50 hover:text-orange-900 hover:shadow-[0_5px_12px_rgba(15,23,42,0.18)]'
-              : 'text-slate-800 hover:bg-orange-600 hover:text-white'
+              ? 'border-slate-300 bg-white text-slate-950 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-900'
+              : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
         } ${isCollapsed ? 'md:justify-center md:px-0' : ''}`}
       >
         <Icon
@@ -345,13 +345,13 @@ export default function Sidebar({
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-[60] md:hidden backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-[60] bg-slate-950/55 transition-opacity md:hidden"
           onClick={onClose}
         />
       )}
 
       <aside className={`
-        fixed inset-y-0 left-0 z-[70] w-72 bg-[#e8eef5] flex flex-col transition-all duration-300 ease-in-out border-r border-slate-300 shadow-[18px_0_17px_rgba(15,20,31,0.08)]
+        fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r border-slate-200 bg-white transition-[transform,width] duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         ${isCollapsed ? 'md:w-[88px]' : 'md:w-72'}
         md:translate-x-0
@@ -408,7 +408,7 @@ export default function Sidebar({
           )}
 
           {!visibility.hideShortcuts && (
-          <div className={`${visibility.hideBrand && visibility.hideSearch ? '' : 'mt-3'} ${isWaiter ? 'flex flex-col gap-1.5' : 'flex gap-1.5 rounded-xl border border-slate-300 bg-slate-200/70 p-1.5 shadow-[0_3px_8px_rgba(15,23,42,0.14)]'} ${isCollapsed ? 'md:hidden' : ''}`}>
+          <div className={`${visibility.hideBrand && visibility.hideSearch ? '' : 'mt-3'} ${isWaiter ? 'flex flex-col gap-1.5' : 'flex gap-1.5 rounded-xl border border-slate-200 bg-slate-100 p-1.5'} ${isCollapsed ? 'md:hidden' : ''}`}>
             {quickShortcuts.map(shortcut => {
               const activeShortcut = pathname === shortcut.href
               return (
@@ -418,8 +418,8 @@ export default function Sidebar({
                   title={shortcut.label}
                   className={`flex items-center justify-center rounded-lg border px-2 text-center text-[11px] font-bold leading-3 transition-[background-color,border-color,color,box-shadow,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1 ${isWaiter ? 'min-h-10 w-full' : 'min-h-10 min-w-0 flex-1'} ${
                     activeShortcut
-                      ? 'border-orange-700 bg-orange-600 text-white shadow-[0_3px_7px_rgba(194,65,12,0.3)]'
-                      : 'border-slate-200 bg-white text-slate-950 shadow-sm hover:-translate-y-px hover:border-orange-400 hover:bg-orange-50 hover:text-orange-900 hover:shadow-md'
+                      ? 'border-orange-700 bg-orange-600 text-white'
+                      : 'border-slate-200 bg-white text-slate-950 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-900'
                   }`}
                 >
                   {shortcut.label}

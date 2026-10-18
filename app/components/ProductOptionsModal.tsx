@@ -176,7 +176,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                       if (selectedOptions.length < 2) toggleOption(opt)
                     }
                   }}
-                  className={`p-4 rounded-xl border-2 text-left transition-all flex justify-between items-center ${
+                  className={`p-4 rounded-xl border-2 text-left transition-colors flex justify-between items-center ${
                     selectedOptions.includes(opt)
                       ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                       : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -199,7 +199,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                 <button
                   key={opt}
                   onClick={() => selectSingleOption(opt)}
-                  className={`p-4 rounded-xl border-2 text-center transition-all ${
+                  className={`p-4 rounded-xl border-2 text-center transition-colors ${
                     selectedOptions.includes(opt)
                       ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                       : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -225,7 +225,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                 <h4 className="font-bold text-gray-500 mb-3 uppercase text-xs tracking-wider ml-1">{size}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Normal Option */}
-                  <div className={`rounded-xl border-2 overflow-hidden transition-all ${
+                  <div className={`rounded-xl border-2 overflow-hidden transition-colors ${
                     optionQuantities[`${size} - Normal`]
                       ? 'border-orange-500 bg-orange-50'
                       : 'border-gray-100 bg-white'
@@ -254,7 +254,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                       ) : (
                         <button
                           onClick={() => updateOptionQuantity(`${size} - Normal`, 1)}
-                          className="w-full py-2 rounded-lg font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+                          className="w-full py-2 rounded-lg font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                         >
                           Adicionar
                         </button>
@@ -263,7 +263,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                   </div>
 
                   {/* Zero Option */}
-                  <div className={`rounded-xl border-2 overflow-hidden transition-all ${
+                  <div className={`rounded-xl border-2 overflow-hidden transition-colors ${
                     optionQuantities[`${size} - Zero`]
                       ? 'border-green-500 bg-green-50'
                       : 'border-gray-100 bg-white'
@@ -292,7 +292,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                       ) : (
                         <button
                           onClick={() => updateOptionQuantity(`${size} - Zero`, 1)}
-                          className="w-full py-2 rounded-lg font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+                          className="w-full py-2 rounded-lg font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                         >
                           Adicionar
                         </button>
@@ -312,7 +312,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => selectSingleOption('Pequeno (P)')}
-                className={`p-4 rounded-xl border-2 text-center transition-all ${
+                className={`p-4 rounded-xl border-2 text-center transition-colors ${
                   selectedOptions.includes('Pequeno (P)')
                     ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                     : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -322,7 +322,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
               </button>
               <button
                 onClick={() => selectSingleOption('Grande (G)')}
-                className={`p-4 rounded-xl border-2 text-center transition-all ${
+                className={`p-4 rounded-xl border-2 text-center transition-colors ${
                   selectedOptions.includes('Grande (G)')
                     ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                     : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -347,7 +347,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                   <button
                     key={tamanho.id}
                     onClick={() => setSelectedTamanhoId(tamanho.id)}
-                    className={`p-4 rounded-xl border-2 text-center transition-all ${
+                    className={`p-4 rounded-xl border-2 text-center transition-colors ${
                       selectedTamanhoId === tamanho.id
                         ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                         : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -362,7 +362,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                       const newOptions = selectedOptions.filter(o => !legacySizes.includes(o))
                       setSelectedOptions([...newOptions, size])
                     }}
-                    className={`p-4 rounded-xl border-2 text-center transition-all ${
+                    className={`p-4 rounded-xl border-2 text-center transition-colors ${
                       selectedOptions.includes(size)
                         ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                         : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -385,7 +385,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                       const newOptions = selectedOptions.filter(o => legacySizes.includes(o))
                       setSelectedOptions([...newOptions, flavor])
                     }}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                    className={`p-3 rounded-xl border-2 text-left transition-colors ${
                       selectedOptions.includes(flavor)
                         ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                         : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -442,7 +442,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                   <button
                     key={tamanho.id}
                     onClick={() => setSelectedTamanhoId(tamanho.id)}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                    className={`p-3 rounded-xl border-2 text-left transition-colors ${
                       selectedTamanhoId === tamanho.id
                         ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                         : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -480,7 +480,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                           : [...prev, complemento.id]
                         )
                       }}
-                      className={`p-3 rounded-xl border-2 text-left transition-all flex items-center justify-between ${
+                      className={`p-3 rounded-xl border-2 text-left transition-colors flex items-center justify-between ${
                         marcado
                           ? 'border-orange-500 bg-orange-50 text-orange-700 font-bold'
                           : 'border-gray-100 bg-white text-gray-600 hover:border-orange-200'
@@ -520,7 +520,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
              <div className="grid grid-cols-2 gap-3">
                <button
                  onClick={() => setWantsGelo(!wantsGelo)}
-                 className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-all ${
+                 className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-colors ${
                    wantsGelo
                      ? 'border-blue-400 bg-blue-50 text-blue-700 font-bold'
                      : 'border-gray-100 bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -533,7 +533,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                
                <button
                  onClick={() => setWantsLimao(!wantsLimao)}
-                 className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-all ${
+                 className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-colors ${
                    wantsLimao
                      ? 'border-green-500 bg-green-50 text-green-700 font-bold'
                      : 'border-gray-100 bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -568,7 +568,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
                 value={observation}
                 onChange={(e) => setObservation(e.target.value)}
                 placeholder="Ex: Tirar a cebola, colocar gelo..."
-                className="w-full p-4 rounded-xl bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all resize-none text-gray-700"
+                className="w-full p-4 rounded-xl bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-[color,background-color,border-color,box-shadow] resize-none text-gray-700"
                 rows={3}
               />
             </div>
@@ -588,7 +588,7 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
               (tamanhos.length > 0 && !selectedTamanhoId) ||
               complementoInvalido
             }
-            className="w-full bg-orange-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-orange-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            className="w-full bg-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-700 active:scale-[0.98] transition-[background-color,transform] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
             <span>Adicionar ao Pedido</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-sm">
               R$ {(product.tipoOpcao === 'refrigerante' ? totalPrice : totalPriceNovo).toFixed(2).replace('.', ',')}

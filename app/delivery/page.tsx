@@ -274,7 +274,7 @@ export default function DeliveryMonitorPage() {
             return (
               <div key={lane.status} className="w-[290px] shrink-0">
                 <header
-                  className={`mb-2 flex items-center justify-between rounded-xl border-l-4 px-3 py-2 ${lane.tone}`}
+                  className={`mb-2 flex items-center justify-between rounded-xl border px-3 py-2 ${lane.tone}`}
                 >
                   <span className="flex items-center gap-2 font-black text-slate-800">
                     <Icon size={17} /> {lane.label}

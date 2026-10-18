@@ -38,20 +38,20 @@ export function ConfirmationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-3 backdrop-blur-sm animate-in fade-in duration-200 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 animate-in fade-in duration-200 sm:p-4">
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-2rem)]"
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl animate-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-2rem)]"
       >
         <div className="p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
-            {variant === 'danger' && <div className="p-3 rounded-full bg-red-100 text-red-600"><AlertTriangle size={24} /></div>}
-            {variant === 'warning' && <div className="p-3 rounded-full bg-amber-100 text-amber-600"><AlertTriangle size={24} /></div>}
-            {variant === 'success' && <div className="p-3 rounded-full bg-emerald-100 text-emerald-600"><Check size={24} /></div>}
-            {variant === 'info' && <div className="p-3 rounded-full bg-blue-100 text-blue-600"><Info size={24} /></div>}
+            {variant === 'danger' && <div className="rounded-lg bg-red-100 p-2.5 text-red-700"><AlertTriangle size={22} aria-hidden="true" /></div>}
+            {variant === 'warning' && <div className="rounded-lg bg-amber-100 p-2.5 text-amber-700"><AlertTriangle size={22} aria-hidden="true" /></div>}
+            {variant === 'success' && <div className="rounded-lg bg-emerald-100 p-2.5 text-emerald-700"><Check size={22} aria-hidden="true" /></div>}
+            {variant === 'info' && <div className="rounded-lg bg-blue-100 p-2.5 text-blue-700"><Info size={22} aria-hidden="true" /></div>}
             <h2 id={titleId} className="text-xl font-bold text-gray-900">{title}</h2>
           </div>
           
@@ -66,7 +66,7 @@ export function ConfirmationModal({
                 disabled={isLoading}
                 className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <X size={20} />
+                <X size={20} aria-hidden="true" />
                 {cancelText}
               </button>
             )}
@@ -86,7 +86,7 @@ export function ConfirmationModal({
                 "bg-blue-600 hover:bg-blue-500"
               )}
             >
-              {isLoading ? <LoadingMark /> : <Check size={20} />}
+              {isLoading ? <LoadingMark /> : <Check size={20} aria-hidden="true" />}
               {confirmText}
             </button>
           </div>

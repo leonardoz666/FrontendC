@@ -140,7 +140,7 @@ export function buildPrintHtml({ title, subtitle, columns, rows }: PrintDocument
 <title>${escapeHtml(title)}</title>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; margin: 24px; color: #111827; }
+  body { font-family: "Segoe UI", sans-serif; margin: 24px; color: #111827; }
   h1 { font-size: 18px; margin: 0 0 4px; }
   .subtitle { font-size: 12px; color: #6b7280; margin: 0 0 16px; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }

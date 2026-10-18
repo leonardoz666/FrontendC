@@ -234,22 +234,22 @@ export default function Home() {
 
       {/* Modal Confirm Open Table */}
       {showConfirmModal && targetTable && (
-        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white p-6 sm:p-8 rounded-t-3xl sm:rounded-2xl shadow-2xl max-w-sm w-full animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:p-4">
+          <div role="alertdialog" aria-modal="true" aria-labelledby="open-table-title" className="w-full max-w-sm rounded-t-2xl bg-white p-6 shadow-xl animate-in slide-in-from-bottom duration-200 sm:rounded-xl">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 sm:hidden"></div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-center">Abrir Mesa {targetTable.numero}?</h2>
+            <h2 id="open-table-title" className="mb-2 text-center text-xl font-bold text-gray-900 sm:text-2xl">Abrir Mesa {targetTable.numero}?</h2>
             <p className="text-gray-500 text-sm text-center mb-6">Esta mesa está livre e pronta para ser aberta para novos pedidos.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all"
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-3.5 font-bold text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Voltar
               </button>
               <button
                 onClick={confirmOpen}
                 disabled={openingTable}
-                className="flex-1 py-3.5 px-4 rounded-xl bg-green-600 font-bold text-white hover:bg-green-700 active:scale-95 shadow-lg shadow-green-200 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-green-700 bg-green-600 px-4 py-3.5 font-bold text-white transition-colors hover:bg-green-700 disabled:opacity-60"
               >
                 {openingTable ? <><LoadingMark /> Abrindo</> : 'Confirmar'}
               </button>

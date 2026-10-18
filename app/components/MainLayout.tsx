@@ -155,7 +155,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#f5f6f8]">
       {!isInstallationPage && (isLoginPage || !user) && (
         <ThemeToggle compact className="fixed right-4 top-4 z-[80] sm:right-6 sm:top-6" />
       )}
@@ -270,7 +270,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               rel="noopener noreferrer"
               title="Suporte pelo WhatsApp"
               aria-label="Suporte pelo WhatsApp"
-              className="fixed bottom-4 right-4 z-40 flex items-center justify-center w-12 h-12 rounded-full bg-green-500 text-white shadow-lg shadow-green-200 hover:bg-green-600 transition-colors"
+              className="fixed bottom-4 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-xl border border-green-700 bg-green-600 text-white shadow-md transition-colors hover:bg-green-700"
             >
               <MessageCircle size={22} />
             </a>
