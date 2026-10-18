@@ -47,6 +47,10 @@ body {
   -webkit-tap-highlight-color: color-mix(in srgb, var(--brand-primary) 18%, transparent);
 }
 
+.controlae-navigation {
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+}
+
 h1,
 h2,
 h3 {

@@ -351,7 +351,7 @@ export default function Sidebar({
       )}
 
       <aside className={`
-        fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r border-slate-200 bg-white transition-[transform,width] duration-300 ease-in-out
+        controlae-navigation fixed inset-y-0 left-0 z-[70] flex w-72 flex-col border-r border-slate-200 bg-white transition-[transform,width] duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         ${isCollapsed ? 'md:w-[88px]' : 'md:w-72'}
         md:translate-x-0
@@ -463,7 +463,7 @@ export default function Sidebar({
                   onClick={() => toggleGroup(section.id)}
                   aria-expanded={isGroupOpen}
                   title={section.label}
-                  className={`flex min-h-10 w-full items-center rounded-md border-l-[3px] px-3 py-2 text-[12px] font-bold uppercase tracking-[0.06em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 ${isGroupActive ? 'border-orange-500 bg-orange-50 text-orange-900' : 'border-transparent bg-slate-50 text-slate-800 hover:bg-slate-100'}`}
+                  className={`flex min-h-10 w-full items-center rounded-lg border px-3 py-2 text-[13px] font-semibold tracking-[-0.01em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500 ${isGroupActive ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950'}`}
                 >
                   <span className="flex-1 text-left truncate">{section.label}</span>
                   <ChevronDown
@@ -476,7 +476,7 @@ export default function Sidebar({
                 <div className={isGroupOpen ? 'mt-2 rounded-lg border border-slate-200 bg-white/90 p-2 shadow-sm' : 'hidden'}>
                   {section.groups.map((group, index) => (
                     <div key={group.id} className={index > 0 ? 'mt-2 border-t border-slate-200 pt-2' : ''}>
-                      <div className="space-y-0.5 border-l-2 border-slate-300 pl-1.5">
+                      <div className="space-y-0.5 px-1">
                         {group.items.map(item => renderItem(item))}
                       </div>
                     </div>
