@@ -3,6 +3,7 @@ import {
   INSTALLATION_COOKIE_PREFIX,
   INSTALLATION_GATE_COOKIE_PREFIX,
   TENANT_HEADER,
+  authCookieName,
   installationCookieName,
   installationGateCookieName,
   isTenantSlug,
@@ -83,6 +84,7 @@ export async function middleware(request: NextRequest) {
     || request.headers.get(TENANT_HEADER)?.trim().toLowerCase()
   const boundSlugValue = request.cookies.get(TENANT_COOKIE)?.value
   const boundSlug = isTenantSlug(boundSlugValue) ? boundSlugValue : null
+  const hasTenantSession = Boolean(requestedSlug && request.cookies.get(authCookieName(requestedSlug))?.value)
 
   if (internalPathname === '/instalacao') {
     const tenantToOpen = requestedSlug || boundSlug
@@ -91,11 +93,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(tenantPageUrl('/login', tenantToOpen), request.url))
   }
 
-  if (internalPathname === '/login' && requestedSlug && !await hasValidInstallationGate(request, requestedSlug)) {
+  if (internalPathname === '/login' && requestedSlug && pathTenantSlug) {
     const url = request.nextUrl.clone()
-    url.pathname = `/acesso/${requestedSlug}`
-    url.search = ''
-    return NextResponse.redirect(url)
+    url.pathname = '/login'
+    url.searchParams.set('estabelecimento', requestedSlug)
+    return NextResponse.rewrite(url)
+  }
+
+  if (internalPathname === '/login' && requestedSlug) {
+    return NextResponse.redirect(new URL(tenantPageUrl('/login', requestedSlug), request.url))
   }
 
   const installationRoute = internalPathname === '/offline'
@@ -103,11 +109,12 @@ export async function middleware(request: NextRequest) {
     || pathname.startsWith('/api/public/')
     || pathname.startsWith('/api/device-access/')
     || pathname.startsWith('/acesso/')
+    || pathname === '/api/auth/login'
     || publicTenantRoute
     || (pathTenantSlug && !prefixedOperationalRoute)
   if (installationRoute) return NextResponse.next()
 
-  if (prefixedOperationalRoute && requestedSlug && await hasValidInstallationGate(request, requestedSlug)) {
+  if (prefixedOperationalRoute && requestedSlug && (hasTenantSession || await hasValidInstallationGate(request, requestedSlug))) {
     const url = request.nextUrl.clone()
     url.pathname = internalPathname
     url.searchParams.set('estabelecimento', requestedSlug)
@@ -115,12 +122,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (internalPathname.startsWith('/api/') || internalPathname.startsWith('/uploads/')) {
-    if (await hasValidInstallationGate(request, requestedSlug)) return NextResponse.next()
+    if (hasTenantSession || await hasValidInstallationGate(request, requestedSlug)) return NextResponse.next()
     return NextResponse.json({ code: 'INSTALLATION_REQUIRED', error: 'Ative este aplicativo antes de continuar' }, { status: 428 })
   }
 
   const tenantToOpen = requestedSlug || boundSlug
-  if (tenantToOpen && await hasValidInstallationGate(request, tenantToOpen)) {
+  if (tenantToOpen && (request.cookies.get(authCookieName(tenantToOpen))?.value || await hasValidInstallationGate(request, tenantToOpen))) {
     const canonicalSearch = new URLSearchParams(request.nextUrl.searchParams)
     canonicalSearch.delete('estabelecimento')
     const query = canonicalSearch.toString()

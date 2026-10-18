@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { installationBindingForTenant } from './installation-binding'
+import { installationBindingForTenant, normalizeApiUrl } from './installation-binding'
 import { configuredTimeout, fetchWithTimeout } from './fetch-timeout'
 import { TENANT_HEADER, authCookieName, isTenantSlug, requestedTenantSlug } from './tenant-navigation'
 
@@ -29,8 +29,16 @@ export async function proxyBackendRequest(request: NextRequest, pathname: string
       return NextResponse.json({ code: 'TENANT_REQUIRED', error: 'Abra o link específico do estabelecimento' }, { status: 400 })
     }
     const binding = installationBindingForTenant(request.cookies, requestedSlug)
-    if (!binding) return NextResponse.json({ code: 'INSTALLATION_REQUIRED', error: 'Ative este aplicativo antes de continuar' }, { status: 428 })
-    const backend = binding.apiUrl
+    const cookie = forwardedCookie(request, requestedSlug)
+    const isLogin = pathname === '/auth/login' && request.method.toUpperCase() === 'POST'
+    if (!binding && !cookie && !isLogin) {
+      return NextResponse.json({ code: 'INSTALLATION_REQUIRED', error: 'Este aparelho ainda não possui uma sessão ou vínculo de acesso' }, { status: 428 })
+    }
+    const fallbackBackend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL
+    if (!binding && !fallbackBackend) {
+      return NextResponse.json({ error: 'A URL da API não foi configurada nesta implantação' }, { status: 503 })
+    }
+    const backend = binding?.apiUrl || normalizeApiUrl(fallbackBackend!)
     const target = new URL(pathname.replace(/^\/+/, ''), `${backend}/`)
     target.search = incomingUrl.search
     target.searchParams.delete('estabelecimento')
@@ -41,11 +49,11 @@ export async function proxyBackendRequest(request: NextRequest, pathname: string
     // correspondente autoriza a API e o estabelecimento encaminhados.
     headers.delete('x-tenant-slug')
     headers.delete(TENANT_HEADER)
-    const cookie = forwardedCookie(request, requestedSlug)
     if (cookie) headers.set('cookie', cookie)
     else headers.delete('cookie')
-    headers.set('x-tenant-slug', binding.tenantSlug)
-    headers.set('x-controlae-installation', binding.installationToken)
+    headers.set('x-tenant-slug', requestedSlug)
+    if (binding) headers.set('x-controlae-installation', binding.installationToken)
+    else headers.delete('x-controlae-installation')
 
     const method = request.method.toUpperCase()
     const response = await fetchWithTimeout(target, {
