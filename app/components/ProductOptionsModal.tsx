@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Minus, Plus, Snowflake, Citrus } from 'lucide-react'
+import { Check, Minus, Plus, Snowflake, Citrus } from 'lucide-react'
 import { Produto } from '@/types'
 import { parseFlavorSizeConfig, priceForFlavorSize } from '@/app/lib/flavor-size-pricing'
+import { Modal } from '@/app/components/ui/Modal'
 
 interface ProductOptionsModalProps {
   isOpen: boolean
@@ -412,26 +413,38 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
 
   const totalPrice = totalQuantity * product.preco
   const totalPriceNovo = totalQuantity * precoUnitario
+  const confirmDisabled =
+    (product.tipoOpcao === 'combinado' && selectedOptions.length === 0) ||
+    (product.tipoOpcao === 'refrigerante' && Object.keys(optionQuantities).length === 0) ||
+    (product.tipoOpcao === 'sabores' && selectedOptions.length === 0) ||
+    (product.tipoOpcao === 'tamanho_pg' && selectedOptions.length === 0) ||
+    (product.tipoOpcao === 'sabores_com_tamanho' && selectedOptions.filter(option => options.includes(option)).length === 0) ||
+    (tamanhos.length > 0 && !selectedTamanhoId) ||
+    complementoInvalido
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white w-full max-w-md sm:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
-        
-        {/* Header */}
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white rounded-t-2xl sticky top-0 z-10">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 leading-tight">{product.nome}</h2>
-            <p className="font-bold text-orange-700">R$ {precoUnitario.toFixed(2).replace('.', ',')}</p>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-500 transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      title={product.nome}
+      description={<strong className="text-orange-700">R$ {precoUnitario.toFixed(2).replace('.', ',')}</strong>}
+      size="md"
+      mobileSheet
+      footer={(
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={confirmDisabled}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 py-4 text-lg font-bold text-white transition-[background-color,transform] hover:bg-orange-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <span>Adicionar ao pedido</span>
+          <span className="rounded bg-white/20 px-2 py-0.5 text-sm">
+            R$ {(product.tipoOpcao === 'refrigerante' ? totalPrice : totalPriceNovo).toFixed(2).replace('.', ',')}
+          </span>
+        </button>
+      )}
+    >
+        <div className="space-y-6 p-4">
           {renderContent()}
 
           {tamanhos.length > 0 && product.tipoOpcao !== 'sabores_com_tamanho' && (
@@ -574,28 +587,6 @@ export function ProductOptionsModal({ isOpen, onClose, product, onConfirm }: Pro
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-100 bg-white rounded-b-2xl sticky bottom-0 z-10">
-          <button
-            onClick={handleConfirm}
-            disabled={
-              (product.tipoOpcao === 'combinado' && selectedOptions.length === 0) ||
-              (product.tipoOpcao === 'refrigerante' && Object.keys(optionQuantities).length === 0) ||
-              (product.tipoOpcao === 'sabores' && selectedOptions.length === 0) ||
-              (product.tipoOpcao === 'tamanho_pg' && selectedOptions.length === 0) ||
-              (product.tipoOpcao === 'sabores_com_tamanho' && selectedOptions.filter(option => options.includes(option)).length === 0) ||
-              (tamanhos.length > 0 && !selectedTamanhoId) ||
-              complementoInvalido
-            }
-            className="w-full bg-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-700 active:scale-[0.98] transition-[background-color,transform] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-            <span>Adicionar ao Pedido</span>
-            <span className="bg-white/20 px-2 py-0.5 rounded text-sm">
-              R$ {(product.tipoOpcao === 'refrigerante' ? totalPrice : totalPriceNovo).toFixed(2).replace('.', ',')}
-            </span>
-          </button>
-        </div>
-      </div>
-    </div>
+    </Modal>
   )
 }

@@ -1,10 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Check, CircleDollarSign, LoaderCircle, Plus, RefreshCw, X } from 'lucide-react'
+import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Check, CircleDollarSign, LoaderCircle, Plus, RefreshCw } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { createIdempotencyKey } from '@/app/lib/offline'
 import { useToast } from '@/contexts/ToastContext'
+import { Modal } from '@/app/components/ui/Modal'
 
 type Account = { id: number; nome: string; saldo: number; entradas: number; saidas: number }
 type Overview = { contas: Account[]; totalContas: number; pagar: { vencidas: number; aberto: number }; receber: { vencidas: number; aberto: number } }
@@ -70,7 +71,7 @@ function BalanceBand({ label, value, overdue, kind }: { label: string; value: nu
 function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button onClick={onClick} className={`border-b-2 px-4 py-4 text-sm font-black ${active ? 'border-orange-600 text-slate-950' : 'border-transparent text-slate-400'}`}>{children}</button> }
 function Status({ value }: { value: string }) { const style = value === 'QUITADO' ? 'bg-emerald-100 text-emerald-800' : value === 'CANCELADO' ? 'bg-rose-100 text-rose-800' : value === 'RASCUNHO' ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-800'; return <span className={`rounded-full px-2.5 py-1 text-xs font-black ${style}`}>{value.replaceAll('_', ' ').toLocaleLowerCase('pt-BR')}</span> }
 
-function ModalShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) { return <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4 backdrop-blur-sm"><section role="dialog" aria-modal="true" className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl"><header className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4"><h2 className="text-xl font-black text-slate-950">{title}</h2><button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar"><X size={19} /></button></header>{children}</section></div> }
+function ModalShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) { return <Modal open onClose={onClose} title={title} size="lg">{children}</Modal> }
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => <label><span className="mb-1.5 block text-xs font-bold text-slate-600">{label}</span>{children}</label>
 const inputClass = 'h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
 

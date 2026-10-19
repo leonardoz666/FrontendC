@@ -1,7 +1,8 @@
-import { ReactNode, useId } from 'react';
+import { ReactNode } from 'react';
 import { X, Check, AlertTriangle, Info } from 'lucide-react';
 import { clsx } from 'clsx';
 import { LoadingMark } from '@/app/components/ui/PageLoader';
+import { Modal } from '@/app/components/ui/Modal';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -32,66 +33,61 @@ export function ConfirmationModal({
   closeOnConfirm = true,
   isLoading = false
 }: ConfirmationModalProps) {
-  const titleId = useId();
-  const descriptionId = useId();
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 animate-in fade-in duration-200 sm:p-4">
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={description ? descriptionId : undefined}
-        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl animate-in zoom-in-95 duration-200 sm:max-h-[calc(100dvh-2rem)]"
-      >
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center gap-3 mb-4">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      title={title}
+      description={description}
+      role="alertdialog"
+      size="sm"
+      isLoading={isLoading}
+      footer={(
+        <div className="flex flex-col-reverse gap-3 sm:flex-row">
+          {showCancel && (
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-3 font-bold text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <X size={20} aria-hidden="true" />
+              {cancelText}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (isLoading) return;
+              if (onConfirm) onConfirm();
+              if (closeOnConfirm) onClose();
+            }}
+            disabled={isLoading}
+            aria-busy={isLoading}
+            className={clsx(
+              "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold text-white transition-colors disabled:cursor-wait disabled:opacity-60",
+              variant === 'danger' ? "bg-red-600 hover:bg-red-500" :
+              variant === 'success' ? "bg-emerald-600 hover:bg-emerald-500" :
+              variant === 'warning' ? "bg-amber-600 hover:bg-amber-500" :
+              "bg-blue-600 hover:bg-blue-500"
+            )}
+          >
+            {isLoading ? <LoadingMark /> : <Check size={20} aria-hidden="true" />}
+            {confirmText}
+          </button>
+        </div>
+      )}
+    >
+      <div className="p-5 sm:p-6">
+          <div className="mb-4 flex items-center gap-3">
             {variant === 'danger' && <div className="rounded-lg bg-red-100 p-2.5 text-red-700"><AlertTriangle size={22} aria-hidden="true" /></div>}
             {variant === 'warning' && <div className="rounded-lg bg-amber-100 p-2.5 text-amber-700"><AlertTriangle size={22} aria-hidden="true" /></div>}
             {variant === 'success' && <div className="rounded-lg bg-emerald-100 p-2.5 text-emerald-700"><Check size={22} aria-hidden="true" /></div>}
             {variant === 'info' && <div className="rounded-lg bg-blue-100 p-2.5 text-blue-700"><Info size={22} aria-hidden="true" /></div>}
-            <h2 id={titleId} className="text-xl font-bold text-gray-900">{title}</h2>
+            <span className="font-semibold text-gray-800">Confira antes de continuar</span>
           </div>
-          
-          {description && <p id={descriptionId} className="text-gray-600 mb-6 leading-relaxed">{description}</p>}
-          
           {children}
-
-          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row">
-            {showCancel && (
-              <button
-                onClick={onClose}
-                disabled={isLoading}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <X size={20} aria-hidden="true" />
-                {cancelText}
-              </button>
-            )}
-            <button
-              onClick={() => {
-                if (isLoading) return;
-                if (onConfirm) onConfirm();
-                if (closeOnConfirm) onClose();
-              }}
-              disabled={isLoading}
-              aria-busy={isLoading}
-              className={clsx(
-                "flex-1 py-3 px-4 rounded-xl font-bold text-white transition-colors flex items-center justify-center gap-2 disabled:cursor-wait disabled:opacity-60",
-                variant === 'danger' ? "bg-red-600 hover:bg-red-500" : 
-                variant === 'success' ? "bg-emerald-600 hover:bg-emerald-500" :
-                variant === 'warning' ? "bg-amber-600 hover:bg-amber-500" :
-                "bg-blue-600 hover:bg-blue-500"
-              )}
-            >
-              {isLoading ? <LoadingMark /> : <Check size={20} aria-hidden="true" />}
-              {confirmText}
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
