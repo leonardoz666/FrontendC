@@ -7,6 +7,7 @@ export type Categoria = {
   id: number
   nome: string
   setor?: 'COZINHA' | 'BAR' | 'SOBREMESA'
+  dispositivoId?: number | null
   ativo?: boolean
   imagem?: string | null
   ordem?: number

@@ -228,6 +228,7 @@ export default function ProdutosPage() {
   const [aliquotaIcms, setAliquotaIcms] = useState('')
   const [permitirObservacao, setPermitirObservacao] = useState(true)
   const [permiteGeloLimao, setPermiteGeloLimao] = useState(false)
+  const [inheritedDefaultsMessage, setInheritedDefaultsMessage] = useState('')
 
   const [, setError] = useState('')
   const [importStatus, setImportStatus] = useState<string | null>(null)
@@ -235,12 +236,52 @@ export default function ProdutosPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const importInputRef = useRef<HTMLInputElement>(null)
 
+  const applyCategoryDefaults = useCallback((newCategoryId: string) => {
+    setCategoriaId(newCategoryId)
+
+    const category = categorias.find(item => String(item.id) === newCategoryId)
+    if (!category) {
+      setInheritedDefaultsMessage('')
+      return
+    }
+
+    if (category.setor === 'BAR') {
+      setIsDrink(true)
+      setIsFood(false)
+    } else if (category.setor === 'COZINHA' || category.setor === 'SOBREMESA') {
+      setIsFood(true)
+      setIsDrink(false)
+    }
+
+    setDispositivoIds(category.dispositivoId ? [category.dispositivoId] : [])
+
+    const inherited: string[] = []
+    if (category.setor) {
+      const sectorLabel = category.setor === 'BAR'
+        ? 'bar'
+        : category.setor === 'SOBREMESA'
+          ? 'sobremesa'
+          : 'cozinha'
+      inherited.push(`setor ${sectorLabel}`)
+    }
+    if (category.dispositivoId) {
+      const printer = dispositivos.find(item => item.id === category.dispositivoId)
+      inherited.push(printer ? `impressora ${printer.nome}` : 'impressora da categoria')
+    }
+
+    setInheritedDefaultsMessage(
+      inherited.length > 0
+        ? `Padrões aplicados: ${inherited.join(' e ')}. Você pode alterar antes de salvar.`
+        : 'Esta categoria não possui padrões definidos.'
+    )
+  }, [categorias, dispositivos])
+
   // Effect to set default category
   useEffect(() => {
     if (categorias.length > 0 && !categoriaId && !editingId) {
-      setCategoriaId(categorias[0].id.toString())
+      applyCategoryDefaults(categorias[0].id.toString())
     }
-  }, [categorias, categoriaId, editingId])
+  }, [applyCategoryDefaults, categorias, categoriaId, editingId])
 
   // A busca agora é feita no SERVIDOR (dentro de `usePagedQuery`), com debounce de
   // 300ms. O filtro client-side que existia aqui foi removido de propósito: ele
@@ -367,12 +408,14 @@ export default function ProdutosPage() {
     setAliquotaIcms('')
     setPermitirObservacao(true)
     setPermiteGeloLimao(false)
+    setInheritedDefaultsMessage('')
     setError('')
     if (categorias.length > 0) setCategoriaId(categorias[0].id.toString())
   }
 
   const handleNewProduct = () => {
     resetForm()
+    if (categorias[0]) applyCategoryDefaults(String(categorias[0].id))
     setIsAdding(true)
   }
 
@@ -433,6 +476,7 @@ export default function ProdutosPage() {
     setAliquotaIcms(prod.aliquotaIcms === null || prod.aliquotaIcms === undefined ? '' : String(prod.aliquotaIcms))
     setPermitirObservacao(prod.permitirObservacao !== undefined ? prod.permitirObservacao : true)
     setPermiteGeloLimao(prod.permiteGeloLimao || false)
+    setInheritedDefaultsMessage('')
     setFile(null)
     setError('')
   }, [categorias])
@@ -958,30 +1002,18 @@ export default function ProdutosPage() {
                     <label className="text-xs font-bold text-gray-500 block mb-1 uppercase tracking-wider">Categoria</label>
                     <select
                       value={categoriaId}
-                      onChange={e => {
-                        const newId = e.target.value
-                        setCategoriaId(newId)
-                        
-                        // Auto-detect sector based on category name
-                        const cat = categorias.find(c => c.id.toString() === newId)
-                        if (cat) {
-                          const catNome = cat.nome.toLowerCase()
-                          
-                          if (catNome.includes('bebida') || catNome.includes('drink') || catNome.includes('cerveja') || catNome.includes('refrigerante') || catNome.includes('suco') || catNome.includes('água') || catNome.includes('vinho') || catNome.includes('dose') || catNome.includes('bar')) {
-                              setIsDrink(true)
-                              setIsFood(false)
-                          } else if (catNome.includes('prato') || catNome.includes('entrada') || catNome.includes('comida') || catNome.includes('lanche') || catNome.includes('sobremesa') || catNome.includes('porção') || catNome.includes('petisco') || catNome.includes('hambúrguer') || catNome.includes('pizza') || catNome.includes('salada') || catNome.includes('cozinha')) {
-                              setIsFood(true)
-                              setIsDrink(false)
-                          }
-                        }
-                      }}
+                      onChange={e => applyCategoryDefaults(e.target.value)}
                       className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 text-sm"
                     >
                       {categorias.map(c => (
                         <option key={c.id} value={c.id}>{c.nome}</option>
                       ))}
                     </select>
+                    {inheritedDefaultsMessage && (
+                      <p className="mt-1.5 text-xs leading-5 text-slate-600" role="status">
+                        {inheritedDefaultsMessage}
+                      </p>
+                    )}
                   </div>
                 </div>
 
