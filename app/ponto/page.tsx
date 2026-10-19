@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, Clock, Download, Power, PowerOff } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import Link from '@/app/components/TenantLink'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
 import { Input } from '@/app/components/ui/Input'
@@ -106,6 +108,14 @@ function focusFirstInvalid(form: HTMLFormElement, errors: FormErrors) {
 }
 
 export default function PontoPage() {
+  const pathname = usePathname()
+  const area = pathname.endsWith('/registro')
+    ? 'REGISTRO'
+    : pathname.endsWith('/ajustes')
+      ? 'AJUSTES'
+      : pathname.endsWith('/relatorios')
+        ? 'RELATORIOS'
+        : 'EQUIPE'
   const { showToast } = useToast()
   const ui = useListaCrud('/ponto/registros')
   const { data, isLoading, isError, error, refetch } = usePagedQuery<Registro>(ui.listaParams)
@@ -455,15 +465,30 @@ export default function PontoPage() {
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
       <h1 className="mb-2 text-3xl font-bold text-black">Controle de ponto</h1>
       <p className="mb-6 text-sm text-gray-600">
-        Registro imutável com NSR sequencial. AFD aqui é placeholder até validação jurídica do leiaute REP-P.
+        Escolha uma área para trabalhar sem misturar cadastros, ajustes e relatórios.
       </p>
 
-      <div className="mb-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <form onSubmit={registrarPonto} className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
-            <Clock className="h-5 w-5 text-orange-600" />
-            Registrar ponto
-          </h2>
+      <nav aria-label="Áreas do controle de ponto" className="mb-6 grid gap-2 rounded-xl bg-slate-100 p-2 sm:grid-cols-4">
+        {([
+          ['/ponto/registro', 'Registrar ponto'],
+          ['/ponto/equipe', 'Equipe e jornadas'],
+          ['/ponto/ajustes', 'Ajustes'],
+          ['/ponto/relatorios', 'Relatórios'],
+        ] as const).map(([href, label]) => {
+          const selected = pathname === href || (href === '/ponto/equipe' && pathname === '/ponto')
+          return <Link key={href} href={href} aria-current={selected ? 'page' : undefined} className={`flex min-h-11 items-center justify-center rounded-lg px-3 text-center text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${selected ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-700 hover:bg-white'}`}>{label}</Link>
+        })}
+      </nav>
+
+      <div className={`mb-6 ${area === 'REGISTRO' || area === 'AJUSTES' ? 'block' : 'hidden'}`}>
+        <form onSubmit={registrarPonto} className={`${area === 'REGISTRO' ? 'block' : 'hidden'} border-y border-gray-200 bg-white px-4 py-5 sm:px-5`}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <Clock className="h-5 w-5 text-orange-600" />
+              Registrar ponto
+            </h2>
+            <Link href="/ponto/batida" className="text-sm font-bold text-orange-700 hover:underline">Abrir registro por câmera</Link>
+          </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
             <select value={funcionarioId} onChange={(event) => setFuncionarioId(event.target.value)} className="rounded-lg border border-gray-300 p-2 text-black" required>
               <option value="">Funcionário</option>
@@ -476,7 +501,7 @@ export default function PontoPage() {
           </div>
         </form>
 
-        <form id="ajustes" noValidate onSubmit={ajustarPonto} className="scroll-mt-24 border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
+        <form id="ajustes" noValidate onSubmit={ajustarPonto} className={`${area === 'AJUSTES' ? 'block' : 'hidden'} scroll-mt-24 border-y border-gray-200 bg-white px-4 py-5 sm:px-5`}>
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Ajustar registro</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
@@ -531,8 +556,8 @@ export default function PontoPage() {
         </form>
       </div>
 
-      <div className="mb-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <form noValidate onSubmit={criarFuncionario} className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
+      <div className={`mb-6 ${area === 'EQUIPE' || area === 'RELATORIOS' ? 'block' : 'hidden'}`}>
+        <form noValidate onSubmit={criarFuncionario} className={`${area === 'EQUIPE' ? 'block' : 'hidden'} border-y border-gray-200 bg-white px-4 py-5 sm:px-5`}>
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Novo funcionário</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input name="funcionarioNome" label="Nome completo" placeholder="Ex.: Maria Silva" error={fieldErrors.funcionarioNome} value={funcionarioForm.nome} onChange={(event) => { setFuncionarioForm((atual) => ({ ...atual, nome: event.target.value })); clearFieldError('funcionarioNome') }} autoComplete="name" required />
@@ -545,8 +570,11 @@ export default function PontoPage() {
           </div>
         </form>
 
-        <section className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
-          <h2 className="mb-3 text-lg font-semibold text-gray-900">Arquivos AFD/AEJ</h2>
+        <section className={`${area === 'RELATORIOS' ? 'block' : 'hidden'} border-y border-gray-200 bg-white px-4 py-5 sm:px-5`}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Arquivos AFD/AEJ</h2>
+            <Link href="/ponto/auditoria" className="text-sm font-bold text-orange-700 hover:underline">Ver histórico de alterações</Link>
+          </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_1fr_120px_auto_auto]">
             <input value={afdInicio} onChange={(event) => setAfdInicio(event.target.value)} type="datetime-local" className="rounded-lg border border-gray-300 p-2 text-black" aria-label="Início do AFD" />
             <input value={afdFim} onChange={(event) => setAfdFim(event.target.value)} type="datetime-local" className="rounded-lg border border-gray-300 p-2 text-black" aria-label="Fim do AFD" />
@@ -566,7 +594,7 @@ export default function PontoPage() {
         </section>
       </div>
 
-      <section className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
+      <section className={`${area === 'RELATORIOS' ? 'block' : 'hidden'} mb-6 rounded-lg border border-gray-200 bg-white p-4`}>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Espelho de ponto</h2>
         <form onSubmit={gerarEspelho} className="grid gap-3 lg:grid-cols-[1fr_220px_220px_auto]">
           <select value={espelhoFuncionarioId} onChange={(event) => setEspelhoFuncionarioId(event.target.value)} className="rounded-lg border border-gray-300 p-2 text-black" required>
@@ -621,7 +649,7 @@ export default function PontoPage() {
         )}
       </section>
 
-      <section className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
+      <section className={`${area === 'EQUIPE' ? 'block' : 'hidden'} mb-6 rounded-lg border border-gray-200 bg-white p-4`}>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Funcionários</h2>
         {funcionarios.length === 0 ? (
           <p className="text-sm text-gray-500">Nenhum funcionário cadastrado.</p>
@@ -652,7 +680,7 @@ export default function PontoPage() {
         )}
       </section>
 
-      <div className="mb-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
+      <div className={`${area === 'EQUIPE' ? 'grid' : 'hidden'} mb-6 gap-6 xl:grid-cols-[1fr_1fr]`}>
         <form noValidate onSubmit={criarJornada} className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
           <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
             <Clock className="h-5 w-5 text-orange-600" />
@@ -718,7 +746,7 @@ export default function PontoPage() {
         </form>
       </div>
 
-      {escalas.length > 0 && (
+      {area === 'EQUIPE' && escalas.length > 0 && (
         <section className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Escalas cadastradas</h2>
           <div className="grid gap-2 lg:grid-cols-2">
@@ -741,9 +769,9 @@ export default function PontoPage() {
         </section>
       )}
 
-      {isError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{(error as Error)?.message ?? 'Falha ao carregar registros'}</div>}
+      {(area === 'REGISTRO' || area === 'AJUSTES') && isError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{(error as Error)?.message ?? 'Falha ao carregar registros'}</div>}
 
-      <DataTable
+      {(area === 'REGISTRO' || area === 'AJUSTES') && <DataTable
         ariaLabel="Registros de ponto"
         columns={columns}
         data={pagina.data}
@@ -757,7 +785,7 @@ export default function PontoPage() {
         onPageSizeChange={ui.setPageSize}
         onSearch={ui.definirBusca}
         onSort={ui.definirOrdenacao}
-      />
+      />}
     </div>
   )
 }
