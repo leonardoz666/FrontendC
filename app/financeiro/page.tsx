@@ -15,6 +15,7 @@ import { apiFetch } from "@/app/lib/api";
 import { createIdempotencyKey } from "@/app/lib/offline";
 import { useToast } from "@/contexts/ToastContext";
 import { Modal } from "@/app/components/ui/Modal";
+import { readTenantPreference, writeTenantPreference } from "@/app/lib/view-state";
 
 type Account = {
   id: number;
@@ -86,6 +87,9 @@ const initialForm = (): CreateForm => ({
   vencimento: today(),
   valor: "",
 });
+
+const FINANCE_DEFAULTS_SCOPE = "novo-titulo-financeiro";
+type FinanceDefaults = Pick<CreateForm, "planoContaId" | "centroCustoId">;
 const money = (value: number) =>
   Number(value || 0).toLocaleString("pt-BR", {
     style: "currency",
@@ -638,11 +642,15 @@ function CreateTitleModal({
             "/centros-custo?ativo=true&pageSize=100",
           ),
         ]);
-        setOptions({
-          people: asList(people),
-          plans: asList(plans),
-          costs: asList(costs),
-        });
+        const nextPlans = asList(plans);
+        const nextCosts = asList(costs);
+        setOptions({ people: asList(people), plans: nextPlans, costs: nextCosts });
+        const remembered = readTenantPreference<FinanceDefaults>(FINANCE_DEFAULTS_SCOPE);
+        setForm((current) => ({
+          ...current,
+          planoContaId: current.planoContaId || (remembered && nextPlans.some((item) => String(item.id) === remembered.planoContaId) ? remembered.planoContaId : nextPlans.length === 1 ? String(nextPlans[0].id) : ""),
+          centroCustoId: current.centroCustoId || (remembered && nextCosts.some((item) => String(item.id) === remembered.centroCustoId) ? remembered.centroCustoId : nextCosts.length === 1 ? String(nextCosts[0].id) : ""),
+        }));
       } catch (error) {
         showToast(
           error instanceof Error
@@ -678,6 +686,10 @@ function CreateTitleModal({
         },
       });
       showToast("Título criado como rascunho.", "success");
+      writeTenantPreference<FinanceDefaults>(FINANCE_DEFAULTS_SCOPE, {
+        planoContaId: form.planoContaId,
+        centroCustoId: form.centroCustoId,
+      });
       await onSaved();
     } catch (error) {
       showToast(

@@ -17,7 +17,7 @@ import { parseFlavorSizeConfig, type FlavorSizePrice } from '@/app/lib/flavor-si
 import { InlineLoader, PageLoader } from '@/app/components/ui/PageLoader'
 import { importProductCatalog } from '@/app/lib/product-import'
 import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
-import { clearTenantDraft, readTenantDraft, writeTenantDraft } from '@/app/lib/view-state'
+import { clearTenantDraft, readTenantDraft, readTenantPreference, writeTenantDraft, writeTenantPreference } from '@/app/lib/view-state'
 import { 
   Plus, 
   Upload, 
@@ -37,6 +37,9 @@ import { clsx } from 'clsx'
 import { SALES_CHANNELS, WEEK_DAYS, categoryColorStyle, minutesToTime, parseStringList, timeToMinutes, toLocalDateTime, type AvailabilityRule, type ComplementoGrupo, type Dispositivo, type PromotionRule, type SalesChannel, type SalesHistory, type TipoTamanho } from './product-page-model'
 
 const PRODUCT_DRAFT_SCOPE = 'novo-produto'
+const PRODUCT_DEFAULTS_SCOPE = 'padroes-produto-por-categoria'
+
+type ProductCategoryDefault = Pick<ProductDraft, 'controlaEstoque' | 'autoatendimento' | 'fiscal' | 'ncm' | 'cfop' | 'cstCsosn' | 'aliquotaIcms' | 'gruposComplementoIds' | 'permitirObservacao' | 'permiteGeloLimao' | 'dispositivoIds'>
 
 type ProductDraft = {
   nome: string
@@ -290,7 +293,23 @@ export default function ProdutosPage() {
       setIsDrink(false)
     }
 
-    setDispositivoIds(category.dispositivoId ? [category.dispositivoId] : [])
+    const savedDefaults = readTenantPreference<Record<string, ProductCategoryDefault>>(PRODUCT_DEFAULTS_SCOPE)?.[newCategoryId]
+    const availableDeviceIds = new Set(dispositivos.map(item => item.id))
+    const rememberedDevices = savedDefaults?.dispositivoIds.filter(id => availableDeviceIds.has(id)) ?? []
+    setDispositivoIds(category.dispositivoId ? [category.dispositivoId] : rememberedDevices)
+    if (savedDefaults) {
+      setControlaEstoque(savedDefaults.controlaEstoque)
+      setAutoatendimento(savedDefaults.autoatendimento)
+      setFiscal(savedDefaults.fiscal)
+      setNcm(savedDefaults.ncm)
+      setCfop(savedDefaults.cfop)
+      setCstCsosn(savedDefaults.cstCsosn)
+      setAliquotaIcms(savedDefaults.aliquotaIcms)
+      const availableGroupIds = new Set(gruposComplemento.map(item => item.id))
+      setGruposComplementoIds(savedDefaults.gruposComplementoIds.filter(id => availableGroupIds.has(id)))
+      setPermitirObservacao(savedDefaults.permitirObservacao)
+      setPermiteGeloLimao(savedDefaults.permiteGeloLimao)
+    }
 
     const inherited: string[] = []
     if (category.setor) {
@@ -305,13 +324,14 @@ export default function ProdutosPage() {
       const printer = dispositivos.find(item => item.id === category.dispositivoId)
       inherited.push(printer ? `impressora ${printer.nome}` : 'impressora da categoria')
     }
+    if (savedDefaults) inherited.push('estoque, venda e dados fiscais usados por último')
 
     setInheritedDefaultsMessage(
       inherited.length > 0
         ? `Padrões aplicados: ${inherited.join(' e ')}. Você pode alterar antes de salvar.`
         : 'Esta categoria não possui padrões definidos.'
     )
-  }, [categorias, dispositivos])
+  }, [categorias, dispositivos, gruposComplemento])
 
   // Effect to set default category
   useEffect(() => {
@@ -431,7 +451,12 @@ export default function ProdutosPage() {
       })
 
       showToast(editingId ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!', 'success')
-      if (!editingId) clearTenantDraft(PRODUCT_DRAFT_SCOPE)
+      if (!editingId) {
+        const savedDefaults = readTenantPreference<Record<string, ProductCategoryDefault>>(PRODUCT_DEFAULTS_SCOPE) ?? {}
+        savedDefaults[categoriaId] = { controlaEstoque, autoatendimento, fiscal, ncm, cfop, cstCsosn, aliquotaIcms, gruposComplementoIds, permitirObservacao, permiteGeloLimao, dispositivoIds }
+        writeTenantPreference(PRODUCT_DEFAULTS_SCOPE, savedDefaults)
+        clearTenantDraft(PRODUCT_DRAFT_SCOPE)
+      }
       resetForm()
       queryClient.invalidateQueries({ queryKey: ['products'] })
     void refetchProdutos()
@@ -482,7 +507,7 @@ export default function ProdutosPage() {
     setPermiteGeloLimao(false)
     setInheritedDefaultsMessage('')
     setError('')
-    if (categorias.length > 0) setCategoriaId(categorias[0].id.toString())
+    if (categorias.length > 0) applyCategoryDefaults(categorias[0].id.toString())
   }
 
   const handleNewProduct = () => {

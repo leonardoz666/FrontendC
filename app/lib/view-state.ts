@@ -26,6 +26,10 @@ function tenantDraftKey(scope: string): string {
   return `controlae:draft:${tenantForCurrentTab() ?? 'sem-estabelecimento'}:${scope}`
 }
 
+function tenantPreferenceKey(scope: string): string {
+  return `controlae:preference:${tenantForCurrentTab() ?? 'sem-estabelecimento'}:${scope}`
+}
+
 export function readTenantDraft<T>(scope: string): T | null {
   if (typeof window === 'undefined') return null
   try {
@@ -44,4 +48,19 @@ export function writeTenantDraft<T>(scope: string, value: T): void {
 export function clearTenantDraft(scope: string): void {
   if (typeof window === 'undefined') return
   window.localStorage.removeItem(tenantDraftKey(scope))
+}
+
+export function readTenantPreference<T>(scope: string): T | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const stored = window.localStorage.getItem(tenantPreferenceKey(scope))
+    return stored ? JSON.parse(stored) as T : null
+  } catch {
+    return null
+  }
+}
+
+export function writeTenantPreference<T>(scope: string, value: T): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(tenantPreferenceKey(scope), JSON.stringify(value))
 }
