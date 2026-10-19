@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useMemo, useCallback, useRef } from 'react'
 import { useTenantRouter } from '@/app/lib/tenant-router'
 import Image from 'next/image'
-import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Check, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban, Pencil, Copy } from 'lucide-react'
+import { ArrowRightLeft, X, ListOrdered, ListPlus, Trash2, Check, PlusCircle, Minus, Search, CreditCard, Receipt, Lock, Ban, Pencil, Copy, UserRoundPlus } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/contexts/ToastContext'
 import { ProductOptionsModal } from '@/components/ProductOptionsModal'
@@ -87,6 +87,11 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
   const [submitting, setSubmitting] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [tableStatus, setTableStatus] = useState<string>('')
+  const [customerName, setCustomerName] = useState<string | null>(null)
+  const [customerNameDraft, setCustomerNameDraft] = useState('')
+  const [customerNameError, setCustomerNameError] = useState('')
+  const [showCustomerNameModal, setShowCustomerNameModal] = useState(false)
+  const [savingCustomerName, setSavingCustomerName] = useState(false)
   const [caixaAberto, setCaixaAberto] = useState<boolean | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedProduct, setSelectedProduct] = useState<Produto | null>(null)
@@ -147,12 +152,13 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
   const fetchTableData = useCallback(async () => {
     try {
-      const data = await apiFetch<{ status: string; numero: number; comandas?: Array<{ pedidos: APIPedido[] }> }>(`/tables/${mesaId}`)
+      const data = await apiFetch<{ status: string; numero: number; comandas?: Array<{ nomeCliente?: string | null; pedidos: APIPedido[] }> }>(`/tables/${mesaId}`)
         setTableStatus(data.status)
         setMesaNumero(data.numero || mesaId)
         const items: SubmittedItem[] = []
         if (data.comandas && data.comandas.length > 0) {
           const comanda = data.comandas[0]
+          setCustomerName(comanda.nomeCliente?.trim() || null)
           comanda.pedidos.forEach((pedido: APIPedido) => {
             pedido.itens.forEach((item) => {
               items.push({
@@ -168,6 +174,8 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
               })
             })
           })
+        } else {
+          setCustomerName(null)
         }
         const pendingItems = await listOfflineOrderItems(Number(mesaId)).catch(() => [])
         setSubmittedItems([...items, ...pendingItems])
@@ -297,9 +305,41 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 
   const canCreateOrder = userPermissions.includes('pedidos.criar')
   const canRequestBill = userPermissions.includes('pedidos.editar')
+  const canEditCustomerName = userPermissions.includes('pedidos.editar')
   const canRegisterPayment = userPermissions.includes('pagamentos.abrir') && userPermissions.includes('pagamentos.registrar')
   const canApplyDiscount = userPermissions.includes('pagamentos.desconto')
   const lancamentoBloqueado = caixaAberto !== true || tableStatus === 'FECHAMENTO' || !canCreateOrder
+
+  const openCustomerNameModal = () => {
+    setCustomerNameDraft(customerName ?? '')
+    setCustomerNameError('')
+    setShowCustomerNameModal(true)
+  }
+
+  const updateCustomerName = async (nomeCliente: string | null) => {
+    if (savingCustomerName) return
+    const normalizedName = nomeCliente?.trim().replace(/\s+/g, ' ') || null
+    if (normalizedName && normalizedName.length > 120) {
+      setCustomerNameError('Digite um nome com no máximo 120 caracteres.')
+      return
+    }
+
+    setSavingCustomerName(true)
+    setCustomerNameError('')
+    try {
+      const result = await apiFetch<{ nomeCliente: string | null }>(`/tables/${mesaId}/customer-name`, {
+        method: 'PATCH',
+        body: { nomeCliente: normalizedName },
+      })
+      setCustomerName(result.nomeCliente)
+      setShowCustomerNameModal(false)
+      showToast(result.nomeCliente ? `Cliente ${result.nomeCliente} adicionado à mesa.` : 'Nome do cliente removido da mesa.', 'success')
+    } catch (error) {
+      setCustomerNameError(error instanceof Error ? error.message : 'Não foi possível atualizar o nome do cliente.')
+    } finally {
+      setSavingCustomerName(false)
+    }
+  }
 
   useEffect(() => {
     if (paymentEntryHandled.current || !canRegisterPayment || !tableStatus) return
@@ -601,11 +641,29 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
             {/* Comanda Section */}
             <section className="mb-4 overflow-hidden rounded-md border border-gray-200 bg-white">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2.5">
-                <div className="flex items-baseline gap-2">
-                  <h1 className="text-lg font-bold text-gray-900">Mesa {mesaNumero}</h1>
-                  <span className="text-xs font-medium text-gray-500">Comanda</span>
+                <div className="min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <h1 className="text-lg font-bold text-gray-900">Mesa {mesaNumero}</h1>
+                    <span className="text-xs font-medium text-gray-500">Comanda</span>
+                  </div>
+                  {customerName && (
+                    <p className="mt-0.5 max-w-[36ch] truncate text-sm font-semibold text-slate-700" title={`Cliente: ${customerName}`}>
+                      Cliente: {customerName}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
+                  {canEditCustomerName && (
+                    <button
+                      type="button"
+                      onClick={openCustomerNameModal}
+                      title={customerName ? 'Editar nome do cliente' : 'Adicionar nome do cliente'}
+                      className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+                    >
+                      <UserRoundPlus size={16} aria-hidden="true" />
+                      <span className="hidden sm:inline">{customerName ? 'Editar cliente' : 'Adicionar cliente'}</span>
+                    </button>
+                  )}
                   {canTransferTable && (
                     <button
                       type="button"
@@ -1277,6 +1335,99 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
                   </div>
                 </div>
               )}
+            </div>
+          </div>,
+          document.body
+        )
+      )}
+
+      {showCustomerNameModal && (
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && !savingCustomerName) setShowCustomerNameModal(false)
+            }}
+          >
+            <div role="dialog" aria-modal="true" aria-labelledby="customer-name-title" className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+              <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+                <div>
+                  <h2 id="customer-name-title" className="text-xl font-bold text-slate-950">
+                    {customerName ? 'Editar cliente da mesa' : 'Adicionar cliente à mesa'}
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">Identifica esta comanda sem criar um cadastro no CRM.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerNameModal(false)}
+                  disabled={savingCustomerName}
+                  aria-label="Fechar"
+                  className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-50"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form
+                className="p-5 sm:p-6"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void updateCustomerName(customerNameDraft)
+                }}
+              >
+                <label htmlFor="customer-name" className="block text-sm font-semibold text-slate-700">Nome do cliente</label>
+                <input
+                  id="customer-name"
+                  autoFocus
+                  value={customerNameDraft}
+                  onChange={(event) => {
+                    setCustomerNameDraft(event.target.value)
+                    setCustomerNameError('')
+                  }}
+                  maxLength={120}
+                  autoComplete="off"
+                  placeholder="Ex.: João"
+                  className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-950 outline-none transition-shadow placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+                <div className="mt-1.5 flex justify-between gap-3 text-xs">
+                  <span className={customerNameError ? 'text-red-700' : 'text-slate-500'} role={customerNameError ? 'alert' : undefined}>
+                    {customerNameError || 'O nome ficará visível no mapa de mesas.'}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-slate-400">{customerNameDraft.length}/120</span>
+                </div>
+
+                <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+                  <div>
+                    {customerName && (
+                      <button
+                        type="button"
+                        onClick={() => void updateCustomerName(null)}
+                        disabled={savingCustomerName}
+                        className="h-10 rounded-lg px-3 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50"
+                      >
+                        Remover nome
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomerNameModal(false)}
+                      disabled={savingCustomerName}
+                      className="h-10 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingCustomerName || !customerNameDraft.trim()}
+                      className="flex h-10 min-w-24 items-center justify-center rounded-lg bg-orange-600 px-4 text-sm font-semibold text-white hover:bg-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {savingCustomerName ? <LoadingMark /> : 'Salvar'}
+                    </button>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>,
           document.body

@@ -13,6 +13,7 @@ type Mesa = {
   comandas: { 
     id: number
     total: number
+    nomeCliente?: string | null
     usuario?: { nome: string }
   }[]
 }
@@ -93,6 +94,13 @@ export default function MesasAbertasPage() {
                       <User size={18} className="mr-2" />
                       <span className="text-sm">Garçom: <strong>{waiterName}</strong></span>
                     </div>
+
+                    {comanda?.nomeCliente && (
+                      <div className="flex items-center text-gray-600">
+                        <User size={18} className="mr-2" />
+                        <span className="text-sm">Cliente: <strong>{comanda.nomeCliente}</strong></span>
+                      </div>
+                    )}
                     
                     {comanda && (
                       <div className="pt-4 border-t border-gray-100 flex justify-between items-center">

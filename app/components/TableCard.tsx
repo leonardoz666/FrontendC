@@ -13,6 +13,7 @@ export interface Mesa {
   comandas: {
     id: number
     abertaEm: string
+    nomeCliente?: string | null
     usuario?: {
       nome: string
     }
@@ -66,12 +67,13 @@ export function TableCard({ mesa, onClick, fallbackUsuarioNome }: TableCardProps
 
   const comanda = mesa.comandas?.[0]
   const usuarioNome = comanda?.usuario?.nome || fallbackUsuarioNome || 'Desconhecido'
+  const nomeCliente = comanda?.nomeCliente?.trim()
 
   return (
     <button
       type="button"
       onClick={() => onClick(mesa)}
-      aria-label={`Mesa ${mesa.numero}, ${statusText.toLocaleLowerCase('pt-BR')}`}
+      aria-label={`Mesa ${mesa.numero}, ${statusText.toLocaleLowerCase('pt-BR')}${nomeCliente ? `, cliente ${nomeCliente}` : ''}`}
       className={clsx(
         'group flex min-h-[118px] w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left',
         'transition-[background-color,border-color] duration-150',
@@ -91,6 +93,12 @@ export function TableCard({ mesa, onClick, fallbackUsuarioNome }: TableCardProps
         <div className={clsx('mt-2 rounded px-2.5 py-1 text-[9px] font-extrabold leading-none', badgeClass)}>
           {statusText}
         </div>
+
+        {nomeCliente && (
+          <span className="mt-2 max-w-full truncate text-xs font-bold text-slate-700" title={`Cliente: ${nomeCliente}`}>
+            {nomeCliente}
+          </span>
+        )}
       </div>
 
       {(isOcupada || isFechamento) && comanda && (
