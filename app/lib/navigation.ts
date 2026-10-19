@@ -66,6 +66,8 @@ export type NavIconName =
   | 'Eye'
   | 'Scale'
   | 'Activity'
+  | 'ArrowDownToLine'
+  | 'ArrowRightLeft'
 
 export type NavShortcut = 'F8'
 
@@ -128,6 +130,13 @@ export const NAV_GROUPS: NavGroup[] = [
         href: '/relatorios',
         label: 'Central de Relatórios',
         icon: 'FileSpreadsheet',
+        permission: 'relatorios.visualizar',
+        module: 'RELATORIOS',
+      },
+      {
+        href: '/admin/auditoria',
+        label: 'Auditoria Geral',
+        icon: 'History',
         permission: 'relatorios.visualizar',
         module: 'RELATORIOS',
       },
@@ -359,6 +368,18 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: 'controle-doses',
+    label: 'Controle de doses',
+    icon: 'Activity',
+    items: [
+      { href: '/admin/doses', label: 'Lista e saldo', icon: 'ClipboardList', permission: 'estoque.visualizar', module: 'CONTROLE_DOSES' },
+      { href: '/admin/doses/rotulos', label: 'Cadastro de rótulo', icon: 'Tags', permission: 'estoque.movimentar', module: 'CONTROLE_DOSES' },
+      { href: '/admin/doses/aferir', label: 'Aferir rótulo', icon: 'Scale', permission: 'estoque.movimentar', module: 'CONTROLE_DOSES' },
+      { href: '/admin/doses/historico', label: 'Histórico de aferições', icon: 'History', permission: 'estoque.visualizar', module: 'CONTROLE_DOSES' },
+      { href: '/admin/doses/conciliacao', label: 'Doses x vendas', icon: 'ChartColumn', permission: 'estoque.visualizar', module: 'CONTROLE_DOSES' },
+    ],
+  },
+  {
     id: 'cardapio',
     label: 'Cardápio',
     icon: 'UtensilsCrossed',
@@ -567,6 +588,20 @@ export const NAV_GROUPS: NavGroup[] = [
         module: 'CAIXA',
       },
       {
+        href: '/caixa/sangria',
+        label: 'Sangria',
+        icon: 'ArrowDownToLine',
+        permission: 'caixa.movimentar',
+        module: 'CAIXA',
+      },
+      {
+        href: '/caixa/transferir',
+        label: 'Transferir Caixa',
+        icon: 'ArrowRightLeft',
+        permission: 'caixa.movimentar',
+        module: 'CAIXA',
+      },
+      {
         href: '/caixa/historico',
         label: 'Histórico de Caixas',
         icon: 'History',
@@ -586,6 +621,27 @@ export const NAV_GROUPS: NavGroup[] = [
         icon: 'PackageSearch',
         permission: 'fiscal.visualizar',
         module: 'FISCAL',
+      },
+      {
+        href: '/fiscal/cfe-sat',
+        label: 'Listar CF-e (SAT)',
+        icon: 'FileText',
+        permission: 'fiscal.visualizar',
+        module: 'CFE_SAT',
+      },
+      {
+        href: '/fiscal/cfe-sat/emitir',
+        label: 'Emitir CF-e (SAT)',
+        icon: 'FileText',
+        permission: 'fiscal.emitir',
+        module: 'CFE_SAT',
+      },
+      {
+        href: '/fiscal/cfe-sat/configuracao',
+        label: 'Configurar SAT',
+        icon: 'Settings',
+        permission: 'fiscal.configurar',
+        module: 'CFE_SAT',
       },
     ],
   },
@@ -776,7 +832,7 @@ export function visibleNavGroups(user: NavUser | null | undefined): VisibleNavGr
   }
 
   if (user?.role === 'ESTOQUISTA') {
-    return visible.filter(({ group }) => group.id === 'estoque')
+    return visible.filter(({ group }) => ['estoque', 'controle-doses'].includes(group.id))
   }
 
   return visible
@@ -806,14 +862,14 @@ export function buildSidebarVisualSections(
       id: 'caixa',
       label: 'CAIXA',
       groupIds: ['caixa'],
-      itemFilter: item => ['/caixa', '/caixa/fechamento', '/caixa/historico'].includes(item.href),
+      itemFilter: item => ['/caixa', '/caixa/fechamento', '/caixa/sangria', '/caixa/transferir', '/caixa/historico'].includes(item.href),
     },
     { id: 'financeiro', label: 'FINANCEIRO', groupIds: ['financeiro'] },
     {
       id: 'nota-fiscal',
       label: 'NOTA FISCAL',
       groupIds: ['caixa', 'administracao'],
-      itemFilter: item => ['/fiscal/notas', '/fiscal/radar-xml', '/admin/fiscal'].includes(item.href),
+      itemFilter: item => ['/fiscal/notas', '/fiscal/radar-xml', '/fiscal/cfe-sat', '/fiscal/cfe-sat/emitir', '/fiscal/cfe-sat/configuracao', '/admin/fiscal'].includes(item.href),
     },
     { id: 'ponto', label: 'CONTROLE DE PONTO', groupIds: ['ponto'] },
     { id: 'cadastros', label: 'CADASTROS', groupIds: ['cadastros'] },

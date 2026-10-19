@@ -9,6 +9,13 @@ export type PaymentSummary = {
   configuracaoBloqueada: boolean
   pagoAteAgora: number
   saldoRestante: number
+  pagamentos?: Array<{
+    id: number
+    tipo: string
+    valor: number
+    status: string
+    criadoEm: string
+  }>
 }
 
 export function roundMoney(value: number): number {

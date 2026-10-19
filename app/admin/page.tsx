@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Eye,
   History,
+  ShieldCheck,
   LockKeyhole,
   Trash2,
 } from 'lucide-react'
@@ -81,6 +82,13 @@ export default function AdminDashboard() {
       label: 'Histórico',
       description: 'Consultar pedidos e cancelamentos por dia',
       icon: History,
+      color: 'bg-slate-100 text-slate-700'
+    },
+    {
+      href: '/admin/auditoria',
+      label: 'Auditoria geral',
+      description: 'Ver quem lançou, cancelou ou transferiu',
+      icon: ShieldCheck,
       color: 'bg-slate-100 text-slate-700'
     }
   ]

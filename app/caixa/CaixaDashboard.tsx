@@ -5,6 +5,7 @@ import { tenantPageUrl } from '@/app/lib/tenant-navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowDownToLine,
+  ArrowRightLeft,
   ArrowUpFromLine,
   Banknote,
   CheckCircle2,
@@ -19,7 +20,7 @@ import { apiFetch } from '@/app/lib/api'
 import { Switch } from '@/app/components/ui/Switch'
 import { PageLoader } from '@/app/components/ui/PageLoader'
 
-type MovementType = 'SANGRIA' | 'SUPRIMENTO' | 'AJUSTE'
+type MovementType = 'SANGRIA' | 'SUPRIMENTO' | 'AJUSTE' | 'TRANSFERENCIA'
 
 type Movement = {
   id: number
@@ -32,6 +33,7 @@ type Movement = {
 
 type CashStatus = {
   aberto: boolean
+  responsavelAtual?: { id: number; nome: string; role: string } | null
   caixa: {
     id: number
     status: string
@@ -126,6 +128,10 @@ export default function CaixaDashboard({ fechamento = false }: CashPanelProps) {
       return
     }
     if (showMovement === 'SANGRIA') {
+      if (descricao.trim().length < 5) {
+        showToast('Informe o motivo da sangria com pelo menos 5 caracteres.', 'error')
+        return
+      }
       try {
         setSaving(true)
         const response = await apiFetch<{ impressao?: { success: boolean } }>('/caixa/movimentos', {
@@ -218,7 +224,7 @@ export default function CaixaDashboard({ fechamento = false }: CashPanelProps) {
 
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-8 lg:px-8">
-      <PageHeading title={fechamento ? 'Fechamento do Caixa' : 'Caixa do Dia'} subtitle={`Caixa #${data.caixa.id} aberto em ${dateTime.format(new Date(data.caixa.abertoEm))}`} onRefresh={loadStatus} />
+      <PageHeading title={fechamento ? 'Fechamento do Caixa' : 'Caixa do Dia'} subtitle={`Caixa #${data.caixa.id} aberto em ${dateTime.format(new Date(data.caixa.abertoEm))}${data.responsavelAtual?.nome ? ` · Responsável: ${data.responsavelAtual.nome}` : ''}`} onRefresh={loadStatus} />
       <CashTabs fechamento={fechamento} />
 
       {fechamento && <Switch
@@ -258,7 +264,7 @@ export default function CaixaDashboard({ fechamento = false }: CashPanelProps) {
       </div>
 
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-lg font-bold text-slate-900">Conferência</h2><p className="mt-1 text-sm text-slate-500">Conte o dinheiro físico e compare com o valor esperado.</p></div>{!fechamento && <div className="flex gap-2"><button onClick={() => setShowMovement('SANGRIA')} className="inline-flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-100"><ArrowDownToLine size={16} /> Sangria</button><button onClick={() => setShowMovement('SUPRIMENTO')} className="inline-flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-100"><ArrowUpFromLine size={16} /> Suprimento</button></div>}</div>
+        <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-lg font-bold text-slate-900">Conferência</h2><p className="mt-1 text-sm text-slate-500">Conte o dinheiro físico e compare com o valor esperado.</p></div>{!fechamento && <div className="flex flex-wrap gap-2"><Link href="/caixa/sangria" className="inline-flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-100"><ArrowDownToLine size={16} /> Sangria</Link><Link href="/caixa/transferir" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:border-orange-300 hover:text-orange-700"><ArrowRightLeft size={16} /> Transferir caixa</Link><button onClick={() => setShowMovement('SUPRIMENTO')} className="inline-flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-100"><ArrowUpFromLine size={16} /> Suprimento</button></div>}</div>
         {fechamento ? <div className="mt-6 grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end"><label className="block text-sm font-semibold text-slate-700">Saldo contado<input value={saldoInformado} onChange={event => setSaldoInformado(event.target.value)} type="number" min="0" step="0.01" placeholder="0,00" className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-lg font-semibold outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100" /></label><label className="block text-sm font-semibold text-slate-700">Observação<input value={observacao} onChange={event => setObservacao(event.target.value)} placeholder="Opcional" className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100" /></label><button onClick={closeCash} disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-bold text-white hover:bg-slate-800 disabled:opacity-60"><LockKeyhole size={18} /> Fechar caixa</button></div> : <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl bg-slate-50 p-4"><div><p className="text-sm font-semibold text-slate-700">Pronto para conferir?</p><p className="mt-1 text-sm text-slate-500">O fechamento registra o saldo contado e eventuais diferenças.</p></div><Link href="/caixa/fechamento" className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-bold text-white hover:bg-slate-800"><LockKeyhole size={18} /> Ir para fechamento</Link></div>}
         {difference !== null && <p className={`mt-4 text-sm font-bold ${difference === 0 ? 'text-emerald-700' : difference > 0 ? 'text-blue-700' : 'text-red-700'}`}>Diferença da conferência: {formatMoney(difference)}</p>}
       </section>
@@ -295,7 +301,8 @@ function Metric({ label, value, icon, accent = 'orange' }: { label: string; valu
 
 function MovementRow({ movement }: { movement: Movement }) {
   const sangria = movement.tipo === 'SANGRIA'
-  return <div className="flex items-center justify-between gap-3 py-3"><div className="flex min-w-0 items-center gap-3"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${sangria ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>{sangria ? <ArrowDownToLine size={16} /> : <ArrowUpFromLine size={16} />}</span><div className="min-w-0"><p className="truncate text-sm font-bold text-slate-700">{sangria ? 'Sangria' : movement.tipo === 'SUPRIMENTO' ? 'Suprimento' : 'Ajuste'}</p><p className="text-xs text-slate-600">{movement.descricao || dateTime.format(new Date(movement.criadoEm))}</p></div></div><strong className={`shrink-0 text-sm ${sangria ? 'text-red-700' : 'text-emerald-700'}`}>{sangria ? '-' : '+'}{formatMoney(movement.valor)}</strong></div>
+  const transferencia = movement.tipo === 'TRANSFERENCIA'
+  return <div className="flex items-center justify-between gap-3 py-3"><div className="flex min-w-0 items-center gap-3"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${sangria ? 'bg-red-50 text-red-600' : transferencia ? 'bg-orange-50 text-orange-700' : 'bg-emerald-50 text-emerald-600'}`}>{sangria ? <ArrowDownToLine size={16} /> : transferencia ? <ArrowRightLeft size={16} /> : <ArrowUpFromLine size={16} />}</span><div className="min-w-0"><p className="truncate text-sm font-bold text-slate-700">{sangria ? 'Sangria' : transferencia ? 'Transferência de responsabilidade' : movement.tipo === 'SUPRIMENTO' ? 'Suprimento' : 'Ajuste'}</p><p className="text-xs text-slate-600">{movement.descricao || dateTime.format(new Date(movement.criadoEm))}</p></div></div>{transferencia ? <span className="shrink-0 text-xs font-bold text-orange-700">Sem alteração no saldo</span> : <strong className={`shrink-0 text-sm ${sangria ? 'text-red-700' : 'text-emerald-700'}`}>{sangria ? '-' : '+'}{formatMoney(movement.valor)}</strong>}</div>
 }
 
 function MovementModal({ type, value, description, saving, onValueChange, onDescriptionChange, onClose, onSubmit }: { type: MovementType; value: string; description: string; saving: boolean; onValueChange: (value: string) => void; onDescriptionChange: (value: string) => void; onClose: () => void; onSubmit: () => void }) {

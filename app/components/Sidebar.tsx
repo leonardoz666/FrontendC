@@ -5,6 +5,8 @@ import Link from '@/app/components/TenantLink'
 import { usePathname } from 'next/navigation'
 import {
   Activity,
+  ArrowDownToLine,
+  ArrowRightLeft,
   Armchair,
   Bike,
   Boxes,
@@ -69,6 +71,8 @@ import { operationalPathname } from '@/app/lib/tenant-navigation'
 
 const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   Activity,
+  ArrowDownToLine,
+  ArrowRightLeft,
   LayoutDashboard,
   ChartColumn,
   Armchair,

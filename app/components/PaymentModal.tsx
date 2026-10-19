@@ -19,6 +19,15 @@ const ROTULOS_METODO: Record<PaymentMethod, string> = {
     VALE_REFEICAO: 'Vale-refeição', VALE_ALIMENTACAO: 'Vale-alimentação', VOUCHER: 'Voucher'
 }
 
+const formatCurrency = (value: number) => `R$ ${value.toFixed(2).replace('.', ',')}`
+
+const formatPaymentLabel = (method: string) => {
+    const normalized = method.replace(/^CARTAO_CREDITO_/, 'CARTAO_CREDITO:')
+    const [type, brand] = normalized.split(':')
+    const label = ROTULOS_METODO[type as PaymentMethod] ?? type.replaceAll('_', ' ').toLocaleLowerCase('pt-BR')
+    return brand ? `${label} · ${brand.replaceAll('_', ' ')}` : label
+}
+
 type PaymentItem = {
     id: number | string
     nome: string
@@ -56,6 +65,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrder
     const [discountEnabled, setDiscountEnabled] = useState(false)
     const [discountPercent, setDiscountPercent] = useState('')
     const [metodosAtivos, setMetodosAtivos] = useState<PaymentMethod[]>(METODOS_PADRAO)
+    const [detailsTab, setDetailsTab] = useState<'PAYMENTS' | 'CONSUMPTION'>('PAYMENTS')
 
     const [splitMode, setSplitMode] = useState<'PEOPLE' | 'ITEMS'>('PEOPLE')
     const [selectedItemIds, setSelectedItemIds] = useState<Set<string | number>>(new Set())
@@ -90,6 +100,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrder
     const cashValid = amountPaid.trim() !== '' && Number.isFinite(received) && received >= valueToPay
     const change = Number.isFinite(received) ? roundMoney(received - valueToPay) : 0
     const pagoParcialInfo = summary && summary.pagoAteAgora > 0 ? summary : null
+    const paymentHistory = summary?.pagamentos ?? []
 
     const loadSummary = useCallback(async (signal?: AbortSignal) => {
         setSummaryLoading(true)
@@ -161,14 +172,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrder
                 onClose()
             } else {
                 showToast(`Pagamento de R$ ${valueToPay.toFixed(2)} registrado! Restam R$ ${data.saldoRestante.toFixed(2)}`, 'success')
-                setSummary(previous => previous ? {
-                    ...previous,
-                    totalFinal: data.totalFinal,
-                    saldoRestante: data.saldoRestante,
-                    pagoAteAgora: data.pagoAteAgora,
-                    ajuste: roundMoney(data.totalFinal - previous.subtotal),
-                    configuracaoBloqueada: true
-                } : null)
+                await loadSummary()
                 if (splitMode === 'PEOPLE') setSplitCount(count => Math.max(1, count - 1))
                 setSelectedItemIds(new Set())
                 setAmountPaid('')
@@ -223,6 +227,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrder
             setSelectedItemIds(new Set())
             setSplitCount(1)
             setSplitMode('PEOPLE')
+            setDetailsTab('PAYMENTS')
             setEmitirNfce(false)
             setIncludeService(!isCounter)
             setDiscountEnabled(false)
@@ -267,6 +272,20 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrder
                         </div>
                     )}
                     <fieldset disabled={processing || summaryLoading || !summary} className="mx-auto min-h-full w-full max-w-7xl bg-white shadow-sm">
+                    <div className="grid grid-cols-2 border-b border-gray-200 bg-white lg:grid-cols-5">
+                        {[
+                            { label: 'Consumo', value: baseSubtotal, tone: 'text-teal-700' },
+                            { label: 'Desconto', value: discountValue, tone: 'text-blue-700' },
+                            { label: 'Recebimentos', value: summary?.pagoAteAgora ?? 0, tone: 'text-blue-700' },
+                            { label: 'A pagar agora', value: balance, tone: 'text-red-700' },
+                            { label: includeService ? 'Total com taxa' : 'Total sem taxa', value: fullFinalTotal, tone: 'text-red-700' },
+                        ].map(metric => (
+                            <div key={metric.label} className="border-b border-r border-gray-100 px-4 py-4 last:col-span-2 last:border-r-0 lg:border-b-0 lg:last:col-span-1 sm:px-6">
+                                <p className="text-sm font-medium text-gray-600">{metric.label}</p>
+                                <p className={`mt-1 text-2xl font-bold tabular-nums sm:text-3xl ${metric.tone}`}>{formatCurrency(metric.value)}</p>
+                            </div>
+                        ))}
+                    </div>
                     {/* Mode Switcher */}
                     <div className="grid grid-cols-2 border-b border-gray-200 bg-white">
                         <button
@@ -599,6 +618,97 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrder
                         )}
                         </div>
                     </div>
+
+                    <section className="border-t border-gray-200 bg-white px-4 py-6 sm:px-6 lg:px-8" aria-labelledby="payment-details-title">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <h3 id="payment-details-title" className="text-lg font-bold text-gray-900">Detalhes da conta</h3>
+                                <p className="mt-1 text-sm text-gray-600">Confira o que foi consumido e os recebimentos já registrados.</p>
+                            </div>
+                            <div className="inline-flex w-full rounded-lg bg-gray-100 p-1 sm:w-auto" role="tablist" aria-label="Detalhes da conta">
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={detailsTab === 'PAYMENTS'}
+                                    onClick={() => setDetailsTab('PAYMENTS')}
+                                    className={`min-h-10 flex-1 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 sm:flex-none ${detailsTab === 'PAYMENTS' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                >
+                                    Recebimentos ({paymentHistory.length})
+                                </button>
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={detailsTab === 'CONSUMPTION'}
+                                    onClick={() => setDetailsTab('CONSUMPTION')}
+                                    className={`min-h-10 flex-1 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 sm:flex-none ${detailsTab === 'CONSUMPTION' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                >
+                                    Consumo ({items.length})
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 overflow-hidden rounded-xl border border-gray-200">
+                            {detailsTab === 'PAYMENTS' ? (
+                                paymentHistory.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full min-w-[620px] text-left text-sm">
+                                            <thead className="bg-gray-50 text-gray-600">
+                                                <tr>
+                                                    <th scope="col" className="px-4 py-3 font-semibold">Data</th>
+                                                    <th scope="col" className="px-4 py-3 font-semibold">Pagamento</th>
+                                                    <th scope="col" className="px-4 py-3 text-right font-semibold">Valor</th>
+                                                    <th scope="col" className="px-4 py-3 font-semibold">Situação</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 bg-white">
+                                                {paymentHistory.map(payment => (
+                                                    <tr key={payment.id}>
+                                                        <td className="whitespace-nowrap px-4 py-3 text-gray-600">{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(payment.criadoEm))}</td>
+                                                        <td className="px-4 py-3 font-medium text-gray-900">{formatPaymentLabel(payment.tipo)}</td>
+                                                        <td className="whitespace-nowrap px-4 py-3 text-right font-bold tabular-nums text-gray-900">{formatCurrency(payment.valor)}</td>
+                                                        <td className="px-4 py-3"><span className="inline-flex rounded-md bg-green-50 px-2 py-1 text-xs font-semibold text-green-800">Recebido</span></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="px-4 py-8 text-center">
+                                        <p className="font-semibold text-gray-800">Nenhum recebimento registrado</p>
+                                        <p className="mt-1 text-sm text-gray-600">Escolha uma forma de pagamento para iniciar o recebimento.</p>
+                                    </div>
+                                )
+                            ) : items.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full min-w-[560px] text-left text-sm">
+                                        <thead className="bg-gray-50 text-gray-600">
+                                            <tr>
+                                                <th scope="col" className="px-4 py-3 font-semibold">Item</th>
+                                                <th scope="col" className="px-4 py-3 text-center font-semibold">Quantidade</th>
+                                                <th scope="col" className="px-4 py-3 text-right font-semibold">Unitário</th>
+                                                <th scope="col" className="px-4 py-3 text-right font-semibold">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 bg-white">
+                                            {items.map(item => (
+                                                <tr key={item.id}>
+                                                    <td className="px-4 py-3 font-medium text-gray-900">{item.nome}</td>
+                                                    <td className="px-4 py-3 text-center tabular-nums text-gray-600">{item.quantidade}</td>
+                                                    <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-gray-600">{formatCurrency(item.preco)}</td>
+                                                    <td className="whitespace-nowrap px-4 py-3 text-right font-bold tabular-nums text-gray-900">{formatCurrency(item.preco * item.quantidade)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="px-4 py-8 text-center">
+                                    <p className="font-semibold text-gray-800">Nenhum item na conta</p>
+                                    <p className="mt-1 text-sm text-gray-600">Adicione itens à comanda antes de receber.</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
                     </fieldset>
                 </div>
 
