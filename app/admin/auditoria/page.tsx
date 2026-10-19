@@ -246,15 +246,21 @@ export default function GeneralAuditPage() {
             <Link href="/admin" className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
               <ArrowLeft size={16} aria-hidden="true" /> Painel
             </Link>
-            <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-950"><ShieldCheck className="text-orange-600" aria-hidden="true" /> Auditoria geral</h1>
-            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">Veja quem lançou, cancelou, transferiu ou alterou informações do estabelecimento.</p>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-950"><ShieldCheck className="text-orange-600" aria-hidden="true" /> Atividades</h1>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">Veja o que aconteceu no estabelecimento, quando aconteceu e quem foi responsável.</p>
           </div>
-          <Link href="/admin/historico" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
-            <History size={17} aria-hidden="true" /> Histórico de pedidos
-          </Link>
         </header>
 
-        <form onSubmit={applyFilters} className="border-b border-slate-200 py-5" aria-label="Filtros da auditoria">
+        <nav aria-label="Assuntos das atividades" className="flex gap-1 border-b border-slate-200 py-3">
+          <Link href="/admin/atividades" aria-current="page" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2">
+            <ShieldCheck size={17} aria-hidden="true" /> Todas as atividades
+          </Link>
+          <Link href="/admin/historico" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+            <History size={17} aria-hidden="true" /> Pedidos e cancelamentos
+          </Link>
+        </nav>
+
+        <form onSubmit={applyFilters} className="border-b border-slate-200 py-5" aria-label="Filtros das atividades">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.2fr_1.2fr]">
             <FilterField label="Data inicial">
               <input type="date" value={draft.inicio} max={draft.fim} onChange={event => setDraft(current => ({ ...current, inicio: event.target.value }))} className={INPUT_CLASS} />
@@ -268,7 +274,7 @@ export default function GeneralAuditPage() {
                 {(result?.filters.actions ?? []).map(action => <option key={action} value={action}>{actionLabel(action)}</option>)}
               </select>
             </FilterField>
-            <FilterField label="Área / registro">
+            <FilterField label="Assunto">
               <select value={draft.entidade} onChange={event => setDraft(current => ({ ...current, entidade: event.target.value }))} className={INPUT_CLASS}>
                 <option value="TODAS">Todas as áreas</option>
                 {(result?.filters.entities ?? []).map(entity => <option key={entity} value={entity}>{entityLabel(entity)}</option>)}
@@ -297,7 +303,7 @@ export default function GeneralAuditPage() {
         </form>
 
         {result && (
-          <section aria-label="Resumo da auditoria" className="flex flex-wrap gap-x-8 gap-y-3 border-b border-slate-200 py-4">
+          <section aria-label="Resumo das atividades" className="flex flex-wrap gap-x-8 gap-y-3 border-b border-slate-200 py-4">
             <Stat label="Registros" value={result.summary.total} />
             <Stat label="Criações e lançamentos" value={stats.CRIAR ?? 0} />
             <Stat label="Cancelamentos" value={stats.CANCELAR ?? 0} tone="danger" />
@@ -311,7 +317,7 @@ export default function GeneralAuditPage() {
           </div>
         )}
 
-        {loading && !result && <PageLoader compact message="Carregando auditoria" detail="Organizando as ações do estabelecimento" />}
+        {loading && !result && <PageLoader compact message="Carregando atividades" detail="Organizando as ações do estabelecimento" />}
 
         {!loading && !error && result?.data.length === 0 && (
           <div className="py-16 text-center">
@@ -322,7 +328,7 @@ export default function GeneralAuditPage() {
         )}
 
         {result && result.data.length > 0 && (
-          <section className={`mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white ${loading ? 'opacity-60' : ''}`} aria-label="Registros da auditoria" aria-busy={loading}>
+          <section className={`mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white ${loading ? 'opacity-60' : ''}`} aria-label="Registros de atividades" aria-busy={loading}>
             <div className="hidden grid-cols-[150px_130px_minmax(280px,1fr)_190px_40px] gap-4 border-b border-slate-200 bg-slate-100 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-600 lg:grid">
               <span>Data e hora</span><span>Ação</span><span>O que aconteceu</span><span>Responsável</span><span aria-hidden="true" />
             </div>
@@ -357,7 +363,7 @@ export default function GeneralAuditPage() {
         )}
 
         {result && result.meta.totalPages > 1 && (
-          <nav aria-label="Paginação da auditoria" className="flex items-center justify-between border-t border-slate-200 py-5">
+          <nav aria-label="Paginação das atividades" className="flex items-center justify-between border-t border-slate-200 py-5">
             <p className="text-sm text-slate-600">Página {result.meta.page} de {result.meta.totalPages} · {result.meta.total} registros</p>
             <div className="flex gap-2">
               <button type="button" onClick={() => { setExpanded(null); setPage(current => Math.max(1, current - 1)) }} disabled={page <= 1 || loading} aria-label="Página anterior" className="rounded-lg border border-slate-300 bg-white p-2 text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-40"><ChevronLeft size={18} /></button>

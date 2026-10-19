@@ -78,16 +78,9 @@ export default function AdminDashboard() {
       color: 'bg-slate-100 text-slate-700'
     },
     {
-      href: '/admin/historico',
-      label: 'Histórico',
-      description: 'Consultar pedidos e cancelamentos por dia',
-      icon: History,
-      color: 'bg-slate-100 text-slate-700'
-    },
-    {
-      href: '/admin/auditoria',
-      label: 'Auditoria geral',
-      description: 'Ver quem lançou, cancelou ou transferiu',
+      href: '/admin/atividades',
+      label: 'Atividades',
+      description: 'Consultar ações, pedidos e cancelamentos por assunto',
       icon: ShieldCheck,
       color: 'bg-slate-100 text-slate-700'
     }

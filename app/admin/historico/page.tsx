@@ -271,6 +271,15 @@ export default function HistoricoPedidosPage() {
           </div>
         </header>
 
+        <nav aria-label="Assuntos das atividades" className="flex gap-1 border-b border-slate-200 py-3">
+          <Link href="/admin/atividades" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+            Todas as atividades
+          </Link>
+          <Link href="/admin/historico" aria-current="page" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2">
+            <History size={17} aria-hidden="true" /> Pedidos e cancelamentos
+          </Link>
+        </nav>
+
         <section aria-label="Filtros do histórico" className="grid gap-4 border-b border-slate-200 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end">
           <label className="text-sm font-semibold text-slate-800">Data inicial
             <input type="date" value={inicio} max={fim} onChange={event => { setInicio(event.target.value); setPagina(1) }} className="mt-1.5 block h-11 w-full rounded-md border border-slate-300 bg-white px-3 font-normal text-slate-950" />

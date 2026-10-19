@@ -134,8 +134,8 @@ export const NAV_GROUPS: NavGroup[] = [
         module: 'RELATORIOS',
       },
       {
-        href: '/admin/auditoria',
-        label: 'Auditoria Geral',
+        href: '/admin/atividades',
+        label: 'Atividades',
         icon: 'History',
         permission: 'relatorios.visualizar',
         module: 'RELATORIOS',
@@ -932,6 +932,7 @@ export function findActiveNavItem(
 
 const NON_NAV_MODULE_ROUTES: ReadonlyArray<{ prefix: string; module: ModuleKey }> = [
   { prefix: '/mesas-abertas', module: 'MESAS' },
+  { prefix: '/admin/auditoria', module: 'RELATORIOS' },
   { prefix: '/admin/historico', module: 'RELATORIOS' },
   { prefix: '/admin/dispositivos', module: 'IMPRESSAO' },
   { prefix: '/admin/estoque/registro', module: 'ESTOQUE' },
