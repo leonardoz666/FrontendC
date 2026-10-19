@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { CheckCircle2, CircleDollarSign, FileText, Users, X } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 import { LoadingMark } from '@/app/components/ui/PageLoader'
+import { Modal } from '@/app/components/ui/Modal'
 
 interface RequestBillModalProps {
   isOpen: boolean
@@ -22,14 +22,7 @@ export function RequestBillModal({ isOpen, mesaId, onClose, onRequestSuccess }: 
   useEffect(() => {
     if (!isOpen) return
     setSplitPeople('1')
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previousOverflow
-    }
   }, [isOpen])
-
-  if (!isOpen) return null
 
   const handleRequestBill = async () => {
     setPendingAction('request')
@@ -64,28 +57,8 @@ export function RequestBillModal({ isOpen, mesaId, onClose, onRequestSuccess }: 
     }
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/55 p-3 backdrop-blur-sm sm:p-4"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !pendingAction) onClose()
-      }}
-    >
-      <div role="dialog" aria-modal="true" aria-labelledby="request-bill-title" className="w-full max-w-md overflow-hidden rounded-xl bg-white text-black shadow-2xl">
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-5 text-white">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 id="request-bill-title" className="flex items-center gap-2 text-xl font-bold">
-                <CircleDollarSign size={22} /> Solicitação de conta
-              </h2>
-              <p className="mt-1 text-sm text-orange-100">Selecione uma opção abaixo</p>
-            </div>
-            <button type="button" onClick={onClose} disabled={Boolean(pendingAction)} aria-label="Fechar" className="rounded-md p-1.5 text-white/80 hover:bg-white/10 hover:text-white disabled:opacity-50">
-              <X size={20} />
-            </button>
-          </div>
-        </div>
-
+  return (
+    <Modal open={isOpen} onClose={onClose} title={<span className="flex items-center gap-2"><CircleDollarSign size={22} aria-hidden="true" /> Solicitação de conta</span>} description="Selecione uma opção abaixo." size="sm" isLoading={Boolean(pendingAction)} mobileSheet>
         <div className="space-y-6 p-6">
           <div>
             <label htmlFor="request-bill-people" className="mb-2 block text-sm font-bold text-black">Dividir para quantas pessoas?</label>
@@ -117,8 +90,6 @@ export function RequestBillModal({ isOpen, mesaId, onClose, onRequestSuccess }: 
             </button>
           </div>
         </div>
-      </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }

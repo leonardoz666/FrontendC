@@ -12,6 +12,7 @@ import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
 import { InlineLoader } from '@/app/components/ui/PageLoader'
 import { errorMessageFromUnknown } from '@/app/lib/error-message'
+import { TextPromptModal } from '@/app/components/ui/TextPromptModal'
 
 type PessoaXml = {
   documento: string | null
@@ -111,6 +112,7 @@ export default function RadarXmlPage() {
   const [importando, setImportando] = useState(false)
   const [manifestandoId, setManifestandoId] = useState<number | null>(null)
   const [manifestacoes, setManifestacoes] = useState<Record<number, TipoManifestacao>>({})
+  const [justificativaItem, setJustificativaItem] = useState<XmlRecebido | null>(null)
   const [activeTab, setActiveTab] = useState<'sefaz' | 'manual'>('sefaz')
   const lista = useListaCrud('/fiscal/radar-xml/recebidos')
   const recebidosQuery = usePagedQuery<XmlRecebido>({
@@ -218,15 +220,14 @@ export default function RadarXmlPage() {
 
   const manifestar = async (item: XmlRecebido) => {
     const tipo = manifestacoes[item.id] ?? 'CIENCIA'
-    let justificativa: string | undefined
     if (tipo === 'NAO_REALIZADA') {
-      justificativa = window.prompt('Informe o motivo da operação não realizada (mínimo de 15 caracteres):')?.trim()
-      if (!justificativa) return
-      if (justificativa.length < 15) {
-        showToast('A justificativa deve ter pelo menos 15 caracteres', 'warning')
-        return
-      }
+      setJustificativaItem(item)
+      return
     }
+    await enviarManifestacao(item, tipo)
+  }
+
+  const enviarManifestacao = async (item: XmlRecebido, tipo: TipoManifestacao, justificativa?: string) => {
     setManifestandoId(item.id)
     try {
       const resposta = await apiFetch<{ avisoConsulta: string | null }>(`/fiscal/radar-xml/recebidos/${item.id}/manifestar`, {
@@ -573,6 +574,24 @@ export default function RadarXmlPage() {
           ariaLabel="XMLs recebidos"
         />
       </section>}
+      <TextPromptModal
+        open={Boolean(justificativaItem)}
+        onClose={() => setJustificativaItem(null)}
+        title="Informar motivo da operação"
+        description="A justificativa será enviada à SEFAZ e ficará registrada no documento."
+        label="Motivo da operação não realizada"
+        placeholder="Explique o que impediu a operação"
+        minLength={15}
+        required
+        multiline
+        confirmLabel="Enviar manifestação"
+        isLoading={Boolean(justificativaItem && manifestandoId === justificativaItem.id)}
+        onConfirm={async justificativa => {
+          if (!justificativaItem) return
+          await enviarManifestacao(justificativaItem, 'NAO_REALIZADA', justificativa)
+          setJustificativaItem(null)
+        }}
+      />
     </div>
   )
 }

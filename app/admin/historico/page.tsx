@@ -7,6 +7,7 @@ import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 import { PageLoader } from '@/app/components/ui/PageLoader'
 import { ActionableError } from '@/app/components/ui/ActionableError'
+import { Modal } from '@/app/components/ui/Modal'
 
 type HistoricoItem = {
   id: number
@@ -397,26 +398,24 @@ export default function HistoricoPedidosPage() {
         )}
       </div>
 
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
-          <div role="dialog" aria-modal="true" aria-labelledby="delete-history-title" className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-red-200 bg-red-600 px-5 py-4 text-white">
-              <div><h2 id="delete-history-title" className="text-lg font-bold">Excluir histórico filtrado</h2><p className="mt-0.5 text-sm text-red-50">{resultado?.meta.total ?? 0} registro(s) no período atual</p></div>
-              <button type="button" onClick={() => setShowDeleteModal(false)} disabled={acaoEmAndamento === 'EXCLUIR'} aria-label="Fechar" className="rounded p-1.5 hover:bg-red-700 disabled:opacity-50"><X size={20} /></button>
-            </div>
-            <div className="px-5 py-5">
-              <div className="border-l-4 border-amber-500 bg-amber-50 px-3 py-2.5 text-sm text-amber-950">Os registros deixarão de aparecer no histórico, mas pedidos, pagamentos, estoque e dados fiscais serão preservados.</div>
-              <label htmlFor="history-password" className="mt-4 block text-sm font-semibold text-slate-900">Senha de login do usuário atual</label>
-              <div className="relative mt-1.5"><LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input id="history-password" type="password" value={senhaExclusao} onChange={event => setSenhaExclusao(event.target.value)} autoComplete="current-password" autoFocus className="h-11 w-full rounded-md border border-slate-300 pl-10 pr-3 text-slate-950 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100" /></div>
-              <p className="mt-1.5 text-xs text-slate-500">A senha é usada somente para confirmar esta operação e não é armazenada.</p>
-            </div>
-            <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
-              <button type="button" onClick={() => setShowDeleteModal(false)} disabled={acaoEmAndamento === 'EXCLUIR'} className="h-10 rounded-md border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">Cancelar</button>
-              <button type="button" onClick={() => void excluir()} disabled={!senhaExclusao || acaoEmAndamento === 'EXCLUIR'} className="inline-flex h-10 items-center gap-2 rounded-md bg-red-600 px-4 font-semibold text-white hover:bg-red-700 disabled:opacity-50">{acaoEmAndamento === 'EXCLUIR' ? <Loader2 size={17} className="animate-spin" /> : <Trash2 size={17} />} Excluir histórico</button>
-            </div>
-          </div>
+      <Modal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Excluir histórico filtrado"
+        description={`${resultado?.meta.total ?? 0} registro(s) no período atual`}
+        role="alertdialog"
+        isLoading={acaoEmAndamento === 'EXCLUIR'}
+        size="sm"
+        mobileSheet
+        footer={<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" onClick={() => setShowDeleteModal(false)} disabled={acaoEmAndamento === 'EXCLUIR'} className="h-11 rounded-lg border border-slate-300 bg-white px-4 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">Cancelar</button><button type="button" onClick={() => void excluir()} disabled={!senhaExclusao || acaoEmAndamento === 'EXCLUIR'} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 font-semibold text-white hover:bg-red-700 disabled:opacity-50">{acaoEmAndamento === 'EXCLUIR' ? <Loader2 size={17} className="animate-spin" /> : <Trash2 size={17} />} Excluir histórico</button></div>}
+      >
+        <div className="px-5 py-5">
+          <div className="border-l-4 border-amber-500 bg-amber-50 px-3 py-2.5 text-sm text-amber-950">Os registros deixarão de aparecer no histórico, mas pedidos, pagamentos, estoque e dados fiscais serão preservados.</div>
+          <label htmlFor="history-password" className="mt-4 block text-sm font-semibold text-slate-900">Senha de login do usuário atual</label>
+          <div className="relative mt-1.5"><LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input id="history-password" type="password" value={senhaExclusao} onChange={event => setSenhaExclusao(event.target.value)} autoComplete="current-password" className="h-11 w-full rounded-md border border-slate-300 pl-10 pr-3 text-slate-950 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100" /></div>
+          <p className="mt-1.5 text-xs text-slate-500">A senha é usada somente para confirmar esta operação e não é armazenada.</p>
         </div>
-      )}
+      </Modal>
     </main>
   )
 }
