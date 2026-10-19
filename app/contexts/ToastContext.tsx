@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react'
+import { actionableErrorMessage } from '@/app/lib/error-message'
 
 type ToastType = 'success' | 'error' | 'info' | 'warning'
 
@@ -45,7 +46,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = ++nextId.current
-    setToasts(prev => [...prev, { id, message, type }])
+    const visibleMessage = type === 'error' ? actionableErrorMessage(message) : message
+    setToasts(prev => [...prev, { id, message: visibleMessage, type }])
     const timer = setTimeout(() => {
       timers.current.delete(id)
       removeToast(id)
