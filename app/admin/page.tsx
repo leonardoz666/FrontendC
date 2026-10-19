@@ -15,7 +15,6 @@ import {
   Printer,
   ClipboardList,
   Eye,
-  History,
   ShieldCheck,
   LockKeyhole,
   Trash2,

@@ -19,7 +19,7 @@ export default function DeliveryReportPage() {
   const [loading, setLoading] = useState(true)
   const [urlReady, setUrlReady] = useState(false)
   useEffect(() => {
-    const state = readUrlViewState({ inicio: from, fim: to })
+    const state = readUrlViewState({ inicio: dateInput(new Date(Date.now() - 29 * 24 * 60 * 60_000)), fim: dateInput(new Date()) })
     if (/^\d{4}-\d{2}-\d{2}$/.test(state.inicio)) setFrom(state.inicio)
     if (/^\d{4}-\d{2}-\d{2}$/.test(state.fim)) setTo(state.fim)
     setUrlReady(true)

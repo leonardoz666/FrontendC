@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from '@/app/components/TenantLink'
-import { ArrowLeft, Ban, CalendarDays, ChevronLeft, ChevronRight, Clock3, Download, History, Loader2, LockKeyhole, RefreshCw, ShoppingBag, Trash2, Upload, UserRound, X } from 'lucide-react'
+import { ArrowLeft, Ban, CalendarDays, ChevronLeft, ChevronRight, Clock3, Download, History, Loader2, LockKeyhole, RefreshCw, ShoppingBag, Trash2, Upload, UserRound } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 import { PageLoader } from '@/app/components/ui/PageLoader'

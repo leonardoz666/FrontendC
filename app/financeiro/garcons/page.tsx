@@ -20,7 +20,7 @@ export default function WaiterClosingPage() {
   const [loading, setLoading] = useState(false)
   const [urlReady, setUrlReady] = useState(false)
   useEffect(() => {
-    const state = readUrlViewState({ inicio: period.from, fim: period.to })
+    const state = readUrlViewState({ inicio: monthStart(), fim: today() })
     setPeriod(current => ({
       from: /^\d{4}-\d{2}-\d{2}$/.test(state.inicio) ? state.inicio : current.from,
       to: /^\d{4}-\d{2}-\d{2}$/.test(state.fim) ? state.fim : current.to,

@@ -63,7 +63,7 @@ const FORM_VAZIO: FormState = { nome: '', tipo: 'DESPESA', paiId: '', codigo: ''
 export default function PlanoContasPage() {
   const { showToast } = useToast()
   const { crud, ui, query, pagina } = useCadastroAuxiliar<PlanoConta>({ resource: RESOURCE, entidade: 'Conta do plano', genero: 'f' })
-  const { data, isLoading, isError, error, refetch } = query
+  const { isLoading, isError, error, refetch } = query
 
   /**
    * Lista completa e separada da paginação da tela: só serve de apoio (select de

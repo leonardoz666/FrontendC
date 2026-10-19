@@ -37,7 +37,7 @@ export default function ReportsPage() {
   const [urlReady, setUrlReady] = useState(false)
 
   useEffect(() => {
-    const state = readUrlViewState({ aba: 'VENDAS', inicio: start, fim: end, dimensao: 'CANAL' })
+    const state = readUrlViewState({ aba: 'VENDAS', inicio: isoDate(new Date(Date.now() - 29 * 86_400_000)), fim: isoDate(new Date()), dimensao: 'CANAL' })
     const tabs: Tab[] = ['VENDAS', 'PRODUTOS', 'RECONCILIACAO', 'OPERACAO', 'EXPORTACOES']
     const dimensions: Dimension[] = ['CANAL', 'DIA', 'HORA', 'PRODUTO', 'CATEGORIA', 'TAMANHO', 'GARCOM']
     if (tabs.includes(state.aba as Tab)) setTab(state.aba as Tab)

@@ -37,7 +37,7 @@ export default function ReconciliationPage() {
   const [urlReady, setUrlReady] = useState(false)
 
   useEffect(() => {
-    const state = readUrlViewState({ conta: '', inicio: period.from, fim: period.to, forma: '' })
+    const state = readUrlViewState({ conta: '', inicio: monthStart(), fim: today(), forma: '' })
     setAccountId(state.conta)
     setPeriod(current => ({
       from: /^\d{4}-\d{2}-\d{2}$/.test(state.inicio) ? state.inicio : current.from,

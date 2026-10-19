@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..')
 const frontendModules = fs.readFileSync(path.join(root, 'app/lib/modules.ts'), 'utf8')
 const navigation = fs.readFileSync(path.join(root, 'app/lib/navigation.ts'), 'utf8')
 const layout = fs.readFileSync(path.join(root, 'app/components/MainLayout.tsx'), 'utf8')
-const backendModules = fs.readFileSync(path.join(root, '../BackendC/src/lib/module-catalog.ts'), 'utf8')
+const backendModulePath = path.join(root, '../BackendC/src/lib/module-catalog.ts')
 
 function moduleKeys(source) {
   const block = source.match(/export const MODULE_KEYS = \[([\s\S]*?)\] as const/)
@@ -14,7 +14,12 @@ function moduleKeys(source) {
   return [...block[1].matchAll(/'([A-Z_]+)'/g)].map(match => match[1])
 }
 
-assert.deepEqual(moduleKeys(frontendModules), moduleKeys(backendModules), 'frontend e backend devem compartilhar o mesmo catálogo de módulos')
+if (fs.existsSync(backendModulePath)) {
+  const backendModules = fs.readFileSync(backendModulePath, 'utf8')
+  assert.deepEqual(moduleKeys(frontendModules), moduleKeys(backendModules), 'frontend e backend devem compartilhar o mesmo catálogo de módulos')
+} else {
+  console.warn('Catálogo do backend não está disponível neste checkout; paridade entre repositórios não verificada.')
+}
 
 const navBlock = navigation.slice(navigation.indexOf('export const NAV_GROUPS'), navigation.indexOf('/** Atalhos globais'))
 const items = [...navBlock.matchAll(/href:\s*'([^']+)'([\s\S]*?)\}/g)].map(match => ({ href: match[1], body: match[2] }))
