@@ -334,6 +334,14 @@ export const NAV_GROUPS: NavGroup[] = [
         module: 'IMPRESSAO',
       },
       {
+        href: '/admin/agente-impressao',
+        label: 'Agente de Impressão',
+        icon: 'HardDrive',
+        permission: 'cadastros.visualizar',
+        roles: ['ADMIN', 'DONO', 'GERENTE'],
+        module: 'IMPRESSAO',
+      },
+      {
         href: '/admin/comandas',
         label: 'Comandas',
         icon: 'ClipboardList',
