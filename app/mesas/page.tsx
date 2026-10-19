@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { Plus, X, ListPlus, Lock } from 'lucide-react'
 import { useTenantRouter } from '@/app/lib/tenant-router'
 import { useToast } from '@/contexts/ToastContext'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { TableCard, Mesa } from '@/components/TableCard'
 import { connectTableSocket } from '@/app/lib/table-socket'
 import { apiFetch, redirectToLogin } from '@/app/lib/api'
@@ -426,7 +427,7 @@ export default function MesasPage() {
                   placeholder="00"
                   autoFocus
                 />
-                {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
+                {error && <ActionableError error={error} fallback="Não foi possível criar a mesa." />}
               </div>
               
               <div className="flex gap-3">

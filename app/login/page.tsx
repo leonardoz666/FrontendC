@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ChefHat } from 'lucide-react'
 import { ApiError, apiFetch } from '@/app/lib/api'
 import { InlineLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { useBranding } from '@/app/contexts/BrandingContext'
 
 type LoginResponse = { user?: { role?: string } }
@@ -221,11 +222,7 @@ export default function LoginPage() {
                 required
               />
 
-              {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
-                  {error}
-                </div>
-              )}
+              {error && <ActionableError error={error} fallback="Não foi possível entrar no sistema." />}
 
               {locationStatus && (
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm font-medium text-blue-700" role="status">
