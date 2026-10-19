@@ -497,7 +497,23 @@ export default function RadarXmlPage() {
               <h2 className="text-lg font-semibold text-gray-900">Itens</h2>
               <span className="text-sm text-gray-600">{resultado.itens.length} item(ns)</span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="divide-y divide-gray-100 md:hidden">
+              {resultado.itens.map((item) => (
+                <article key={`${item.numero}-${item.codigo ?? item.descricao}`} className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0"><strong className="block break-words text-sm text-gray-900">{item.descricao ?? 'Item sem descrição'}</strong><span className="font-mono text-xs text-gray-500">#{item.numero} · {item.codigo ?? 'sem código'}</span></div>
+                    <strong className="shrink-0 text-sm text-gray-900">{dinheiro(item.valorTotal)}</strong>
+                  </div>
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <div><dt className="font-semibold text-gray-500">NCM</dt><dd className="mt-0.5 font-mono text-gray-800">{item.ncm ?? '—'}</dd></div>
+                    <div><dt className="font-semibold text-gray-500">CFOP</dt><dd className="mt-0.5 font-mono text-gray-800">{item.cfop ?? '—'}</dd></div>
+                    <div><dt className="font-semibold text-gray-500">Quantidade</dt><dd className="mt-0.5 text-gray-800">{item.quantidade}</dd></div>
+                    <div><dt className="font-semibold text-gray-500">Valor unitário</dt><dd className="mt-0.5 text-gray-800">{dinheiro(item.valorUnitario)}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="border-y border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                   <tr>

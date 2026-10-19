@@ -67,7 +67,25 @@ function OperationsView({ report }: { report: Overview | null }) { const facts =
 function JobsView({ jobs, download }: { jobs: ExportJob[]; download: (job: ExportJob) => Promise<void> }) { return <Panel title="Arquivos solicitados"><div className="divide-y divide-slate-100">{jobs.map(job => <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 p-4"><span><strong className="block text-sm text-slate-900">{job.tipo.toLowerCase()} #{job.id}</strong><small className="text-slate-500">{new Date(job.criadoEm).toLocaleString('pt-BR')} · {job.totalRegistros} registros · expira {new Date(job.expiraEm).toLocaleString('pt-BR')}</small></span>{job.status === 'CONCLUIDO' ? <button onClick={() => void download(job)} className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-700 px-3 text-xs font-black text-white"><Download size={14} /> Baixar CSV</button> : <Status value={job.status} />}</div>)}{jobs.length === 0 && <Empty text="Nenhuma exportação foi solicitada." />}</div></Panel> }
 function Metric({ label, value, detail, dark = false }: { label: string; value: string; detail?: string; dark?: boolean }) { return <div className={`border-b p-5 last:border-0 md:border-b-0 md:border-r ${dark ? 'bg-slate-950 text-white' : 'border-slate-100'}`}><span className={`text-sm font-bold ${dark ? 'text-slate-300' : 'text-slate-500'}`}>{label}</span><strong className="mt-2 block text-2xl font-black tabular-nums">{value}</strong>{detail && <small className={dark ? 'text-slate-400' : 'text-slate-500'}>{detail}</small>}</div> }
 function Panel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) { return <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white"><header className="flex min-h-14 items-center justify-between gap-3 border-b border-slate-200 px-4"><h2 className="font-black text-slate-900">{title}</h2>{action}</header>{children}</section> }
-function DataTable({ headers, rows }: { headers: string[]; rows: Array<Array<React.ReactNode>> }) { return <div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="bg-slate-50 text-xs font-bold text-slate-500"><tr>{headers.map(header => <th key={header} className="whitespace-nowrap px-4 py-3">{header}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex} className="whitespace-nowrap px-4 py-3 text-slate-700">{cell}</td>)}</tr>)}</tbody></table>{rows.length === 0 && <Empty text="Nenhum registro encontrado neste período." />}</div> }
+function DataTable({ headers, rows }: { headers: string[]; rows: Array<Array<React.ReactNode>> }) {
+  if (rows.length === 0) return <Empty text="Nenhum registro encontrado neste período." />
+  return <>
+    <div className="hidden overflow-x-auto md:block">
+      <table className="min-w-full text-left text-sm">
+        <thead className="bg-slate-50 text-xs font-bold text-slate-500"><tr>{headers.map(header => <th key={header} className="whitespace-nowrap px-4 py-3">{header}</th>)}</tr></thead>
+        <tbody className="divide-y divide-slate-100">{rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex} className="whitespace-nowrap px-4 py-3 text-slate-700">{cell}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+    <div className="divide-y divide-slate-200 md:hidden">
+      {rows.map((row, rowIndex) => <article key={rowIndex} className="space-y-2 p-4">
+        {row.map((cell, cellIndex) => <div key={cellIndex} className="flex items-start justify-between gap-4 text-sm">
+          <span className="shrink-0 font-semibold text-slate-500">{headers[cellIndex]}</span>
+          <span className="min-w-0 break-words text-right font-medium text-slate-800">{cell}</span>
+        </div>)}
+      </article>)}
+    </div>
+  </>
+}
 function Empty({ text }: { text: string }) { return <div className="grid min-h-40 place-items-center p-6 text-center"><span><Search className="mx-auto text-slate-300" /><small className="mt-2 block text-slate-500">{text}</small></span></div> }
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label><span className="mb-1 block text-xs font-bold text-slate-500">{label}</span>{children}</label> }
 function Status({ value }: { value: string }) { return <span className={`rounded-full px-2.5 py-1 text-xs font-black ${value === 'FALHOU' || value === 'EXPIRADO' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}`}>{value.toLowerCase()}</span> }
