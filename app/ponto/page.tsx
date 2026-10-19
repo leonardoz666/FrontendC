@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, Clock, Download, Power, PowerOff } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { Input } from '@/app/components/ui/Input'
 import { apiFetch, apiRequest, fetchList } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
@@ -75,6 +76,8 @@ type FuncionarioForm = {
   telefone: string
 }
 
+type FormErrors = Record<string, string>
+
 const FUNCIONARIO_VAZIO: FuncionarioForm = { nome: '', cpf: '', email: '', telefone: '' }
 const TIPOS = ['ENTRADA', 'SAIDA', 'INICIO_INTERVALO', 'FIM_INTERVALO'] as const
 const DIAS_SEMANA = [
@@ -91,6 +94,15 @@ function formatarMinutos(minutos: number): string {
   const horas = Math.floor(minutos / 60)
   const resto = minutos % 60
   return `${horas}h${String(resto).padStart(2, '0')}`
+}
+
+function focusFirstInvalid(form: HTMLFormElement, errors: FormErrors) {
+  const firstField = Object.keys(errors)[0]
+  if (!firstField) return
+  requestAnimationFrame(() => {
+    const field = form.elements.namedItem(firstField)
+    if (field instanceof HTMLElement) field.focus()
+  })
 }
 
 export default function PontoPage() {
@@ -159,11 +171,26 @@ export default function PontoPage() {
   const [baixandoAej, setBaixandoAej] = useState(false)
   const [carregandoEspelho, setCarregandoEspelho] = useState(false)
   const [alternandoFuncionario, setAlternandoFuncionario] = useState<number | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FormErrors>({})
 
-  const criarFuncionario = async (event: React.FormEvent) => {
+  const clearFieldError = (field: string) => {
+    setFieldErrors((current) => {
+      if (!current[field]) return current
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+  }
+
+  const criarFuncionario = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!funcionarioForm.nome.trim() || !funcionarioForm.cpf.trim()) {
-      showToast('Informe nome e CPF', 'error')
+    const errors: FormErrors = {}
+    if (!funcionarioForm.nome.trim()) errors.funcionarioNome = 'Informe o nome do funcionário.'
+    if (!funcionarioForm.cpf.trim()) errors.funcionarioCpf = 'Informe o CPF do funcionário.'
+    if (funcionarioForm.email && !/^\S+@\S+\.\S+$/.test(funcionarioForm.email)) errors.funcionarioEmail = 'Informe um e-mail válido.'
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors((current) => ({ ...current, ...errors }))
+      focusFirstInvalid(event.currentTarget, errors)
       return
     }
     setSalvandoFuncionario(true)
@@ -179,12 +206,17 @@ export default function PontoPage() {
     }
   }
 
-  const criarJornada = async (event: React.FormEvent) => {
+  const criarJornada = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const cargaDiariaMin = Number(jornadaDiaria)
     const cargaSemanalMin = Number(jornadaSemanal)
-    if (!jornadaNome.trim() || !Number.isInteger(cargaDiariaMin) || !Number.isInteger(cargaSemanalMin)) {
-      showToast('Informe nome e cargas da jornada', 'error')
+    const errors: FormErrors = {}
+    if (!jornadaNome.trim()) errors.jornadaNome = 'Informe um nome para identificar a jornada.'
+    if (!Number.isInteger(cargaDiariaMin) || cargaDiariaMin < 1) errors.jornadaDiaria = 'Informe a carga diária em minutos.'
+    if (!Number.isInteger(cargaSemanalMin) || cargaSemanalMin < 1) errors.jornadaSemanal = 'Informe a carga semanal em minutos.'
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors((current) => ({ ...current, ...errors }))
+      focusFirstInvalid(event.currentTarget, errors)
       return
     }
     setSalvandoJornada(true)
@@ -293,19 +325,16 @@ export default function PontoPage() {
     }
   }
 
-  const ajustarPonto = async (event: React.FormEvent) => {
+  const ajustarPonto = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const nsr = Number(ajusteNsr)
-    if (!Number.isInteger(nsr) || nsr < 1) {
-      showToast('Informe o NSR original', 'error')
-      return
-    }
-    if (!ajusteDataHora) {
-      showToast('Informe a data e hora do ajuste', 'error')
-      return
-    }
-    if (ajusteJustificativa.trim().length < 15) {
-      showToast('A justificativa deve ter pelo menos 15 caracteres', 'error')
+    const errors: FormErrors = {}
+    if (!Number.isInteger(nsr) || nsr < 1) errors.ajusteNsr = 'Informe o número NSR do registro original.'
+    if (!ajusteDataHora) errors.ajusteDataHora = 'Informe a nova data e hora.'
+    if (ajusteJustificativa.trim().length < 15) errors.ajusteJustificativa = 'Explique o motivo usando pelo menos 15 caracteres.'
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors((current) => ({ ...current, ...errors }))
+      focusFirstInvalid(event.currentTarget, errors)
       return
     }
 
@@ -447,34 +476,71 @@ export default function PontoPage() {
           </div>
         </form>
 
-        <form id="ajustes" onSubmit={ajustarPonto} className="scroll-mt-24 border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
+        <form id="ajustes" noValidate onSubmit={ajustarPonto} className="scroll-mt-24 border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Ajustar registro</h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input value={ajusteNsr} onChange={(event) => setAjusteNsr(event.target.value)} placeholder="NSR original" inputMode="numeric" className="rounded-lg border border-gray-300 p-2 text-black" required />
-            <input value={ajusteDataHora} onChange={(event) => setAjusteDataHora(event.target.value)} type="datetime-local" className="rounded-lg border border-gray-300 p-2 text-black" required />
-            <select value={ajusteTipo} onChange={(event) => setAjusteTipo(event.target.value)} className="rounded-lg border border-gray-300 p-2 text-black">
-              {TIPOS.map((valor) => <option key={valor} value={valor}>{valor}</option>)}
-            </select>
-            <select value={ajusteFuncionarioId} onChange={(event) => setAjusteFuncionarioId(event.target.value)} className="rounded-lg border border-gray-300 p-2 text-black">
-              <option value="">Mesmo funcionário</option>
-              {funcionariosSelect.map((funcionario) => <option key={funcionario.id} value={funcionario.id}>{funcionario.nome}</option>)}
-            </select>
-            <textarea value={ajusteJustificativa} onChange={(event) => setAjusteJustificativa(event.target.value)} placeholder="Justificativa do ajuste" className="sm:col-span-2 min-h-20 rounded-lg border border-gray-300 p-2 text-black" required />
+            <Input
+              name="ajusteNsr"
+              label="NSR do registro original"
+              hint="É o número exibido na lista de registros."
+              error={fieldErrors.ajusteNsr}
+              value={ajusteNsr}
+              onChange={(event) => { setAjusteNsr(event.target.value); clearFieldError('ajusteNsr') }}
+              inputMode="numeric"
+              required
+            />
+            <Input
+              name="ajusteDataHora"
+              label="Nova data e hora"
+              error={fieldErrors.ajusteDataHora}
+              value={ajusteDataHora}
+              onChange={(event) => { setAjusteDataHora(event.target.value); clearFieldError('ajusteDataHora') }}
+              type="datetime-local"
+              required
+            />
+            <label className="block text-sm font-semibold text-slate-700">
+              Tipo de registro
+              <select value={ajusteTipo} onChange={(event) => setAjusteTipo(event.target.value)} className="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 text-black">
+                {TIPOS.map((valor) => <option key={valor} value={valor}>{valor}</option>)}
+              </select>
+            </label>
+            <label className="block text-sm font-semibold text-slate-700">
+              Funcionário
+              <select value={ajusteFuncionarioId} onChange={(event) => setAjusteFuncionarioId(event.target.value)} className="mt-1.5 h-11 w-full rounded-lg border border-gray-300 px-3 text-black">
+                <option value="">Manter o mesmo funcionário</option>
+                {funcionariosSelect.map((funcionario) => <option key={funcionario.id} value={funcionario.id}>{funcionario.nome}</option>)}
+              </select>
+            </label>
+            <label className="block text-sm font-semibold text-slate-700 sm:col-span-2">
+              Motivo do ajuste <span className="text-red-700" aria-hidden="true">*</span>
+              <textarea
+                name="ajusteJustificativa"
+                value={ajusteJustificativa}
+                onChange={(event) => { setAjusteJustificativa(event.target.value); clearFieldError('ajusteJustificativa') }}
+                placeholder="Ex.: O funcionário esqueceu de registrar a saída."
+                aria-invalid={Boolean(fieldErrors.ajusteJustificativa)}
+                aria-describedby={fieldErrors.ajusteJustificativa ? 'ajuste-justificativa-error' : 'ajuste-justificativa-hint'}
+                className={`mt-1.5 min-h-24 w-full rounded-lg border p-3 font-normal text-black outline-none focus:ring-2 ${fieldErrors.ajusteJustificativa ? 'border-red-500 focus:ring-red-100' : 'border-gray-300 focus:border-orange-500 focus:ring-orange-100'}`}
+                required
+              />
+              <span id="ajuste-justificativa-hint" className="mt-1.5 block text-xs font-normal text-slate-600">Use pelo menos 15 caracteres.</span>
+              {fieldErrors.ajusteJustificativa && <span id="ajuste-justificativa-error" role="alert" className="mt-1.5 block text-xs font-normal text-red-700">{fieldErrors.ajusteJustificativa}</span>}
+            </label>
             <Button type="submit" isLoading={ajustando}>Registrar ajuste</Button>
           </div>
         </form>
       </div>
 
       <div className="mb-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <form onSubmit={criarFuncionario} className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
+        <form noValidate onSubmit={criarFuncionario} className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Novo funcionário</h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input value={funcionarioForm.nome} onChange={(event) => setFuncionarioForm((atual) => ({ ...atual, nome: event.target.value }))} placeholder="Nome" className="rounded-lg border border-gray-300 p-2 text-black" required />
-            <input value={funcionarioForm.cpf} onChange={(event) => setFuncionarioForm((atual) => ({ ...atual, cpf: event.target.value }))} placeholder="CPF" className="rounded-lg border border-gray-300 p-2 text-black" required />
-            <input value={funcionarioForm.email} onChange={(event) => setFuncionarioForm((atual) => ({ ...atual, email: event.target.value }))} placeholder="E-mail" className="rounded-lg border border-gray-300 p-2 text-black" />
+            <Input name="funcionarioNome" label="Nome completo" placeholder="Ex.: Maria Silva" error={fieldErrors.funcionarioNome} value={funcionarioForm.nome} onChange={(event) => { setFuncionarioForm((atual) => ({ ...atual, nome: event.target.value })); clearFieldError('funcionarioNome') }} autoComplete="name" required />
+            <Input name="funcionarioCpf" label="CPF" placeholder="Somente números" hint="O CPF identifica o funcionário no ponto." error={fieldErrors.funcionarioCpf} value={funcionarioForm.cpf} onChange={(event) => { setFuncionarioForm((atual) => ({ ...atual, cpf: event.target.value })); clearFieldError('funcionarioCpf') }} inputMode="numeric" autoComplete="off" required />
+            <Input name="funcionarioEmail" label="E-mail (opcional)" placeholder="nome@empresa.com" error={fieldErrors.funcionarioEmail} value={funcionarioForm.email} onChange={(event) => { setFuncionarioForm((atual) => ({ ...atual, email: event.target.value })); clearFieldError('funcionarioEmail') }} type="email" autoComplete="email" />
             <div className="flex gap-2">
-              <input value={funcionarioForm.telefone} onChange={(event) => setFuncionarioForm((atual) => ({ ...atual, telefone: event.target.value }))} placeholder="Telefone" className="min-w-0 flex-1 rounded-lg border border-gray-300 p-2 text-black" />
-              <Button type="submit" isLoading={salvandoFuncionario}>Criar</Button>
+              <Input name="funcionarioTelefone" label="Telefone (opcional)" placeholder="(00) 00000-0000" value={funcionarioForm.telefone} onChange={(event) => setFuncionarioForm((atual) => ({ ...atual, telefone: event.target.value }))} inputMode="tel" autoComplete="tel" />
+              <Button type="submit" className="mt-[26px]" isLoading={salvandoFuncionario}>Criar</Button>
             </div>
           </div>
         </form>
@@ -587,20 +653,20 @@ export default function PontoPage() {
       </section>
 
       <div className="mb-6 grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <form onSubmit={criarJornada} className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
+        <form noValidate onSubmit={criarJornada} className="border-y border-gray-200 bg-white px-4 py-5 sm:px-5">
           <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
             <Clock className="h-5 w-5 text-orange-600" />
             Jornada
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input value={jornadaNome} onChange={(event) => setJornadaNome(event.target.value)} placeholder="Nome da jornada" className="rounded-lg border border-gray-300 p-2 text-black" required />
-            <input value={jornadaDiaria} onChange={(event) => setJornadaDiaria(event.target.value)} inputMode="numeric" placeholder="Carga diária em minutos" className="rounded-lg border border-gray-300 p-2 text-black" required />
-            <input value={jornadaSemanal} onChange={(event) => setJornadaSemanal(event.target.value)} inputMode="numeric" placeholder="Carga semanal em minutos" className="rounded-lg border border-gray-300 p-2 text-black" required />
-            <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
-              <input value={jornadaTolAtraso} onChange={(event) => setJornadaTolAtraso(event.target.value)} inputMode="numeric" placeholder="Tol. atraso" className="min-w-0 rounded-lg border border-gray-300 p-2 text-black" />
-              <input value={jornadaTolExtra} onChange={(event) => setJornadaTolExtra(event.target.value)} inputMode="numeric" placeholder="Tol. extra" className="min-w-0 rounded-lg border border-gray-300 p-2 text-black" />
-              <Button type="submit" isLoading={salvandoJornada}>Criar</Button>
+            <Input name="jornadaNome" label="Nome da jornada" placeholder="Ex.: Comercial" error={fieldErrors.jornadaNome} value={jornadaNome} onChange={(event) => { setJornadaNome(event.target.value); clearFieldError('jornadaNome') }} required />
+            <Input name="jornadaDiaria" label="Carga diária" hint="Informe o total em minutos. Ex.: 480 para 8 horas." error={fieldErrors.jornadaDiaria} value={jornadaDiaria} onChange={(event) => { setJornadaDiaria(event.target.value); clearFieldError('jornadaDiaria') }} type="number" min="1" step="1" inputMode="numeric" required />
+            <Input name="jornadaSemanal" label="Carga semanal" hint="Informe o total em minutos. Ex.: 2400 para 40 horas." error={fieldErrors.jornadaSemanal} value={jornadaSemanal} onChange={(event) => { setJornadaSemanal(event.target.value); clearFieldError('jornadaSemanal') }} type="number" min="1" step="1" inputMode="numeric" required />
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Tolerância de atraso" hint="Em minutos." value={jornadaTolAtraso} onChange={(event) => setJornadaTolAtraso(event.target.value)} type="number" min="0" step="1" inputMode="numeric" />
+              <Input label="Tolerância de hora extra" hint="Em minutos." value={jornadaTolExtra} onChange={(event) => setJornadaTolExtra(event.target.value)} type="number" min="0" step="1" inputMode="numeric" />
             </div>
+            <Button type="submit" isLoading={salvandoJornada}>Criar jornada</Button>
           </div>
           {jornadas.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
