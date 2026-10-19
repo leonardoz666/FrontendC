@@ -17,6 +17,7 @@ import { parseFlavorSizeConfig, type FlavorSizePrice } from '@/app/lib/flavor-si
 import { InlineLoader, PageLoader } from '@/app/components/ui/PageLoader'
 import { importProductCatalog } from '@/app/lib/product-import'
 import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
+import { clearTenantDraft, readTenantDraft, writeTenantDraft } from '@/app/lib/view-state'
 import { 
   Plus, 
   Upload, 
@@ -34,6 +35,42 @@ import {
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { SALES_CHANNELS, WEEK_DAYS, categoryColorStyle, minutesToTime, parseStringList, timeToMinutes, toLocalDateTime, type AvailabilityRule, type ComplementoGrupo, type Dispositivo, type PromotionRule, type SalesChannel, type SalesHistory, type TipoTamanho } from './product-page-model'
+
+const PRODUCT_DRAFT_SCOPE = 'novo-produto'
+
+type ProductDraft = {
+  nome: string
+  codigo: string
+  descricao: string
+  preco: string
+  valorPromo: string
+  custo: string
+  categoriaId: string
+  tipo: 'COMUM' | 'POR_TAMANHO'
+  tipoTamanhoId: string
+  dispositivoIds: number[]
+  ordemProduto: string
+  ativo: boolean
+  tipoOpcao: 'padrao' | 'tamanho_pg' | 'refrigerante' | 'sabores' | 'sabores_com_tamanho' | 'combinado'
+  sabores: string[]
+  usarPrecosSaborTamanho: boolean
+  precosSaborTamanho: Record<string, string>
+  observacoes: string[]
+  isDrink: boolean
+  isFood: boolean
+  favorito: boolean
+  destaque: boolean
+  controlaEstoque: boolean
+  autoatendimento: boolean
+  fiscal: boolean
+  gruposComplementoIds: number[]
+  ncm: string
+  cfop: string
+  cstCsosn: string
+  aliquotaIcms: string
+  permitirObservacao: boolean
+  permiteGeloLimao: boolean
+}
 
 export default function ProdutosPage() {
   const { showToast } = useToast()
@@ -283,6 +320,40 @@ export default function ProdutosPage() {
     }
   }, [applyCategoryDefaults, categorias, categoriaId, editingId])
 
+  useEffect(() => {
+    if (!isAdding || editingId !== null) return
+
+    const timer = window.setTimeout(() => {
+      const hasContent = Boolean(
+        nome.trim() || codigo.trim() || descricao.trim() || preco.trim()
+        || valorPromo.trim() || custo.trim() || sabores.length || observacoes.length
+        || gruposComplementoIds.length || tipo !== 'COMUM' || fiscal
+      )
+      if (!hasContent) {
+        clearTenantDraft(PRODUCT_DRAFT_SCOPE)
+        return
+      }
+
+      writeTenantDraft<ProductDraft>(PRODUCT_DRAFT_SCOPE, {
+        nome, codigo, descricao, preco, valorPromo, custo, categoriaId, tipo,
+        tipoTamanhoId, dispositivoIds, ordemProduto, ativo, tipoOpcao, sabores,
+        usarPrecosSaborTamanho, precosSaborTamanho, observacoes, isDrink, isFood,
+        favorito, destaque, controlaEstoque, autoatendimento, fiscal,
+        gruposComplementoIds, ncm, cfop, cstCsosn, aliquotaIcms,
+        permitirObservacao, permiteGeloLimao,
+      })
+    }, 400)
+
+    return () => window.clearTimeout(timer)
+  }, [
+    aliquotaIcms, ativo, autoatendimento, categoriaId, cfop, codigo, controlaEstoque,
+    cstCsosn, custo, descricao, destaque, dispositivoIds, editingId, favorito,
+    fiscal, gruposComplementoIds, isAdding, isDrink, isFood, ncm, nome,
+    observacoes, ordemProduto, permitirObservacao, permiteGeloLimao, preco,
+    precosSaborTamanho, sabores, tipo, tipoOpcao, tipoTamanhoId,
+    usarPrecosSaborTamanho, valorPromo,
+  ])
+
   // A busca agora é feita no SERVIDOR (dentro de `usePagedQuery`), com debounce de
   // 300ms. O filtro client-side que existia aqui foi removido de propósito: ele
   // só enxergava a página carregada e esconderia produtos das outras páginas.
@@ -360,6 +431,7 @@ export default function ProdutosPage() {
       })
 
       showToast(editingId ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!', 'success')
+      if (!editingId) clearTenantDraft(PRODUCT_DRAFT_SCOPE)
       resetForm()
       queryClient.invalidateQueries({ queryKey: ['products'] })
     void refetchProdutos()
@@ -415,7 +487,43 @@ export default function ProdutosPage() {
 
   const handleNewProduct = () => {
     resetForm()
-    if (categorias[0]) applyCategoryDefaults(String(categorias[0].id))
+    const saved = readTenantDraft<ProductDraft>(PRODUCT_DRAFT_SCOPE)
+    if (saved) {
+      setNome(saved.nome ?? '')
+      setCodigo(saved.codigo ?? '')
+      setDescricao(saved.descricao ?? '')
+      setPreco(saved.preco ?? '')
+      setValorPromo(saved.valorPromo ?? '')
+      setCusto(saved.custo ?? '')
+      setCategoriaId(saved.categoriaId ?? '')
+      setTipo(saved.tipo ?? 'COMUM')
+      setTipoTamanhoId(saved.tipoTamanhoId ?? '')
+      setDispositivoIds(Array.isArray(saved.dispositivoIds) ? saved.dispositivoIds : [])
+      setOrdemProduto(saved.ordemProduto ?? '0')
+      setAtivo(saved.ativo ?? true)
+      setTipoOpcao(saved.tipoOpcao ?? 'padrao')
+      setSabores(Array.isArray(saved.sabores) ? saved.sabores : [])
+      setUsarPrecosSaborTamanho(saved.usarPrecosSaborTamanho ?? false)
+      setPrecosSaborTamanho(saved.precosSaborTamanho ?? {})
+      setObservacoes(Array.isArray(saved.observacoes) ? saved.observacoes : [])
+      setIsDrink(saved.isDrink ?? false)
+      setIsFood(saved.isFood ?? true)
+      setFavorito(saved.favorito ?? false)
+      setDestaque(saved.destaque ?? false)
+      setControlaEstoque(saved.controlaEstoque ?? false)
+      setAutoatendimento(saved.autoatendimento ?? false)
+      setFiscal(saved.fiscal ?? false)
+      setGruposComplementoIds(Array.isArray(saved.gruposComplementoIds) ? saved.gruposComplementoIds : [])
+      setNcm(saved.ncm ?? '')
+      setCfop(saved.cfop ?? '')
+      setCstCsosn(saved.cstCsosn ?? '')
+      setAliquotaIcms(saved.aliquotaIcms ?? '')
+      setPermitirObservacao(saved.permitirObservacao ?? true)
+      setPermiteGeloLimao(saved.permiteGeloLimao ?? false)
+      setInheritedDefaultsMessage('Rascunho recuperado. Revise os dados antes de salvar.')
+    } else if (categorias[0]) {
+      applyCategoryDefaults(String(categorias[0].id))
+    }
     setIsAdding(true)
   }
 

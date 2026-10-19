@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from '@/app/components/TenantLink'
 import { apiFetch } from '@/app/lib/api'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
 import {
   ArrowLeft,
   CalendarDays,
@@ -196,6 +197,44 @@ export default function GeneralAuditPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [urlReady, setUrlReady] = useState(false)
+
+  useEffect(() => {
+    const state = readUrlViewState({
+      inicio: defaults.inicio,
+      fim: defaults.fim,
+      acao: defaults.acao,
+      entidade: defaults.entidade,
+      usuario: defaults.usuarioId,
+      busca: defaults.busca,
+      pagina: '1',
+    })
+    const restored: AuditFilters = {
+      inicio: /^\d{4}-\d{2}-\d{2}$/.test(state.inicio) ? state.inicio : defaults.inicio,
+      fim: /^\d{4}-\d{2}-\d{2}$/.test(state.fim) ? state.fim : defaults.fim,
+      acao: state.acao,
+      entidade: state.entidade,
+      usuarioId: state.usuario,
+      busca: state.busca,
+    }
+    setDraft(restored)
+    setApplied(restored)
+    setPage(Math.max(1, Number.parseInt(state.pagina, 10) || 1))
+    setUrlReady(true)
+  }, [defaults])
+
+  useEffect(() => {
+    if (!urlReady) return
+    replaceUrlViewState({
+      inicio: applied.inicio,
+      fim: applied.fim,
+      acao: applied.acao,
+      entidade: applied.entidade,
+      usuario: applied.usuarioId,
+      busca: applied.busca,
+      pagina: page,
+    })
+  }, [applied, page, urlReady])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -219,7 +258,7 @@ export default function GeneralAuditPage() {
     }
   }, [applied, page])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { if (urlReady) void load() }, [load, urlReady])
 
   const applyFilters = (event: FormEvent) => {
     event.preventDefault()

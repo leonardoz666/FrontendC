@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, ChevronRight, Download, FileClock, LoaderC
 import { apiFetch } from '@/app/lib/api'
 import { ExportMenu } from '@/app/components/ui/ExportMenu'
 import { useToast } from '@/contexts/ToastContext'
+import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
 
 type Dimension = 'CANAL' | 'DIA' | 'HORA' | 'PRODUTO' | 'CATEGORIA' | 'TAMANHO' | 'GARCOM'
 type Tab = 'VENDAS' | 'PRODUTOS' | 'RECONCILIACAO' | 'OPERACAO' | 'EXPORTACOES'
@@ -33,6 +34,23 @@ export default function ReportsPage() {
   const [overview, setOverview] = useState<Overview | null>(null)
   const [jobs, setJobs] = useState<ExportJob[]>([])
   const [loading, setLoading] = useState(true)
+  const [urlReady, setUrlReady] = useState(false)
+
+  useEffect(() => {
+    const state = readUrlViewState({ aba: 'VENDAS', inicio: start, fim: end, dimensao: 'CANAL' })
+    const tabs: Tab[] = ['VENDAS', 'PRODUTOS', 'RECONCILIACAO', 'OPERACAO', 'EXPORTACOES']
+    const dimensions: Dimension[] = ['CANAL', 'DIA', 'HORA', 'PRODUTO', 'CATEGORIA', 'TAMANHO', 'GARCOM']
+    if (tabs.includes(state.aba as Tab)) setTab(state.aba as Tab)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.inicio)) setStart(state.inicio)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.fim)) setEnd(state.fim)
+    if (dimensions.includes(state.dimensao as Dimension)) setDimension(state.dimensao as Dimension)
+    setUrlReady(true)
+  }, [])
+
+  useEffect(() => {
+    if (!urlReady) return
+    replaceUrlViewState({ aba: tab, inicio: start, fim: end, dimensao: dimension })
+  }, [dimension, end, start, tab, urlReady])
 
   const query = useMemo(() => `inicio=${start}&fim=${end}`, [start, end])
   const load = useCallback(async () => { setLoading(true); try {
@@ -45,7 +63,7 @@ export default function ReportsPage() {
     ])
     setSales(nextSales); setProducts(nextProducts.data); setReconciliation(nextReconciliation); setOverview(nextOverview); setJobs(nextJobs.data); setSelected(null); setDetails([])
   } catch (error) { showToast(error instanceof Error ? error.message : 'Não foi possível montar os relatórios.', 'error') } finally { setLoading(false) } }, [dimension, query, showToast])
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { if (urlReady) void load() }, [load, urlReady])
 
   const drill = async (key: string) => { setSelected(key); try { const result = await apiFetch<{ data: DetailRow[] }>(`/relatorios/vendas/detalhes?${query}&dimensao=${dimension}&chave=${encodeURIComponent(key)}`); setDetails(result.data) } catch (error) { showToast(error instanceof Error ? error.message : 'Não foi possível abrir os registros.', 'error') } }
   const requestExport = async (type: 'VENDAS' | 'PRODUTOS' | 'RECONCILIACAO') => { try { await apiFetch('/relatorios/exportacoes', { method: 'POST', body: { tipo: type, dimensao: dimension, inicio: start, fim: end } }); showToast('Exportação entrou na fila.', 'success'); window.setTimeout(() => void load(), 800) } catch (error) { showToast(error instanceof Error ? error.message : 'Não foi possível solicitar a exportação.', 'error') } }
