@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import Link from '@/app/components/TenantLink'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { Input } from '@/app/components/ui/Input'
 import { apiFetch, apiRequest, fetchList } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
@@ -769,7 +770,7 @@ export default function PontoPage() {
         </section>
       )}
 
-      {(area === 'REGISTRO' || area === 'AJUSTES') && isError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{(error as Error)?.message ?? 'Falha ao carregar registros'}</div>}
+      {(area === 'REGISTRO' || area === 'AJUSTES') && isError && <ActionableError error={error} fallback="Não foi possível carregar os registros de ponto." onRetry={() => refetch()} className="mb-4" />}
 
       {(area === 'REGISTRO' || area === 'AJUSTES') && <DataTable
         ariaLabel="Registros de ponto"

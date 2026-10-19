@@ -2,6 +2,7 @@
 
 import TenantLink from '@/app/components/TenantLink'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { formatarMoeda, paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { usePagedQuery } from '@/app/lib/pagination'
 
@@ -50,7 +51,7 @@ export default function ListaCfeSatPage() {
       </div>
 
       {query.isError ? (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{(query.error as Error)?.message ?? 'Falha ao carregar CF-e SAT'}</div>
+        <ActionableError error={query.error} fallback="Não foi possível carregar os CF-e SAT." onRetry={() => query.refetch()} className="mb-4" />
       ) : null}
 
       <DataTable

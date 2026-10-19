@@ -4,12 +4,14 @@ import Link from '@/app/components/TenantLink'
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, DownloadCloud, FileSearch, Upload } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { apiFetch } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
 import { InlineLoader } from '@/app/components/ui/PageLoader'
+import { errorMessageFromUnknown } from '@/app/lib/error-message'
 
 type PessoaXml = {
   documento: string | null
@@ -416,7 +418,7 @@ export default function RadarXmlPage() {
             {status?.controle?.ultimoErro && (
               <div className="md:col-span-2">
                 <dt className="text-gray-500">Último erro</dt>
-                <dd className="text-amber-700">{status.controle.ultimoErro}</dd>
+                <dd className="text-amber-700">{errorMessageFromUnknown(status.controle.ultimoErro, 'A última consulta de XML não foi concluída.')}</dd>
               </div>
             )}
           </dl>
@@ -552,7 +554,7 @@ export default function RadarXmlPage() {
           <h2 className="text-lg font-semibold text-gray-900">XMLs recebidos</h2>
           <p className="text-sm text-gray-600">Histórico vindo da consulta por NSU e importações manuais.</p>
         </div>
-        {recebidosQuery.isError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{recebidosQuery.error.message}</div>}
+        {recebidosQuery.isError && <ActionableError error={recebidosQuery.error} fallback="Não foi possível carregar os XML recebidos." onRetry={() => recebidosQuery.refetch()} className="mb-4" />}
         <DataTable<XmlRecebido>
           columns={colunasRecebidos}
           data={pagina.data}

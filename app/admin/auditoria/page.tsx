@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from '@/app/components/TenantLink'
 import { apiFetch } from '@/app/lib/api'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
 import {
   ArrowLeft,
@@ -12,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  CircleAlert,
   Eraser,
   Filter,
   History,
@@ -351,9 +351,7 @@ export default function GeneralAuditPage() {
         )}
 
         {error && (
-          <div role="alert" className="my-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
-            <CircleAlert size={19} className="mt-0.5 shrink-0" aria-hidden="true" /><span>{error}</span>
-          </div>
+          <ActionableError error={error} fallback="Não foi possível carregar a auditoria geral." onRetry={load} className="my-5" />
         )}
 
         {loading && !result && <PageLoader compact message="Carregando atividades" detail="Organizando as ações do estabelecimento" />}

@@ -8,6 +8,7 @@ import { apiFetch } from '@/app/lib/api'
 import { formatarNumeroQuantidade, formatarQuantidade } from '@/app/lib/quantity'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { LoadingValue, PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { useToast } from '@/contexts/ToastContext'
 
 type Meta = {
@@ -135,9 +136,7 @@ export default function EstoquePage() {
       </header>
 
       {isError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {(error as Error)?.message ?? 'Falha ao carregar resumo de estoque'}
-        </div>
+        <ActionableError error={error} fallback="Não foi possível carregar o resumo do estoque." onRetry={() => refetch()} className="mb-4" />
       )}
 
       <section className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">

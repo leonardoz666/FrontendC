@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BarChart3, Package, Search, ShoppingCart, TrendingUp } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 
 type Period = 'today' | 'week' | 'month'
 
@@ -48,26 +49,21 @@ export default function RankingVendasPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    let cancelled = false
+  const load = useCallback(async () => {
     setLoading(true)
     setError('')
-
-    apiFetch<RankingResponse>(`/dashboard/product-ranking?period=${period}`)
-      .then(response => {
-        if (!cancelled) setData(response)
-      })
-      .catch(reason => {
-        if (!cancelled) setError(reason instanceof Error ? reason.message : 'Erro ao carregar o ranking')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
+    try {
+      setData(await apiFetch<RankingResponse>(`/dashboard/product-ranking?period=${period}`))
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar o ranking de vendas.')
+    } finally {
+      setLoading(false)
     }
   }, [period])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const products = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('pt-BR')
@@ -147,7 +143,7 @@ export default function RankingVendasPage() {
           {loading ? (
             <PageLoader compact message="Carregando ranking" detail="Calculando os produtos mais vendidos" />
           ) : error ? (
-            <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>
+            <ActionableError error={error} fallback="Não foi possível carregar o ranking de vendas." onRetry={load} className="m-4" />
           ) : products.length === 0 ? (
             <div className="flex min-h-64 items-center justify-center px-4 text-center text-sm font-medium text-slate-500">
               Nenhum produto corresponde à busca.

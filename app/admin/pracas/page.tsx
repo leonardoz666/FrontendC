@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { AlertTriangle, Plus, Power, PowerOff, Trash2 } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { useCrud, useListaCrud, paginaAtual, SeloAtivo } from '@/app/lib/crud-client'
@@ -291,9 +292,7 @@ export default function PracasPage() {
       </div>
 
       {isError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {(error as Error)?.message ?? 'Falha ao carregar praças'}
-        </div>
+        <ActionableError error={error} fallback="Não foi possível carregar as praças de produção." onRetry={() => refetch()} className="mb-4" />
       )}
 
       <DataTable<Praca>

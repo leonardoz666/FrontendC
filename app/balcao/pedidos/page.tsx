@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Ban, Clock3, Gift, LoaderCircle, Plus, Printer, ReceiptText, RefreshCw, X } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { useBranding } from '@/app/contexts/BrandingContext'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 
 type CounterOrder = {
   id: number
@@ -151,7 +152,7 @@ export default function CounterOrdersPage() {
         <button onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-orange-700"><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /> Atualizar</button>
       </div>
 
-      {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{error}</p>}
+      {error && <ActionableError error={error} fallback="Não foi possível carregar os atendimentos do balcão." onRetry={load} className="mt-4" />}
       {message && <p role="status" className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">{message}</p>}
       {loading ? <div className="flex min-h-64 items-center justify-center"><LoaderCircle className="animate-spin text-orange-600" /></div> : (
         <div className="mt-4 grid gap-3">
@@ -187,7 +188,7 @@ export default function CounterOrdersPage() {
             <p className="text-sm leading-6 text-slate-600">Os itens serão cancelados, o estoque será devolvido e pagamentos já registrados serão estornados. Uma NFC-e autorizada precisa ser cancelada antes.</p>
             <label className="block"><span className="text-sm font-black text-slate-800">Motivo do cancelamento</span><textarea autoFocus value={cancelReason} onChange={event => setCancelReason(event.target.value)} maxLength={500} rows={4} placeholder="Informe o que motivou o cancelamento" className="mt-2 w-full resize-none rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100" /></label>
             <div className="flex items-center justify-between text-xs text-slate-500"><span>Mínimo de 3 caracteres</span><span>{cancelReason.trim().length}/500</span></div>
-            {actionError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-800">{actionError}</p>}
+            {actionError && <ActionableError error={actionError} fallback="Não foi possível cancelar o atendimento." />}
           </div>
           <footer className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-4">
             <button type="button" onClick={() => setCancelOrder(null)} disabled={cancelling} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-100">Manter atendimento</button>
@@ -203,7 +204,7 @@ export default function CounterOrdersPage() {
             <fieldset><legend className="text-sm font-black text-slate-800">Selecione a linha completa</legend><div className="mt-2 max-h-52 space-y-2 overflow-y-auto">{courtesyOrder.pedidos.flatMap(pedido => pedido.itens).filter(item => item.status !== 'CANCELADO').map(item => <label key={item.id} className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 ${courtesyItemId === item.id ? 'border-violet-400 bg-violet-50' : 'border-slate-200'}`}><span><strong className="block text-sm text-slate-900">{item.quantidade}x {item.produto.nome}</strong><span className="text-xs text-slate-500">Item #{item.id}</span></span><input type="radio" name="courtesy-item" checked={courtesyItemId === item.id} onChange={() => setCourtesyItemId(item.id)} className="h-4 w-4 accent-violet-600" /></label>)}</div></fieldset>
             <label className="block"><span className="text-sm font-black text-slate-800">Motivo da cortesia</span><textarea value={courtesyReason} onChange={event => setCourtesyReason(event.target.value)} maxLength={500} rows={3} placeholder="Ex.: recuperação de experiência do cliente" className="mt-2 w-full resize-none rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" /></label>
             <div className="flex items-center justify-between text-xs text-slate-500"><span>Mínimo de 5 caracteres</span><span>{courtesyReason.trim().length}/500</span></div>
-            {actionError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-800">{actionError}</p>}
+            {actionError && <ActionableError error={actionError} fallback="Não foi possível registrar a cortesia." />}
           </div>
           <footer className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-4"><button type="button" onClick={() => setCourtesyOrder(null)} disabled={grantingCourtesy} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700">Cancelar</button><button type="button" onClick={() => void grantItemCourtesy()} disabled={grantingCourtesy || !courtesyItemId || courtesyReason.trim().length < 5} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-black text-white hover:bg-violet-700 disabled:opacity-50">{grantingCourtesy && <LoaderCircle size={16} className="animate-spin" />} Conceder cortesia</button></footer>
         </section>

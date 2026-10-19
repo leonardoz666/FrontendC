@@ -9,6 +9,7 @@ import {
   syncOfflineQueue,
   type OfflineStatus as OfflineStatusValue,
 } from '@/app/lib/offline'
+import { errorMessageFromUnknown } from '@/app/lib/error-message'
 
 const INITIAL_STATUS: OfflineStatusValue = {
   offline: false,
@@ -108,7 +109,7 @@ export default function OfflineStatus() {
       </div>
       {hasFailure && showFailure && (
         <div className="mt-2 max-w-md border-t border-red-200 pt-2 text-xs font-medium">
-          <p className="break-words">{status.lastError || 'O servidor recusou esta operação.'}</p>
+          <p className="break-words">{errorMessageFromUnknown(status.lastError, 'O servidor recusou esta operação.')}</p>
           {confirmDiscard ? (
             <div className="mt-2">
               <p className="font-bold">Descartar esta operação? Ela não será enviada ao servidor.</p>

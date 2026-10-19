@@ -7,6 +7,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { LoadingMark } from '@/app/components/ui/PageLoader'
 import { apiFetch } from '@/app/lib/api'
 import { amountForItems, amountPerPerson, roundMoney, type PaymentSummary } from '@/app/lib/payment'
+import { errorMessageFromUnknown } from '@/app/lib/error-message'
 
 type PaymentMethod = 'DINHEIRO' | 'PIX' | 'CARTAO_CREDITO' | 'CARTAO_DEBITO' | 'VALE_REFEICAO' | 'VALE_ALIMENTACAO' | 'VOUCHER'
 type CreditCardBrand = 'VISA' | 'MASTERCARD' | 'ELO' | 'AMERICAN_EXPRESS' | 'HIPERCARD'
@@ -261,7 +262,7 @@ export function PaymentModal({ isOpen, onClose, mesaId, mesaNumero, counterOrder
                     {summaryLoading && <span role="status" className="sr-only">Consultando dados do recebimento</span>}
                     {summaryError && (
                         <div role="alert" className="mx-auto w-full max-w-7xl px-4 py-5 text-red-700 sm:px-6 lg:px-8">
-                            <p>{summaryError}</p>
+                            <p>{errorMessageFromUnknown(summaryError, 'Não foi possível consultar o resumo do pagamento.')}</p>
                             <button onClick={() => void loadSummary()} className="mt-2 underline">Tentar novamente</button>
                         </div>
                     )}

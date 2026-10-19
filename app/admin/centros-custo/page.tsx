@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Power, PowerOff } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { useCadastroAuxiliar, SeloAtivo } from '@/app/lib/crud-client'
 import { useToast } from '@/contexts/ToastContext'
@@ -120,9 +121,7 @@ export default function CentrosCustoPage() {
       <h1 className="mb-6 text-3xl font-bold text-black">Centros de Custo</h1>
 
       {isError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {(error as Error)?.message ?? 'Falha ao carregar centros de custo'}
-        </div>
+        <ActionableError error={error} fallback="Não foi possível carregar os centros de custo." onRetry={() => refetch()} className="mb-4" />
       )}
 
       <DataTable<CentroCusto>

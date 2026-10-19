@@ -10,6 +10,7 @@ import { Pagination } from '@/app/components/ui/Pagination'
 import { Switch } from '@/app/components/ui/Switch'
 import Skeleton from '@/app/components/ui/Skeleton'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { PAGE_SIZE_OPTIONS, usePagedQuery } from '@/app/lib/pagination'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { tenantForCurrentTab, tenantResourceUrl } from '@/app/lib/tenant-navigation'
@@ -443,7 +444,7 @@ export default function AdminUsersPage() {
               </section>
             )}
 
-            {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+            {error && <ActionableError error={error} fallback="Não foi possível salvar as alterações do usuário." />}
             <div className="sticky bottom-0 flex justify-end gap-2 border-t border-slate-200 bg-slate-50/95 py-4 backdrop-blur-sm"><Button type="button" variant="outline" onClick={resetForm}>Cancelar</Button><Button type="submit" isLoading={saving}><Save size={17} className="mr-2" />Salvar alterações</Button></div>
           </div>
         </form>
@@ -482,7 +483,7 @@ export default function AdminUsersPage() {
           <div className="flex items-center gap-2"><UserX size={18} className="text-red-500" /><span className="text-sm text-slate-500">Inativos</span><strong className="text-lg text-slate-950">{resumoQuery.data?.inativos ?? '—'}</strong></div>
         </div>
 
-        {usersQuery.isError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{usersQuery.error.message}</div>}
+        {usersQuery.isError && <ActionableError error={usersQuery.error} fallback="Não foi possível carregar os usuários." onRetry={() => usersQuery.refetch()} />}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-slate-600">

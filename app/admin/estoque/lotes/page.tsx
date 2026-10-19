@@ -9,6 +9,7 @@ import { formatarNumeroQuantidade, formatarUnidade, quantidadeParaInput } from '
 import { Switch } from '@/app/components/ui/Switch'
 import { useToast } from '@/contexts/ToastContext'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 
 type TipoLote = 'ENTRADA' | 'SAIDA' | 'CONTAGEM' | 'PERDA'
 type ItemLote = {
@@ -158,7 +159,7 @@ export default function RevisaoLotesEstoquePage() {
         <button type="button" onClick={() => setFiltro('TODOS')} className={`rounded-md px-4 py-2 text-sm font-bold ${filtro === 'TODOS' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'}`}>Histórico</button>
       </div>
 
-      {isError && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error instanceof Error ? error.message : 'Falha ao carregar os lotes'}</div>}
+      {isError && <ActionableError error={error} fallback="Não foi possível carregar os lotes para revisão." onRetry={() => refetch()} className="mb-4" />}
 
       {!isError && (isLoading ? <PageLoader compact message="Carregando lotes" detail="Buscando itens para revisão" /> : data?.data.length ? (
         <div className="space-y-2">{data.data.map(item => (

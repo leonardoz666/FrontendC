@@ -12,6 +12,7 @@ import {
   readCachedApiPayload,
 } from './offline'
 import { LOGIN_PATH as TENANT_LOGIN_PATH, TENANT_HEADER, operationalPathname, tenantPageUrl } from './tenant-navigation'
+import { actionableErrorMessage } from './error-message'
 
 /**
  * Cliente HTTP do frontend.
@@ -37,14 +38,16 @@ let authSessionGeneration = 0
 
 export class ApiError extends Error {
   readonly status: number
+  readonly rawMessage: string
   readonly details?: unknown
   /** Corpo bruto da resposta (JSON parseado quando possível, senão texto). */
   readonly body?: unknown
 
   constructor(status: number, message: string, options: { details?: unknown; body?: unknown } = {}) {
-    super(message)
+    super(actionableErrorMessage(message))
     this.name = 'ApiError'
     this.status = status
+    this.rawMessage = message
     this.details = options.details
     this.body = options.body
   }

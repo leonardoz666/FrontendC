@@ -2,6 +2,7 @@
 
 import Link from "@/app/components/TenantLink";
 import { apiFetch } from "@/app/lib/api";
+import { ActionableError } from "@/app/components/ui/ActionableError";
 import { useToast } from "@/app/contexts/ToastContext";
 import {
   AlertTriangle,
@@ -361,17 +362,7 @@ export default function DoseControlPage() {
             <div className="h-72 animate-pulse bg-slate-200" />
           </div>
         ) : error ? (
-          <div className="mt-6 border border-red-200 bg-red-50 p-5 text-red-800">
-            <strong className="block">Falha ao carregar</strong>
-            <span className="mt-1 block text-sm">{error}</span>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="mt-4 font-bold underline underline-offset-4"
-            >
-              Tentar novamente
-            </button>
-          </div>
+          <ActionableError error={error} fallback="Não foi possível carregar o controle de doses." onRetry={load} className="mt-6" />
         ) : summary ? (
           <div className="mt-6">
             {area === "SALDO" ? (

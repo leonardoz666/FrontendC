@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { apiFetch } from '@/app/lib/api'
 import { formatarMoeda, paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { usePagedQuery } from '@/app/lib/pagination'
@@ -191,7 +192,7 @@ export default function NotasFiscaisPage() {
         </div>
       </form>
 
-      {isError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{(error as Error)?.message ?? 'Falha ao carregar notas'}</div>}
+      {isError && <ActionableError error={error} fallback="Não foi possível carregar as notas fiscais." onRetry={() => refetch()} className="mb-4" />}
 
       <DataTable
         ariaLabel="Notas fiscais"

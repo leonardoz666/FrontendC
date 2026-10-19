@@ -6,6 +6,7 @@ import { ArrowLeft, Ban, CalendarDays, ChevronLeft, ChevronRight, Clock3, Downlo
 import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 
 type HistoricoItem = {
   id: number
@@ -329,7 +330,7 @@ export default function HistoricoPedidosPage() {
           </section>
         )}
 
-        {erro && <div role="alert" className="my-5 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{erro}</div>}
+        {erro && <ActionableError error={erro} fallback="Não foi possível carregar o histórico de pedidos." onRetry={carregar} className="my-5" />}
         {carregando && !resultado && <PageLoader compact message="Carregando histórico" detail="Buscando pedidos e cancelamentos" />}
 
         {!carregando && !erro && grupos.length === 0 && (

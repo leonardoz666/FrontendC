@@ -1,5 +1,5 @@
 const ACTION_PATTERN = /\b(tente|verifique|confira|informe|preencha|selecione|acesse|procure|recarregue|entre|aguarde|libere|corrija|fale)\b/i
-const TECHNICAL_PATTERN = /(?:prisma|p\d{4}|typeerror|syntaxerror|fetch failed|failed to fetch|networkerror|stack trace|\bat\s+\w+\s*\()/i
+const TECHNICAL_PATTERN = /(?:prisma|p\d{4}|typeerror|syntaxerror|fetch failed|failed to fetch|networkerror|stack trace|\bat\s+\w+\s*\(|^error\s+(?:fetching|creating|updating|deleting|toggling)|^internal\b|^unauthorized\b|^forbidden\b|^not found$)/i
 
 function sentence(message: string): string {
   const trimmed = message.trim().replace(/\s+/g, ' ')
@@ -29,11 +29,24 @@ function recoveryFor(message: string): string {
  * Garante que erros exibidos ao usuário expliquem o problema e a recuperação,
  * sem deixar detalhes internos do servidor escaparem para a interface.
  */
-export function actionableErrorMessage(message: string): string {
+export function actionableErrorMessage(message: string, fallback = 'Não foi possível concluir a operação.'): string {
   const safeMessage = !message.trim() || TECHNICAL_PATTERN.test(message)
-    ? 'Não foi possível concluir a operação.'
+    ? sentence(fallback)
     : sentence(message)
 
   if (ACTION_PATTERN.test(safeMessage)) return safeMessage
   return `${safeMessage} ${recoveryFor(safeMessage)}`
+}
+
+/** Extrai a mensagem de qualquer falha sem expor detalhes técnicos na interface. */
+export function errorMessageFromUnknown(error: unknown, fallback: string): string {
+  const rawMessage = typeof error === 'string'
+    ? error
+    : error !== null && typeof error === 'object' && 'rawMessage' in error
+    && typeof (error as { rawMessage?: unknown }).rawMessage === 'string'
+    ? (error as { rawMessage: string }).rawMessage
+    : error instanceof Error
+      ? error.message
+      : fallback
+  return actionableErrorMessage(rawMessage, fallback)
 }

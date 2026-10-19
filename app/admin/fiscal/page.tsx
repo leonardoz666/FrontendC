@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { apiFetch, apiRequest } from '@/app/lib/api'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { useToast } from '@/contexts/ToastContext'
+import { errorMessageFromUnknown } from '@/app/lib/error-message'
 
 type EmpresaFiscal = {
   id: number
@@ -410,7 +412,7 @@ export default function AdminFiscalPage() {
           </div>
           <Button type="button" onClick={() => { setForm(FORM_VAZIO); setEditingId(null); setShowForm(true) }}>Nova empresa</Button>
         </div>
-        {isError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{(error as Error)?.message ?? 'Falha ao carregar empresas'}</div>}
+        {isError && <ActionableError error={error} fallback="Não foi possível carregar as empresas fiscais." onRetry={() => refetch()} className="mb-4" />}
         {!isLoading && !isError && !ui.search && pagina.meta.total === 0 ? (
           <div className="border-l-4 border-orange-400 bg-orange-50 px-4 py-4 text-sm text-orange-950">
             Nenhuma empresa cadastrada. Adicione CNPJ e certificado A1 para preparar a consulta SEFAZ.
@@ -627,7 +629,7 @@ export default function AdminFiscalPage() {
                 <span className={`rounded-full border px-2 py-1 text-xs font-medium ${classeStatus(item.status)}`}>{item.status}</span>
               </div>
               <p className="mt-1 text-xs text-gray-500">Tentativas {item.tentativas} · Agendado {formatarData(item.agendadoPara)}</p>
-              {item.ultimoErro && <p className="mt-1 text-sm text-red-600">{item.ultimoErro}</p>}
+              {item.ultimoErro && <p className="mt-1 text-sm text-red-600">{errorMessageFromUnknown(item.ultimoErro, 'A transmissão fiscal falhou.')}</p>}
             </div>
           ))}
         </div>

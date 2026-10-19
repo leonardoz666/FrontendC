@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { ExportMenu } from '@/app/components/ui/ExportMenu'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { usePagedQuery } from '@/app/lib/pagination'
@@ -230,9 +231,7 @@ export default function EstoqueGruposPage() {
         <section>
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Grupos</h2>
           {gruposQuery.isError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {(gruposQuery.error as Error)?.message ?? 'Falha ao carregar grupos'}
-            </div>
+            <ActionableError error={gruposQuery.error} fallback="Não foi possível carregar os grupos de insumos." onRetry={() => gruposQuery.refetch()} className="mb-4" />
           )}
           <DataTable
             ariaLabel="Grupos de insumos"
@@ -275,9 +274,7 @@ export default function EstoqueGruposPage() {
             {grupoSelecionado ? grupoSelecionado.nome : 'Selecione um grupo para listar os subgrupos.'}
           </p>
           {subgruposQuery.isError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {(subgruposQuery.error as Error)?.message ?? 'Falha ao carregar subgrupos'}
-            </div>
+            <ActionableError error={subgruposQuery.error} fallback="Não foi possível carregar os subgrupos de insumos." onRetry={() => subgruposQuery.refetch()} className="mb-4" />
           )}
           <DataTable
             ariaLabel="Subgrupos de insumos"

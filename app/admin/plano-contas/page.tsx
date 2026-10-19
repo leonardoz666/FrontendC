@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { CornerDownRight, Power, PowerOff } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { useCadastroAuxiliar, SeloAtivo } from '@/app/lib/crud-client'
@@ -342,9 +343,7 @@ export default function PlanoContasPage() {
       </p>
 
       {isError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {(error as Error)?.message ?? 'Falha ao carregar o plano de contas'}
-        </div>
+        <ActionableError error={error} fallback="Não foi possível carregar o plano de contas." onRetry={() => refetch()} className="mb-4" />
       )}
 
       <DataTable<PlanoConta>

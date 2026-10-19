@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { ExportMenu } from '@/app/components/ui/ExportMenu'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { fetchAllList, fetchList } from '@/app/lib/api'
@@ -209,9 +210,7 @@ export default function FichaTecnicaPage() {
       </p>
 
       {isError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {(error as Error)?.message ?? 'Falha ao carregar ficha técnica'}
-        </div>
+        <ActionableError error={error} fallback="Não foi possível carregar as fichas técnicas." onRetry={() => refetch()} className="mb-4" />
       )}
 
       <DataTable

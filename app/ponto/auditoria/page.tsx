@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Filter, Shield } from 'lucide-react'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { fetchList } from '@/app/lib/api'
 import { paginaAtual, useListaCrud } from '@/app/lib/crud-client'
 import { usePagedQuery } from '@/app/lib/pagination'
@@ -56,7 +57,7 @@ export default function AuditoriaPontoPage() {
     return valor ? `?${valor}` : ''
   }, [funcionarioId, acao, inicio, fim])
 
-  const { data, isLoading, isError, error } = usePagedQuery<Auditoria>({
+  const { data, isLoading, isError, error, refetch } = usePagedQuery<Auditoria>({
     resource: `/ponto/auditoria${filtro}`,
     page: ui.page,
     pageSize: ui.pageSize,
@@ -127,7 +128,7 @@ export default function AuditoriaPontoPage() {
         <button type="button" onClick={() => { setFuncionarioId(''); setAcao(''); setInicio(''); setFim(''); ui.setPage(1) }} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"><Filter className="h-4 w-4" />Limpar</button>
       </div>
 
-      {isError && <div className="my-4 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-800">{error?.message ?? 'Erro ao carregar auditoria'}</div>}
+      {isError && <ActionableError error={error} fallback="Não foi possível carregar a auditoria do ponto." onRetry={() => refetch()} className="my-4" />}
       <div className="mt-5">
         <DataTable
           ariaLabel="Auditoria do controle de ponto"

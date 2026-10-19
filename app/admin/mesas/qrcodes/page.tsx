@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CheckSquare, LoaderCircle, Printer, QrCode, RefreshCw, Square } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import { apiFetch, fetchList } from '@/app/lib/api'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 
 type MesaResumo = {
   id: number
@@ -29,31 +30,24 @@ export default function MesaQrCodesPage() {
   const [erro, setErro] = useState('')
   const [renovandoId, setRenovandoId] = useState<number | null>(null)
 
-  useEffect(() => {
-    let cancelado = false
-
-    void (async () => {
-      setLoading(true)
-      setErro('')
-      try {
-        const lista = await fetchList<MesaResumo>('/tables')
-        if (cancelado) return
-        const ordenadas = [...lista].sort((a, b) => a.numero - b.numero)
-        setMesas(ordenadas)
-        setSelecionadas(ordenadas.map((mesa) => mesa.id))
-      } catch (error) {
-        if (!cancelado) {
-          setErro(error instanceof Error ? error.message : 'Falha ao carregar mesas')
-        }
-      } finally {
-        if (!cancelado) setLoading(false)
-      }
-    })()
-
-    return () => {
-      cancelado = true
+  const carregarMesas = useCallback(async () => {
+    setLoading(true)
+    setErro('')
+    try {
+      const lista = await fetchList<MesaResumo>('/tables')
+      const ordenadas = [...lista].sort((a, b) => a.numero - b.numero)
+      setMesas(ordenadas)
+      setSelecionadas(ordenadas.map((mesa) => mesa.id))
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Não foi possível carregar as mesas.')
+    } finally {
+      setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    void carregarMesas()
+  }, [carregarMesas])
 
   const mesasSelecionadas = useMemo(() => {
     const ids = new Set(selecionadas)
@@ -135,9 +129,7 @@ export default function MesaQrCodesPage() {
         </p>
 
         {erro && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {erro}
-          </div>
+          <ActionableError error={erro} fallback="Não foi possível concluir a operação com os QR Codes." onRetry={carregarMesas} className="mb-4" />
         )}
 
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">

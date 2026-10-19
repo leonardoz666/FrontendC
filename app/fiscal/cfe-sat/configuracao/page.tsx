@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { AlertTriangle, CheckCircle2, Copy, Eye, EyeOff, KeyRound, Settings2, ShieldCheck } from 'lucide-react'
 import TenantLink from '@/app/components/TenantLink'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
 
@@ -158,11 +159,7 @@ export default function ConfiguracaoSatPage() {
           <div className="h-72 rounded-2xl bg-slate-100" />
         </div>
       ) : loadError ? (
-        <div role="alert" className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">
-          <p className="font-bold">A configuração do SAT não foi carregada</p>
-          <p className="mt-1 text-sm">{loadError}</p>
-          <Button type="button" variant="outline" className="mt-4" onClick={() => void loadConfiguration()}>Tentar novamente</Button>
-        </div>
+        <ActionableError error={loadError} fallback="Não foi possível carregar a configuração do SAT." onRetry={() => loadConfiguration()} className="mt-8" />
       ) : (
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <form onSubmit={save} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Power, PowerOff } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 import { Switch } from '@/app/components/ui/Switch'
 import { ConfirmationModal } from '@/app/components/ConfirmationModal'
 import { DataTable, type DataTableColumn } from '@/app/components/ui/DataTable'
@@ -427,9 +428,7 @@ export default function ComplementosPage() {
           <h2 className="mb-3 text-lg font-semibold text-gray-900">Grupos</h2>
 
           {gruposQuery.isError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {(gruposQuery.error as Error)?.message ?? 'Falha ao carregar grupos'}
-            </div>
+            <ActionableError error={gruposQuery.error} fallback="Não foi possível carregar os grupos de complementos." onRetry={() => gruposQuery.refetch()} className="mb-4" />
           )}
 
           <DataTable<ComplementoGrupo>
@@ -480,9 +479,7 @@ export default function ComplementosPage() {
           </div>
 
           {complementosQuery.isError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {(complementosQuery.error as Error)?.message ?? 'Falha ao carregar complementos'}
-            </div>
+            <ActionableError error={complementosQuery.error} fallback="Não foi possível carregar os complementos." onRetry={() => complementosQuery.refetch()} className="mb-4" />
           )}
 
           <DataTable<Complemento>

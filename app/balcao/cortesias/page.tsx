@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, CalendarDays, Gift, LoaderCircle, RefreshCw } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { useBranding } from '@/app/contexts/BrandingContext'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 
 type CourtesyReportItem = {
   id: number
@@ -58,7 +59,7 @@ export default function CourtesyReportPage() {
 
     <section className="mt-4 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border border-slate-200 bg-white p-4"><span className="text-xs font-black uppercase tracking-wide text-slate-500">Concessões</span><strong className="mt-1 block text-2xl text-slate-950">{items.length}</strong></div><div className="rounded-2xl border border-orange-200 bg-orange-50 p-4"><span className="text-xs font-black uppercase tracking-wide text-orange-700">Valor concedido</span><strong className="mt-1 block text-2xl text-slate-950">{reportedTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></div><div className="rounded-2xl border border-slate-200 bg-white p-4"><span className="text-xs font-black uppercase tracking-wide text-slate-500">Ticket médio</span><strong className="mt-1 block text-2xl text-slate-950">{average.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></div></section>
 
-    {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-800">{error}</p>}
+    {error && <ActionableError error={error} fallback="Não foi possível carregar o relatório de cortesias." onRetry={load} className="mt-4" />}
     {loading ? <div className="grid min-h-72 place-items-center"><LoaderCircle className="animate-spin text-orange-600" /></div> : <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Data</th><th className="px-4 py-3">Atendimento / item</th><th className="px-4 py-3">Motivo</th><th className="px-4 py-3">Responsável</th><th className="px-4 py-3 text-right">Valor</th></tr></thead><tbody className="divide-y divide-slate-100">{items.map(item => <tr key={item.id} className="align-top hover:bg-slate-50"><td className="whitespace-nowrap px-4 py-3 text-slate-600">{new Date(item.criadoEm).toLocaleString('pt-BR')}</td><td className="px-4 py-3"><strong className="block text-slate-900">Balcão #{item.comandaId}</strong><span className="text-xs text-slate-500">{item.pedidoItem?.produto.nome ?? 'Atendimento completo'}</span></td><td className="max-w-sm px-4 py-3 text-slate-700">{item.motivo}</td><td className="px-4 py-3 text-slate-700">{item.autorizadoPor.nome}</td><td className="whitespace-nowrap px-4 py-3 text-right font-black text-violet-700">{Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td></tr>)}</tbody></table></div>{items.length === 0 && <div className="grid place-items-center gap-2 border-t border-slate-100 py-16 text-center text-slate-500"><Gift size={28} className="text-slate-300" /><p>Nenhuma cortesia no período selecionado.</p></div>}</div>}
   </main>
 }

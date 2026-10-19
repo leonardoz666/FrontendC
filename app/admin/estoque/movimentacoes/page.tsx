@@ -14,6 +14,7 @@ import { comoDecimalDigitado, comoNumero, formatarMoeda, paginaAtual, useListaCr
 import { formatarQuantidade } from '@/app/lib/quantity'
 import { useToast } from '@/contexts/ToastContext'
 import { PageLoader } from '@/app/components/ui/PageLoader'
+import { ActionableError } from '@/app/components/ui/ActionableError'
 
 const RESOURCE = '/insumos/movimentos'
 
@@ -211,9 +212,7 @@ function MovimentacoesEstoqueContent() {
       </p>
 
       {isError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {(error as Error)?.message ?? 'Falha ao carregar movimentos'}
-        </div>
+        <ActionableError error={error} fallback="Não foi possível carregar as movimentações de estoque." onRetry={() => refetch()} className="mb-4" />
       )}
 
       <DataTable
