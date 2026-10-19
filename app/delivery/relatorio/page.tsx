@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Bike, LoaderCircle, RefreshCw } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
+import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
 
 type Row = { id: number; nome: string; telefone: string; status: string; atribuidas: number; entregues: number; canceladas: number; ocorrencias: number; tempoMedioMin: number | null; valorEntregue: number; taxasEntrega: number; valorRecebido: number }
 type Report = { from: string; to: string; rows: Row[]; totals: { atribuidas: number; entregues: number; valorEntregue: number; valorRecebido: number } }
@@ -16,6 +17,16 @@ export default function DeliveryReportPage() {
   const [to, setTo] = useState(() => dateInput(new Date()))
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
+  const [urlReady, setUrlReady] = useState(false)
+  useEffect(() => {
+    const state = readUrlViewState({ inicio: from, fim: to })
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.inicio)) setFrom(state.inicio)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.fim)) setTo(state.fim)
+    setUrlReady(true)
+  }, [])
+  useEffect(() => {
+    if (urlReady) replaceUrlViewState({ inicio: from, fim: to })
+  }, [from, to, urlReady])
   const load = useCallback(async () => {
     setLoading(true)
     try { setReport(await apiFetch<Report>(`/delivery/report?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)) }

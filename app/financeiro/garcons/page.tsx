@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { CalendarDays, RefreshCw, Users } from 'lucide-react'
 import { apiFetch } from '@/app/lib/api'
 import { useToast } from '@/contexts/ToastContext'
+import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
 
 type Row = { garcomId: number; garcom: string; comandas: number; vendas: number; servico: number; estornos: number; cortesias: number; repasse: number }
 type Report = { from: string; to: string; rows: Row[]; totals: Omit<Row, 'garcomId' | 'garcom' | 'comandas'> & { vendas: number } }
@@ -17,6 +18,18 @@ export default function WaiterClosingPage() {
   const [period, setPeriod] = useState({ from: monthStart(), to: today() })
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(false)
+  const [urlReady, setUrlReady] = useState(false)
+  useEffect(() => {
+    const state = readUrlViewState({ inicio: period.from, fim: period.to })
+    setPeriod(current => ({
+      from: /^\d{4}-\d{2}-\d{2}$/.test(state.inicio) ? state.inicio : current.from,
+      to: /^\d{4}-\d{2}-\d{2}$/.test(state.fim) ? state.fim : current.to,
+    }))
+    setUrlReady(true)
+  }, [])
+  useEffect(() => {
+    if (urlReady) replaceUrlViewState({ inicio: period.from, fim: period.to })
+  }, [period.from, period.to, urlReady])
   const load = useCallback(async () => {
     setLoading(true)
     try { setReport(await apiFetch<Report>(`/financeiro/fechamento-garcons?from=${period.from}&to=${period.to}`)) }

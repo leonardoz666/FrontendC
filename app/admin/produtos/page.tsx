@@ -17,7 +17,7 @@ import { parseFlavorSizeConfig, type FlavorSizePrice } from '@/app/lib/flavor-si
 import { InlineLoader, PageLoader } from '@/app/components/ui/PageLoader'
 import { importProductCatalog } from '@/app/lib/product-import'
 import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
-import { clearTenantDraft, readTenantDraft, readTenantPreference, writeTenantDraft, writeTenantPreference } from '@/app/lib/view-state'
+import { clearTenantDraft, readTenantDraft, readTenantPreference, readUrlViewState, replaceUrlViewState, writeTenantDraft, writeTenantPreference } from '@/app/lib/view-state'
 import { 
   Plus, 
   Upload, 
@@ -87,6 +87,25 @@ export default function ProdutosPage() {
   const [sort, setSort] = useState<string | null>(null)
   const [order, setOrder] = useState<SortOrder | null>(null)
   const [categoriaFiltro, setCategoriaFiltro] = useState<number | null>(null)
+  const [urlReady, setUrlReady] = useState(false)
+
+  useEffect(() => {
+    const state = readUrlViewState({ pagina: '1', itens: '25', busca: '', ordem: '', direcao: '', categoria: '' })
+    const nextPage = Number(state.pagina)
+    const nextPageSize = Number(state.itens) as PageSize
+    if (Number.isInteger(nextPage) && nextPage > 0) setPage(nextPage)
+    if (PAGE_SIZE_OPTIONS.includes(nextPageSize)) setPageSize(nextPageSize)
+    setSearchTerm(state.busca)
+    setSort(state.ordem || null)
+    setOrder(state.direcao === 'asc' || state.direcao === 'desc' ? state.direcao : null)
+    setCategoriaFiltro(state.categoria && Number.isInteger(Number(state.categoria)) ? Number(state.categoria) : null)
+    setUrlReady(true)
+  }, [])
+
+  useEffect(() => {
+    if (!urlReady) return
+    replaceUrlViewState({ pagina: page, itens: pageSize, busca: searchTerm, ordem: sort, direcao: order, categoria: categoriaFiltro })
+  }, [categoriaFiltro, order, page, pageSize, searchTerm, sort, urlReady])
 
   const {
     data: paginaProdutos,

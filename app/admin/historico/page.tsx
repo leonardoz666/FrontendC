@@ -8,6 +8,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { PageLoader } from '@/app/components/ui/PageLoader'
 import { ActionableError } from '@/app/components/ui/ActionableError'
 import { Modal } from '@/app/components/ui/Modal'
+import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
 
 type HistoricoItem = {
   id: number
@@ -93,7 +94,23 @@ export default function HistoricoPedidosPage() {
   const [acaoEmAndamento, setAcaoEmAndamento] = useState<'EXPORTAR' | 'IMPORTAR' | 'EXCLUIR' | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [senhaExclusao, setSenhaExclusao] = useState('')
+  const [urlReady, setUrlReady] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const state = readUrlViewState({ inicio: dataInput(seteDiasAtras), fim: dataInput(hoje), tipo: 'TODOS', pagina: '1' })
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.inicio)) setInicio(state.inicio)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.fim)) setFim(state.fim)
+    if (state.tipo === 'TODOS' || state.tipo === 'LANCAMENTO' || state.tipo === 'CANCELAMENTO') setTipo(state.tipo)
+    const nextPage = Number(state.pagina)
+    if (Number.isInteger(nextPage) && nextPage > 0) setPagina(nextPage)
+    setUrlReady(true)
+  }, [hoje, seteDiasAtras])
+
+  useEffect(() => {
+    if (!urlReady) return
+    replaceUrlViewState({ inicio, fim, tipo, pagina })
+  }, [fim, inicio, pagina, tipo, urlReady])
 
   const atalhosDeData = useMemo(() => Array.from({ length: 7 }, (_, index) => {
     const data = new Date(seteDiasAtras)

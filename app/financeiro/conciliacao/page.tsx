@@ -5,6 +5,7 @@ import { ArrowRight, Check, FileUp, Landmark, LoaderCircle, RefreshCw, WalletCar
 import { apiFetch } from '@/app/lib/api'
 import { createIdempotencyKey } from '@/app/lib/offline'
 import { useToast } from '@/contexts/ToastContext'
+import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
 
 type Account = { id: number; nome: string }
 type Overview = { contas: Account[] }
@@ -33,6 +34,21 @@ export default function ReconciliationPage() {
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [period, setPeriod] = useState({ from: monthStart(), to: today(), formId: '' })
+  const [urlReady, setUrlReady] = useState(false)
+
+  useEffect(() => {
+    const state = readUrlViewState({ conta: '', inicio: period.from, fim: period.to, forma: '' })
+    setAccountId(state.conta)
+    setPeriod(current => ({
+      from: /^\d{4}-\d{2}-\d{2}$/.test(state.inicio) ? state.inicio : current.from,
+      to: /^\d{4}-\d{2}-\d{2}$/.test(state.fim) ? state.fim : current.to,
+      formId: state.forma,
+    }))
+    setUrlReady(true)
+  }, [])
+  useEffect(() => {
+    if (urlReady) replaceUrlViewState({ conta: accountId, inicio: period.from, fim: period.to, forma: period.formId })
+  }, [accountId, period.formId, period.from, period.to, urlReady])
 
   const loadBase = useCallback(async () => {
     setLoading(true)

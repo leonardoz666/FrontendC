@@ -11,6 +11,8 @@ import { apiFetch, fetchList, redirectToLogin } from '@/app/lib/api'
 import { usePagedQuery } from '@/app/lib/pagination'
 import { SeloAtivo } from '@/app/lib/crud-client'
 import { tenantResourceUrl } from '@/app/lib/tenant-navigation'
+import { readUrlViewState, replaceUrlViewState } from '@/app/lib/view-state'
+import { PAGE_SIZE_OPTIONS, type PageSize } from '@/app/lib/pagination'
 
 type Categoria = {
   id: number
@@ -55,6 +57,7 @@ export default function CategoriasPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [search, setSearch] = useState('')
+  const [urlReady, setUrlReady] = useState(false)
   const [orderedCategories, setOrderedCategories] = useState<Categoria[]>([])
   const [reordering, setReordering] = useState(false)
   const [duplicatingId, setDuplicatingId] = useState<number | null>(null)
@@ -82,6 +85,21 @@ export default function CategoriasPage() {
   const [alternandoId, setAlternandoId] = useState<number | null>(null)
   const [paraExcluir, setParaExcluir] = useState<Categoria | null>(null)
   const [excluindo, setExcluindo] = useState(false)
+
+  useEffect(() => {
+    const state = readUrlViewState({ pagina: '1', itens: '25', busca: '' })
+    const nextPage = Number(state.pagina)
+    const nextPageSize = Number(state.itens) as PageSize
+    if (Number.isInteger(nextPage) && nextPage > 0) setPage(nextPage)
+    if (PAGE_SIZE_OPTIONS.includes(nextPageSize)) setPageSize(nextPageSize)
+    setSearch(state.busca)
+    setUrlReady(true)
+  }, [])
+
+  useEffect(() => {
+    if (!urlReady) return
+    replaceUrlViewState({ pagina: page, itens: pageSize, busca: search })
+  }, [page, pageSize, search, urlReady])
 
   const { data, isLoading, isError, error, refetch } = usePagedQuery<Categoria>({
     resource: '/categories',

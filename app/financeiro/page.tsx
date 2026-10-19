@@ -15,7 +15,7 @@ import { apiFetch } from "@/app/lib/api";
 import { createIdempotencyKey } from "@/app/lib/offline";
 import { useToast } from "@/contexts/ToastContext";
 import { Modal } from "@/app/components/ui/Modal";
-import { readTenantPreference, writeTenantPreference } from "@/app/lib/view-state";
+import { clearTenantDraft, readTenantDraft, readTenantPreference, readUrlViewState, replaceUrlViewState, writeTenantDraft, writeTenantPreference } from "@/app/lib/view-state";
 
 type Account = {
   id: number;
@@ -89,6 +89,7 @@ const initialForm = (): CreateForm => ({
 });
 
 const FINANCE_DEFAULTS_SCOPE = "novo-titulo-financeiro";
+const FINANCE_DRAFT_SCOPE = "rascunho-titulo-financeiro";
 type FinanceDefaults = Pick<CreateForm, "planoContaId" | "centroCustoId">;
 const money = (value: number) =>
   Number(value || 0).toLocaleString("pt-BR", {
@@ -113,6 +114,16 @@ export default function FinancePage() {
     parcel: Parcel;
   } | null>(null);
   const [transferring, setTransferring] = useState(false);
+  const [urlReady, setUrlReady] = useState(false);
+
+  useEffect(() => {
+    const state = readUrlViewState({ aba: "PAGAR" });
+    if (state.aba === "PAGAR" || state.aba === "RECEBER") setTab(state.aba);
+    setUrlReady(true);
+  }, []);
+  useEffect(() => {
+    if (urlReady) replaceUrlViewState({ aba: tab });
+  }, [tab, urlReady]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -627,6 +638,18 @@ function CreateTitleModal({
   }>({ people: [], plans: [], costs: [] });
   const [saving, setSaving] = useState(false);
   useEffect(() => {
+    const draft = readTenantDraft<Partial<CreateForm>>(FINANCE_DRAFT_SCOPE);
+    if (draft) setForm((current) => ({ ...current, ...draft }));
+  }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const hasContent = Boolean(form.pessoaId || form.descricao.trim() || form.documento.trim() || form.valor);
+      if (hasContent) writeTenantDraft(FINANCE_DRAFT_SCOPE, form);
+      else clearTenantDraft(FINANCE_DRAFT_SCOPE);
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [form]);
+  useEffect(() => {
     const load = async () => {
       try {
         const [people, plans, costs] = await Promise.all([
@@ -690,6 +713,7 @@ function CreateTitleModal({
         planoContaId: form.planoContaId,
         centroCustoId: form.centroCustoId,
       });
+      clearTenantDraft(FINANCE_DRAFT_SCOPE);
       await onSaved();
     } catch (error) {
       showToast(
