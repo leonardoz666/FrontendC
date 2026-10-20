@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   requestedTenantSlug,
@@ -33,12 +33,13 @@ export function useTenantRouter() {
     router.replace(tenantPageUrl(href, tenantSlug), options)
   }, [router, tenantSlug])
 
-  return {
+  // Consumers use this object in effect dependencies (including installation checks).
+  return useMemo(() => ({
     back: router.back,
     forward: router.forward,
     prefetch: router.prefetch,
     refresh: router.refresh,
     push,
     replace,
-  }
+  }), [router, push, replace])
 }

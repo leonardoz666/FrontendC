@@ -23,7 +23,7 @@
     "test:tenant-branding": "node scripts/verify-tenant-branding-isolation.cjs",
     "test:data-table-stability": "node scripts/verify-data-table-callback-stability.cjs",
     "test:module-coverage": "node scripts/verify-module-coverage.cjs",
-    "test:multi-tenant-installation": "ts-node --project scripts/tsconfig.json scripts/verify-multi-tenant-installation.ts",
+    "test:multi-tenant-installation": "node scripts/verify-tenant-router-stability.cjs && node scripts/verify-installation-status-stability.cjs && ts-node --project scripts/tsconfig.json scripts/verify-multi-tenant-installation.ts",
     "test:auth-session-cache": "ts-node --project scripts/tsconfig.json scripts/verify-auth-session-cache.ts",
     "typecheck": "tsc --noEmit",
     "start": "node --disable-warning=DEP0060 node_modules/next/dist/bin/next start",

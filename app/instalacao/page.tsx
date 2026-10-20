@@ -15,6 +15,7 @@ type InstallationStatus = { active: boolean; establishmentUrl?: string; tenantSl
 
 export default function InstallationPage() {
   const router = useTenantRouter()
+  const { replace } = router
   const [establishmentUrl, setEstablishmentUrl] = useState('')
   const [code, setCode] = useState('')
   const [showCode, setShowCode] = useState(false)
@@ -60,7 +61,7 @@ export default function InstallationPage() {
         const destination = current.tenantSlug
           ? `/login?estabelecimento=${encodeURIComponent(current.tenantSlug)}`
           : '/login'
-        router.replace(destination)
+        replace(destination)
         return
       }
       setStatus(current)
@@ -70,7 +71,7 @@ export default function InstallationPage() {
     } finally {
       setStatusLoading(false)
     }
-  }, [router])
+  }, [replace])
 
   useEffect(() => {
     document.documentElement.classList.remove('dark')
